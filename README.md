@@ -1,10 +1,18 @@
-# FAIRplus imi-data-catalogue
+# Data Catalog
 
-**Name:** FAIRplus catalogue for IMI projects and associated Datasets
+**Name:** Data Catalog
 
-**Goal:** Create a database of IMI funded **projects** and their associated **datasets**
+**Goal:** Advertise bio-medical **projects** and their associated **datasets**
 
 Local installation of development environment and procedure for docker version are described below.
+
+**Instances:**
+
+This software is behind the following instances:
+  
+* [ELIXIR-LU Data Catalog](https://datacatalog.elixir-luxembourg.org)
+* [Biomap Cohort Catalog](https://biomap-cohort-catalog.uni.lu)
+     
 
 ## Table of content
 
@@ -250,3 +258,7 @@ Install needed dependencies with:
 
 Configure pre-commit hook for black and flake8:  
 see https://dev.to/m1yag1/how-to-setup-your-project-with-pre-commit-black-and-flake8-183k
+
+## Acknowledgments
+
+This project was initially published as [FAIRplus/imi-data-catalogue](https://github.com/FAIRplus/imi-data-catalogue).
