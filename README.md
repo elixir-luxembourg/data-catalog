@@ -261,4 +261,4 @@ see https://dev.to/m1yag1/how-to-setup-your-project-with-pre-commit-black-and-fl
 
 ## Acknowledgments
 
-This project was initially published as [FAIRplus/imi-data-catalogue](https://github.com/FAIRplus/imi-data-catalogue).
+This tool was initially developed as a joint effort among [IMI-FAIRplus](https://www.imi.europa.eu/projects-results/project-factsheets/fairplus), [IMI-eTRIKS](https://www.imi.europa.eu/projects-results/project-factsheets/etriks) and [ELIXIR-Luxembourg](https://elixir-luxembourg.org/). The original code can be found [here](https://github.com/FAIRplus/imi-data-catalogue).
