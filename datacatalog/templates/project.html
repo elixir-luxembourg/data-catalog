@@ -4,8 +4,8 @@
 
 
 {% block jsonld %}
-    {{ super() }}
-    <script type="application/ld+json">
+{{ super() }}
+<script type="application/ld+json">
     {
       "@context": "http://schema.org",
       "@id": "{{ request.url }}",
@@ -16,14 +16,14 @@
         },
       "name": "{{ project.title }}",
       "description": "{{ project.description }}",
-      "alternateName": "{{ project.acronym }}",
+      "alternateName": "{{ project.project_name }}",
       "identifier": {
           "@type": "PropertyValue",
           "@id": "{{ project.id }}"
         },
       "sameAs": "{{ project.website }}",
       "keywords": [
-        {% for keyword in project.keywords -%}{"@type":  "DefinedTerm", "@id": "", "name": "{{ keyword }}"}{{ ", " if not loop.last }}
+        {% for keyword in project.keywords or [] -%}{"@type":  "DefinedTerm", "@id": "", "name": "{{ keyword }}"}{{ ", " if not loop.last }}
         {%- endfor %}],
       "url": "{{ request.url }}",
       "foundingDate": "{{ project.start_date }}",
@@ -48,106 +48,133 @@
 
 
 {% block content %}
-    <div class="well box projectDetails">
-        {% if fair_evaluations_show and project.fair_evaluation %}
-            <p class="fairResultsStamp"><img alt='fairplus stamp'
-                                             title="Dataset processed by FAIRplus. See FAIRplus Evaluation tab for details."
-                                             src="/static/public/images/fairplus-stamp.png"/></p>
-        {% endif %}
-        <h1>{{ project.title }}</h1>
-        {% if config.get('ALLOW_ENTITY_EXPORT', False) %}
-            <div class="form-inline">
-                <div class="button-link input-group">
-                    <p class="input-group-btn">
-                        <i class="material-icons">download</i>
-                    </p>
-                    <a class="btn button-link-text"
-                       href="{{ url_for('export_dats_entity', entity_name='project', entity_id=project.id) }}">Export
-                        Metadata
-                        as DATS</a>
-
-                </div>
-            </div>
-        {% endif %}
-        <p class="notes">{{ project.description | default("", True) }}</p>
-        <p>
-            {% if project.keywords %}
-                keywords: {{ macros.split_labels(project.keywords, facet_url=facets_url.keywords) }}
-            {% endif %}
-        </p>
-
-        <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
-
-            {#    GENERAL INFORMATION   #}
-
-            {{ macros.start_panel("General Project Information", "general_information", True) }}
-            {{ macros.show_field_link(project.website, "Project website", project.website) }}
-            {{ macros.show_field_text(project.start_date | date, "Start date", facet_url=facets_url.start_date) }}
-            {{ macros.show_field_text(project.end_date | date, "End date", facet_url=facets_url.end_date) }}
-            {{ macros.show_field_text(project.funded_by, "Funding", facet_url=facets_url.funded_by) }}
-            {{ macros.show_field_list(project.types, "Types", facet_url=facets_url.types) }}
-            {{ macros.show_field_list(project.reference_publications, "Project publications", facet_url=facets_url.reference_publications) }}
-
-            {{ macros.end_panel() }}
-
-            {#    CONTACTS    #}
-            {% if contacts %}
-                {{ macros.start_panel("Contacts", "contacts") }}
-                {{ macros.show_contact(contacts) }}
-                {{ macros.end_panel() }}
-            {% endif %}
-
-            {% if  project.studies_entities or project.datasets_entities %}
-                {{ macros.start_panel("Studies and datasets", "studies_datasets") }}
-                <table class="table table-striped">
-                    <thead>
-                    <tr>
-                        <td>Study</td>
-                        <td>Datasets</td>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {% for study in project.studies_entities %}
-                        <tr>
-                            <td>
-                                <a href="{{ url_for('entity_details', entity_name='study', entity_id=study.id) }}">{{ study.title }}</a>
-                            </td>
-                            <td>
-                                {% for  dataset in study.datasets_entities %}
-                                    <span class="label label-primary"><a
-                                            href="{{ url_for('entity_details', entity_name='dataset', entity_id=dataset.id) }}">{{ dataset.title }}</a></span>
-                                {% endfor %}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                    {% if project.datasets_entities %}
-                        <tr>
-                            <td>-</td>
-                            <td>
-                                {% for dataset in project.datasets_entities %}
-                                    <span class="label label-primary">
-                                <a
-                                        href="{{ url_for('entity_details', entity_name='dataset', entity_id=dataset.id) }}">{{ dataset.title }}</a>
-                            </span>
-                                {% endfor %}
-                            </td>
-                        </tr>
-                    {% endif %}
-
-
-                    </tbody>
-                </table>
-                {{ macros.end_panel() }}
-            {% endif %}
-
-            {#    ATTACHED FILES    #}
-            {% if attachments_exist %}
-                {{ macros.start_panel("Attached files") }}
-                <div id="attachments-datatable" data-url="{{ attachment_url }}"></div>
-                {{ macros.end_panel() }}
-            {% endif %}
+<div class="well box projectDetails">
+    {% if fair_evaluations_show and project.fair_evaluation %}
+    <p class="fairResultsStamp"><img alt='fairplus stamp'
+            title="Dataset processed by FAIRplus. See FAIRplus Evaluation tab for details."
+            src="/static/public/images/fairplus-stamp.png" /></p>
+    {% endif %}
+    <h1>{{ project.title }}</h1>
+    {% if config.get('ALLOW_ENTITY_EXPORT', False) %}
+    <div class="form-inline">
+        <div class="button-link input-group">
+            <p class="input-group-btn">
+                <i class="material-icons">download</i>
+            </p>
+            <a class="btn button-link-text"
+                href="{{ url_for('export_dats_entity', entity_name='project', entity_id=project.id) }}">
+                Export Metadata as DATS</a>
         </div>
     </div>
+    {% endif %}
+
+    {# INFO #}
+
+    {{ macros.start_entity_info() }}
+    {{ macros.entity_info_row("Description", project.description | default("", True)) }}
+    {{ macros.entity_info_row("Accession number", project.id) }}
+    {{ macros.entity_info_row("Project acronym", project.project_name) }}
+    {{ macros.entity_info_row("Project website", project.website, link=project.website) }}
+    {{ macros.entity_info_row("Start date", project.start_date | date) }}
+    {{ macros.entity_info_row("End date", project.end_date | date) }}
+    {{ macros.entity_info_row("Funding", project.funded_by) }}
+    {{ macros.entity_info_row("Types", project.types, list=True, facet_url=facets_url.types) }}
+    {{ macros.entity_info_row("Project publications", project.reference_publications, list=True) }}
+    {{ macros.entity_info_row("Keywords", project.keywords, list=True, facet_url=facets_url.keywords) }}
+    {{ macros.end_entity_info() }}
+
+
+    <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+
+        {# DATASETS #}
+
+        {% if study_datasets %}
+        {{ macros.start_panel("Datasets", "datasets", expanded=True, listType="") }}
+        <table class="table table-striped project-table">
+            <thead>
+                <tr class="bold-row">
+                    <td style="width: 180px;">Accession number</td>
+                    <td>Title</td>
+                    <td>Create date</td>
+                    <td>Study</td>
+                    <td>{{config.get('HOSTED_STRING')}}</td>
+                </tr>
+            </thead>
+            <tbody>
+                {% for dataset in study_datasets %}
+                <tr>
+                    <td>{{ dataset.dataset_id }}</td>
+                    <td>
+                        <a href="{{ url_for('entity_details', entity_name='dataset', entity_id=dataset.dataset_id) }}">
+                            {{ dataset.title }}
+                        </a>
+                    </td>
+                    <td>{{ dataset.create_date }}</td>
+                    <td>
+                        {% if dataset.study_title != "-" %}
+                        <a href="{{ url_for('entity_details', entity_name='study', entity_id=dataset.study_id) }}">
+                            {{ dataset.study_title }}
+                        </a>
+                        {% else %}
+                        {{ dataset.study_title }}
+                        {% endif %}
+                    </td>
+                    <td>{{ dataset.hosted }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {{ macros.end_panel(listType="") }}
+        {% endif %}
+
+        {# STUDIES #}
+
+        {% if project.studies_entities %}
+        {{ macros.start_panel("Studies", "studies", listType="") }}
+        <table class="table table-striped project-table">
+            <thead>
+                <tr class="bold-row">
+                    <td>Title</td>
+                    <td>Primary purpose</td>
+                    <td>Study type</td>
+                    <td>Organism</td>
+                </tr>
+            </thead>
+            <tbody>
+                {% for study in project.studies_entities %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('entity_details', entity_name='study', entity_id=study.id) }}">
+                            {{ study.title }}
+                        </a>
+                    </td>
+                    <td>{{ study.primary_purpose }}</td>
+                    <td>{{ macros.show_field_list(study.types) }}</td>
+                    <td>{{ macros.show_field_list(study.organisms) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {{ macros.end_panel(listType="") }}
+        {% endif %}
+
+        {# CONTACTS #}
+
+        {% if contacts %}
+        {{ macros.start_panel("Contacts", "contacts", listType="") }}
+        {{ macros.show_contact(contacts) }}
+        {{ macros.end_panel(listType="") }}
+        {% endif %}
+
+        {# ATTACHED FILES #}
+
+        {% if attachments_exist %}
+        {{ macros.start_panel("Attached files", listType="") }}
+        <div id="attachments-datatable" data-url="{{ attachment_url }}"></div>
+        {{ macros.end_panel(listType="") }}
+        {% endif %}
+    </div>
+</div>
 
 
 {% endblock %}

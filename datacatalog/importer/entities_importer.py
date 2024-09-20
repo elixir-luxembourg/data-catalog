@@ -61,7 +61,8 @@ class EntitiesImporter(object):
             for entity in entities:
                 entity.set_computed_values()
                 entity.connector_name = connector.__class__.__name__
-                entity.save()
+                # soft commit required for relationships to work correctly
+                entity.save(soft_commit=True)
                 count += 1
                 count_connector += 1
             logger.info(

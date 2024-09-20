@@ -13,7 +13,10 @@
 
             <div class="panel-body" style="position:relative">
                 <h3>
-                    <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=dataset.id) }}">{{ dataset.title| truncate(55, True) }}</a>
+                    <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=dataset.id) }}">
+                        {{ dataset.title| truncate(55, True) }}
+                    </a>
+                    {{macros.small_id_row(dataset)}}
                     {% if dataset.open_access_link %}
                         <a href={{ dataset.open_access_link }}
                                    class="btn" role="button" style="width:1px;padding:5px;font-size: 18px"><span
@@ -28,7 +31,6 @@
                                                      src="/static/public/images/fairplus-stamp.png"/></a>
                 {% endif %}
                 <p class="search-description"></p>
-                <p style="position:absolute;top:0;right:0;padding:2px;"><span>{{ loop.index + start_rank }}</span></p>
             </div>
             <div class="panel-footer">
                 <div class="row">

@@ -165,18 +165,16 @@
 {% endmacro %}
 
 {% macro show_field_list_entities(entities, label, entity_name) %}
-    <ol>
-        {% if entities %}
-            {% for entity in entities %}
-                <li>
-                    {% set link = url_for('entity_details', entity_name=entity_name, entity_id = entity.id) %}
-                    <a href="{{ link }}">{{ entity.title }}</a>
-                </li>
-            {% endfor %}
-        {% else %}
-            -
-        {% endif %}
-    </ol>
+    {% if entities %}
+        {% for entity in entities %}
+            <li>
+                {% set link = url_for('entity_details', entity_name=entity_name, entity_id = entity.id) %}
+                <a href="{{ link }}">{{ entity.title }}</a>
+            </li>
+        {% endfor %}
+    {% else %}
+        -
+    {% endif %}
 {% endmacro %}
 
 
@@ -306,7 +304,7 @@
 {% endmacro %}
 
 
-{% macro start_panel(label, id, expanded=False, buttons=None) %}
+{% macro start_panel(label, id, expanded=False, buttons=None, listType='dl') %}
 
     <div class="panel panel-default panel-flat">
     <div class="panel-heading" role="tab" id="{{ id }}-heading" data-toggle="collapse" data-parent="#accordion"
@@ -329,13 +327,13 @@
          role="tabpanel"
          aria-labelledby="{{ id }}-headings">
     <div class="panel-body">
-    <dl>
+    {% if listType %}<{{ listType }}>{% endif %}
 
 {% endmacro %}
 
 
-{% macro end_panel() %}
-    </dl>
+{% macro end_panel(listType='dl') %}
+    {% if listType %}</{{ listType }}>{% endif %}
     </div>
     </div>
     </div>
@@ -374,4 +372,37 @@
 {% macro end_table() %}
     </tbody>
     </table>
+{% endmacro %}
+
+{% macro start_entity_info() %}
+    <div class="entity-info">
+{% endmacro %}
+
+{% macro entity_info_row(name, value, link=None, facet_url=None, list=False) %}
+    {%- if value %}
+    <div class="entity-info-row">
+        <div class="entity-info-label bold-row">{{ name }}</div>
+        <div class="entity-info-value">
+            {% if link %}
+                <a href="{{ link }}">{{ value }}</a>
+            {% else %}  
+                {% if list %}
+                    {{ show_field(value, label, list=True, facet_url=facet_url) }}
+                {% else %}  
+                    {{ value }}
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+    {% endif -%}
+{% endmacro %}
+
+
+{% macro end_entity_info() %}
+    </div>
+{% endmacro %}
+
+
+{% macro small_id_row(entity) %}
+<div class="small-id">{{ entity.id }}</div>
 {% endmacro %}

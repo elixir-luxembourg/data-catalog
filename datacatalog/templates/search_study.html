@@ -14,7 +14,10 @@
 
             <div class="panel-body" style="position:relative">
                 <h3>
-                    <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=study.id) }}">{{ study.title| default("", True)|truncate(55, True) }}</a>
+                    <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=study.id) }}">
+                        {{ study.title| default("", True)|truncate(55, True) }}
+                    </a>
+                    {{macros.small_id_row(study)}}
                 </h3>
                 {% if fair_evaluations_show and study.fair_evaluation %}
                     <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=study.id) }}#fairplus-evaluation-fields"
@@ -23,7 +26,6 @@
                                                      src="/static/public/images/fairplus-stamp.png"/></a>
                 {% endif %}
                 <p class="search-description">{{ study.description | default("", True)|truncate(500, True) }}</p>
-                <p style="position:absolute;top:0;right:0;padding:2px;"><span>{{ loop.index + start_rank }}</span></p>
             </div>
             <div class="panel-footer">
                 <div class="row">

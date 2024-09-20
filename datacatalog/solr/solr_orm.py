@@ -82,6 +82,34 @@ class SolrQuery(object):
         self.entity_name = class_object.__name__.lower()
         self.solr_orm = solr_orm
 
+    def query_has_solr_query_field(self, query: str) -> bool:
+        """
+        Check if the given query has a valid Solr query field preceding the ':'
+
+        Args:
+            query (str): The query string to check.
+
+        Returns:
+            bool: True if the query has a valid Solr query field, False otherwise.
+        """
+        parts = query.split("_")
+
+        # Check if there are at least two parts after splitting
+        if len(parts) >= 2:
+            # Check if the first part before "_" is equal to entity_name
+            if parts[0] == self.entity_name:
+                second_part = parts[1].split(":")
+                solr_query_fields_all = self.class_object._solr_fields
+                solr_query_fields = [
+                    key for key, value in solr_query_fields_all.items() if value.indexed
+                ]
+                if not solr_query_fields:
+                    solr_query_fields = self.DEFAULT_QUERY_FIELDS
+                # Check if the second part (after "_") is in solr_query_fields
+                if len(second_part) >= 2 and second_part[0] in solr_query_fields:
+                    return True
+        return False
+
     def search_holding_entities(self, target_entity_id, field_name, source_entity_type):
         params = {
             "fq": [
@@ -140,8 +168,10 @@ class SolrQuery(object):
 
         query = query.strip()
         q = "*:*"
-        if query:
-            if ":" in query:  # for queries like "dataset_disease:*corona*"
+        if query and not query == "*:*":
+            if ":" in query and self.query_has_solr_query_field(
+                query
+            ):  # for queries like "dataset_disease:*corona*"
                 fq.append(query)
             else:
                 if fuzzy:
@@ -250,7 +280,7 @@ class SolrQuery(object):
         @return: list of Facet instances
         """
         facets = {}
-        for (attribute_name, label) in facet_list:
+        for attribute_name, label in facet_list:
             solr_field = self.class_object._solr_fields.get(attribute_name, None)
             if solr_field is not None:
                 facets[attribute_name] = Facet(solr_field.name, label)

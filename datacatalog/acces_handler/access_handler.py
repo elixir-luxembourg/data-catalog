@@ -66,6 +66,7 @@ class ApplicationState(Enum):
     submitted = "submitted"
     revoked = "revoked"
     rejected = "rejected"
+    returned = "returned"
 
 
 class Application:

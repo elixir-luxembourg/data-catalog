@@ -309,8 +309,14 @@ footer .helper {
   color: black;
 }
 
+.label {
+  border-radius: 4px;
+}
 .label.label-default .label.label-primary {
   background-color: @labels-color;
+}
+.label.label-disabled {
+  background-color: @blue-grey-100;
 }
 
 .large {
@@ -496,6 +502,21 @@ body.modal-open {
   color: black;
 }
 
+.panel-body {
+  dl {
+    margin-top: 0;
+    margin-bottom: 0;
+    display: grid;
+    grid-template-columns: max-content auto;
+    column-gap: 50px;
+    row-gap: 13px;
+  }
+  @media (max-width: 768px) {
+    dl {
+      grid-template-columns: none
+    }
+  }
+}
 .panel-dataset .panel-body {
   padding-bottom: 5px;
 }
@@ -560,23 +581,16 @@ body.modal-open {
 
 .panel-group {
   dt {
-    float: left;
-    clear: left;
-    margin-top: 15px;
     font-weight: normal;
     font-style: italic;
-    width: 30%;
   }
 
-  dd {
-    float: left;
-    margin-top: 15px;
-    margin-left: 3px;
-    width: 69%;
+    dd {
     display: flex;
     flex-wrap: wrap;
     gap: 5px;
-
+    margin-inline-start: 0;
+    overflow-wrap: anywhere;
     span.label {
       display: block;
       white-space: normal;
@@ -590,6 +604,10 @@ body.modal-open {
   width: 100%;
   text-align: center;
   margin-top: 15px;
+}
+
+.project-table td {
+  max-width: 300px;
 }
 
 .bold-row{
@@ -752,8 +770,8 @@ h1 {
 
 .datasetRestrictions {
   th:last-child {
-    width: 12ch;
-    text-align: right;
+    width: 24ch;
+    text-align: left;
   }
 
   th:first-child {
@@ -761,7 +779,7 @@ h1 {
   }
 
   td:last-child {
-    text-align: right;
+    text-align: left;
   }
 
   td:first-child {
@@ -1182,4 +1200,31 @@ footer {
   }
 }
 
+.small-id {
+  font-size: 50%;
+  margin-top: 10px;
+  font-weight: lighter;
+}
 
+.entity-info {
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+  margin: 20px auto;
+}
+
+.entity-info-row {
+  display: flex;
+}
+
+.entity-info-label {
+  max-width: 170px;
+  min-width: 170px;
+  flex: 1;
+  padding: 10px;
+}
+
+.entity-info-value {
+  flex: 1;
+  padding: 10px;
+}

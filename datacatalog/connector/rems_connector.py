@@ -48,7 +48,6 @@ class RemsConnector(ExportEntitiesConnector):
         api_username,
         api_key,
         host,
-        form_id,
         workflow_id,
         organization_id=None,
         licenses=None,
@@ -72,7 +71,6 @@ class RemsConnector(ExportEntitiesConnector):
             }
         else:
             self.authentication_kwargs_admin = self.authentication_kwargs
-        self.form_id = form_id
         self.wfid = workflow_id
         self.organization_id = organization_id
         self.licenses = licenses
@@ -120,7 +118,8 @@ class RemsConnector(ExportEntitiesConnector):
         organization_id = OrganizationId(self.organization_id)
         count = 0
         for entity in entities:
-            if not entity.e2e:
+            # Skip exporting entity with e2e False or form_id None
+            if not entity.e2e or getattr(entity, "form_id", None) is None:
                 continue
             count += 1
             entity_name = type(entity).__name__.lower()
@@ -159,10 +158,12 @@ class RemsConnector(ExportEntitiesConnector):
                 items = rems_catalogue.api_catalogue_items_get(
                     resource=res_id, **self.authentication_kwargs
                 )
-                if items:
-                    logger.debug("catalogue entry found")
-                    item = items[0]
-                    if item.formid == self.form_id and item.wfid == self.wfid:
+                item_updated = False
+                for item in items:
+                    if (
+                        item.formid == getattr(entity, "form_id")
+                        and item.wfid == self.wfid
+                    ):
                         logger.debug("updating title and infourl")
                         body_item = remsclient.EditCatalogueItemCommand(
                             item.id, localizations=localizations
@@ -170,19 +171,18 @@ class RemsConnector(ExportEntitiesConnector):
                         rems_catalogue.api_catalogue_items_edit_put(
                             body_item, **self.authentication_kwargs
                         )
-                        continue
-                    else:
-                        logger.debug("formid or wfid changed, archiving old item")
-                        # form id or wfid changed, we archive the old item
-                        body = remsclient.ArchivedCommand(item.id, archived=True)
-                        rems_catalogue.api_catalogue_items_archived_put(
-                            body, **self.authentication_kwargs
-                        )
+                        item_updated = True
+                        break
+                if item_updated:
+                    continue
 
             logger.debug("creating catalogue entry")
+
+            form_id = getattr(entity, "form_id", None)
+
             body_item = remsclient.CreateCatalogueItemCommand(
                 resid=res_id_int,
-                form=self.form_id,
+                form=form_id,
                 wfid=self.wfid,
                 enabled=True,
                 localizations=localizations,
@@ -206,17 +206,30 @@ class RemsConnector(ExportEntitiesConnector):
         logger.debug("%d resources found", len(resources_ids))
         return resources_ids
 
-    def get_catalogue_item(self, dataset_id):
-        logger.debug("getting catalogue item for dataset %s", dataset_id)
+    def get_catalogue_item(self, entity):
+        logger.debug(
+            "getting catalogue item for %s %s", type(entity).__name__, entity.id
+        )
         rems_catalogue = remsclient.CatalogueItemsApi(self.rems_client)
         items = rems_catalogue.api_catalogue_items_get(
-            resource=dataset_id, **self.authentication_kwargs
+            resource=entity.id, **self.authentication_kwargs
         )
+
         if len(items) == 0:
-            message = f"no catalogue item found for resource {dataset_id}"
+            message = f"no catalogue item found for resource {entity.id}"
             logger.warning(message)
             raise CatalogueItemDoesntExistException(message)
-        return items[0]
+
+        else:
+            if getattr(entity, "form_id", None) is not None:
+                for item in items:
+                    # return catalogue item that matches both dataset_id and form_id
+                    if item.formid == entity.form_id and item.wfid == self.wfid:
+                        return item
+
+            message = f"no catalogue item found for resource {entity.id}"
+            logger.warning(message)
+            raise CatalogueItemDoesntExistException(message)
 
     def get_resource(self, resource_id):
         logger.debug("getting resource for resource_id %s", resource_id)

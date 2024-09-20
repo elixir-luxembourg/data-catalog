@@ -30,7 +30,6 @@ __author__ = "Nirmeen Sallam"
 
 
 class TestPyOIDCAuthentication(BaseTest):
-
     skip_tests_flag = False
     error_msg = ""
 

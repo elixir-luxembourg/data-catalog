@@ -33,7 +33,6 @@ class TestInit(BaseTest):
         self.assertIsInstance(handler, EmailAccessHandler)
 
     def test_rems_get_access_handler(self):
-
         self.solr_orm = app.config["_solr_orm"]
         self.solr_orm.delete_fields()
         self.solr_orm.commit()

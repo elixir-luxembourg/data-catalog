@@ -23,7 +23,10 @@ from os import path
 
 from datacatalog import app
 from datacatalog.acces_handler.rems_handler import FieldBuilder
-from datacatalog.connector.rems_connector import RemsConnector
+from datacatalog.connector.rems_connector import (
+    RemsConnector,
+    CatalogueItemDoesntExistException,
+)
 from datacatalog.models.dataset import Dataset
 from tests.base_test import BaseTest
 
@@ -31,17 +34,27 @@ __author__ = "Nirmeen Sallam"
 
 
 class TestRemsConnector(BaseTest):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.solr_orm = app.config["_solr_orm"]
+        cls.solr_orm.delete_fields()
+        cls.solr_orm.create_fields()
+
     def setUp(self):
         self.assertTrue(self.app.testing)
         title = "Great dataset!"
         self.dataset = Dataset(title)
         self.dataset.e2e = True
+        self.dataset.form_id = 3
         self.dataset_id = self.dataset.id
+        self.dataset.save()
+        self.solr_orm.commit()
+
         self.rems_connector = RemsConnector(
             app.config.get("REMS_API_USER"),
             app.config.get("REMS_API_KEY"),
             app.config.get("REMS_URL"),
-            app.config.get("REMS_FORM_ID"),
             app.config.get("REMS_WORKFLOW_ID"),
             app.config.get("REMS_ORGANIZATION_ID"),
             app.config.get("REMS_LICENSES"),
@@ -50,13 +63,13 @@ class TestRemsConnector(BaseTest):
 
     def test_create_application(self):
         self.rems_connector.export_entities([self.dataset])
-        catalogue_item = self.rems_connector.get_catalogue_item(self.dataset_id)
+        catalogue_item = self.rems_connector.get_catalogue_item(self.dataset)
         response_id = self.rems_connector.create_application([catalogue_item.id])
         self.assertIsNotNone(response_id)
 
     def test_save_application_draft(self):
         self.rems_connector.export_entities([self.dataset])
-        catalogue_item = self.rems_connector.get_catalogue_item(self.dataset.id)
+        catalogue_item = self.rems_connector.get_catalogue_item(self.dataset)
         rems_form = self.rems_connector.get_form_for_catalogue_item(
             catalogue_item.formid
         )
@@ -78,9 +91,9 @@ class TestRemsConnector(BaseTest):
 
     def test_export_entities_already_exported(self):
         self.rems_connector.export_entities([self.dataset])
-        catalogue_item = self.rems_connector.get_catalogue_item(self.dataset_id)
+        catalogue_item = self.rems_connector.get_catalogue_item(self.dataset)
         self.rems_connector.export_entities([self.dataset])
-        catalogue_item_2 = self.rems_connector.get_catalogue_item(self.dataset_id)
+        catalogue_item_2 = self.rems_connector.get_catalogue_item(self.dataset)
         self.assertEqual(catalogue_item.resid, catalogue_item_2.resid)
 
     def test_load_resources(self):
@@ -90,24 +103,39 @@ class TestRemsConnector(BaseTest):
 
     def test_get_catalogue_item(self):
         self.rems_connector.export_entities([self.dataset])
-        catalogue_item = self.rems_connector.get_catalogue_item(self.dataset_id)
+        catalogue_item = self.rems_connector.get_catalogue_item(self.dataset)
         self.assertEqual(catalogue_item.resid, self.dataset_id)
+
+    def test_get_catalogue_item_matching_formid(self):
+        self.rems_connector.export_entities([self.dataset])
+        catalogue_item = self.rems_connector.get_catalogue_item(self.dataset)
+        self.assertEqual(catalogue_item.resid, self.dataset_id)
+        self.assertEqual(catalogue_item.formid, self.dataset.form_id)
+
+    def test_get_catalogue_item_not_found(self):
+        self.rems_connector.export_entities([self.dataset])
+        self.dataset.form_id = None
+        self.assertRaises(
+            CatalogueItemDoesntExistException,
+            self.rems_connector.get_catalogue_item,
+            self.dataset,
+        )
 
     def test_get_resource(self):
         self.rems_connector.export_entities([self.dataset])
-        catalogue_item = self.rems_connector.get_catalogue_item(self.dataset_id)
+        catalogue_item = self.rems_connector.get_catalogue_item(self.dataset)
         resource = self.rems_connector.get_resource(catalogue_item.resource_id)
         self.assertEqual(resource.resid, catalogue_item.resid)
 
     def test_get_form_for_catalogue_item(self):
         self.rems_connector.export_entities([self.dataset])
-        catalogue_item = self.rems_connector.get_catalogue_item(self.dataset.id)
+        catalogue_item = self.rems_connector.get_catalogue_item(self.dataset)
         form = self.rems_connector.get_form_for_catalogue_item(catalogue_item.formid)
         self.assertIsNotNone(form)
 
     def test_accept_license(self):
         self.rems_connector.export_entities([self.dataset])
-        catalogue_item = self.rems_connector.get_catalogue_item(self.dataset.id)
+        catalogue_item = self.rems_connector.get_catalogue_item(self.dataset)
         application_id = self.rems_connector.create_application([catalogue_item.id])
         resource_id = catalogue_item.resource_id
         resource = self.rems_connector.get_resource(resource_id)
@@ -131,7 +159,7 @@ class TestRemsConnector(BaseTest):
 
     def test_submit_application(self):
         self.rems_connector.export_entities([self.dataset])
-        catalogue_item = self.rems_connector.get_catalogue_item(self.dataset.id)
+        catalogue_item = self.rems_connector.get_catalogue_item(self.dataset)
         rems_form = self.rems_connector.get_form_for_catalogue_item(
             catalogue_item.formid
         )
@@ -184,7 +212,7 @@ class TestRemsConnector(BaseTest):
 
         open(path.join(self.test_dir, "test.pdf"), "w").close()
         self.rems_connector.export_entities([self.dataset])
-        catalogue_item = self.rems_connector.get_catalogue_item(self.dataset.id)
+        catalogue_item = self.rems_connector.get_catalogue_item(self.dataset)
         application_id = self.rems_connector.create_application([catalogue_item.id])
         response_id = self.rems_connector.add_attachment(
             application_id, path.join(self.test_dir, "test.pdf")

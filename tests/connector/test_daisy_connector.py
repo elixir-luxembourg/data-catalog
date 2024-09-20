@@ -20,6 +20,7 @@ from unittest.mock import patch, Mock
 
 from datacatalog import app
 from datacatalog.connector.daisy_connector import DaisyConnector
+from datacatalog.models.study import Study
 from tests.base_test import BaseTest
 
 __author__ = "Valentin Grouès"
@@ -50,10 +51,11 @@ class TestDaisyConnector(BaseTest):
                     "id_at_source": "1",
                     "project": "MDEG2",
                     "name": "MDEG2 data",
-                    "external_id": "-",
+                    "external_id": "d1",
                     "description": "....",
                     "elu_uuid": "3d3eddf8-1488-4b98-b46e-701d4e5e986b",
                     "other_external_id": None,
+                    "project_external_id": "TESTID",
                     "data_declarations": [
                         {
                             "title": "MDEG2",
@@ -116,7 +118,90 @@ class TestDaisyConnector(BaseTest):
                             ],
                         }
                     ],
-                }
+                    "metadata": json.dumps(
+                        {
+                            "producedBy": {"@id": "study1", "name": "study1"},
+                        }
+                    ),
+                },
+                {
+                    "source": "example.com",
+                    "id_at_source": "2",
+                    "project": "MDEG2",
+                    "name": "MDEG2 data test",
+                    "external_id": "d2",
+                    "description": "fdsf",
+                    "elu_uuid": "2d3eddf8-1488-4b98-b46e-701d4e5e486b",
+                    "other_external_id": None,
+                    "project_external_id": "TESTID",
+                    "data_declarations": [
+                        {
+                            "title": "MDEG2",
+                            "data_types": [
+                                "Metabolomics",
+                                "Methylation_array",
+                                "Clinical_data",
+                            ],
+                            "data_types_notes": "..\n",
+                            "access_category": None,
+                            "access_procedure": None,
+                            "subjects_category": "controls",
+                            "de_identification": "anonymization",
+                            "consent_status": "unknown",
+                            "has_special_subjects": True,
+                            "special_subjects_description": "2 year old children",
+                            "embargo_date": None,
+                            "storage_end_date": None,
+                            "storage_duration_criteria": None,
+                            "use_restrictions": [
+                                {
+                                    "use_class": "PS",
+                                    "use_class_label": None,
+                                    "use_restriction_note": "Use is restricted to projects: MDEG2",
+                                    "use_restriction_rule": "CONSTRAINED_PERMISSION",
+                                },
+                                {
+                                    "use_class": "PUB",
+                                    "use_class_label": None,
+                                    "use_restriction_note": "Acknowledgement required.",
+                                    "use_restriction_rule": "CONSTRAINED_PERMISSION",
+                                },
+                            ],
+                        }
+                    ],
+                    "legal_bases": [],
+                    "storages": [
+                        {
+                            "platform": "master",
+                            "location": "smb://*****/Gambia",
+                            "accesses": ["Jane Doe"],
+                        }
+                    ],
+                    "transfers": [
+                        {
+                            "partner": "London School of Hygiene & Tropical Medicine,"
+                            " Medical Research Council  Unit The Gambia",
+                            "transfer_details": None,
+                            "transfer_date": None,
+                        }
+                    ],
+                    "contacts": [
+                        {
+                            "first_name": "Jane",
+                            "last_name": "Doe",
+                            "email": "inactive.user@uni.lu",
+                            "role": "Researcher",
+                            "affiliations": [
+                                "University of Luxembourg - Luxembourg Centre for Systems Biomedicine"
+                            ],
+                        }
+                    ],
+                    "metadata": json.dumps(
+                        {
+                            "producedBy": {"@id": "study2", "name": "study2"},
+                        }
+                    ),
+                },
             ],
         }
         mock_get.return_value = Mock(ok=True)
@@ -127,10 +212,9 @@ class TestDaisyConnector(BaseTest):
             verify_ssl=app.config.get("DAISY_VERIFY_SSL", True),
         )
         datasets = list(daisy_connector.build_all_entities())
-        self.assertEqual(1, len(datasets))
+        self.assertEqual(2, len(datasets))
         first_dataset = datasets[0]
-        first_dataset.save()
-        self.solr_orm.commit()
+        first_dataset.save(soft_commit=True)
         retrieved_dataset = Dataset.query.get(first_dataset.id)
         self.assertEqual("MDEG2 data", retrieved_dataset.title)
         self.assertEqual(2, len(retrieved_dataset.use_restrictions))
@@ -138,9 +222,111 @@ class TestDaisyConnector(BaseTest):
             {"Metabolomics", "Methylation_array", "Clinical_data"},
             set(retrieved_dataset.data_types),
         )
+        return datasets
 
     @patch("datacatalog.connector.daisy_connector.requests.get")
     def test_build_all_projects(self, mock_get):
+        scientific_metadata = {
+            "startDate": {
+                "@type": "Date",
+                "@context": "https://w3id.org/dats/context/sdo/date_info_sdo_context.jsonld",
+                "date": "2020-02-05",
+                "type": {
+                    "value": "start date",
+                    "valueIRI": "SIO:000031",
+                },
+            },
+            "endDate": {
+                "@type": "Date",
+                "@context": "https://w3id.org/dats/context/sdo/date_info_sdo_context.jsonld",
+                "date": "2025-09-06",
+                "type": {"value": "end date", "valueIRI": "SIO:000036"},
+            },
+            "projectAssets": [
+                {
+                    "name": "Study 1",
+                    "identifier": {
+                        "identifier": "study1",
+                        "@type": "Identifier",
+                        "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld",
+                    },
+                    "@type": "Study",
+                    "@context": "https://w3id.org/dats/context/sdo/study_sdo_context.jsonld",
+                    "description": "Study 1 - description",
+                    "types": [
+                        {
+                            "value": "Study 1 - type1",
+                            "@type": "Annotation",
+                            "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld",
+                        }
+                    ],
+                    "studyGroups": [
+                        {
+                            "@type": "StudyGroup",
+                            "@context": "https://w3id.org/dats/context/sdo/studygroup_sdo_context.jsonld",
+                            "name": "204869 Phase 2a/b in Ulcerative Colitis.",
+                            "size": 49,
+                            "consentInformation": [
+                                {
+                                    "name": {
+                                        "value": "informed consent",
+                                        "valueIRI": "NCIT:C16735",
+                                        "@type": "Annotation",
+                                        "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld",
+                                    },
+                                    "@type": "ConsentInfo",
+                                    "@context": "https://w3id.org/dats/context/sdo/consent_info_obo_context.jsonld",
+                                }
+                            ],
+                        }
+                    ],
+                    "input": [],
+                    "output": [],
+                    "acronym": "study1",
+                },
+                {
+                    "name": "Study 2",
+                    "identifier": {
+                        "identifier": "study2",
+                        "@type": "Identifier",
+                        "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld",
+                    },
+                    "@type": "Study",
+                    "@context": "https://w3id.org/dats/context/sdo/study_sdo_context.jsonld",
+                    "description": "Study 2 - description",
+                    "types": [
+                        {
+                            "value": "Study 2 - type1",
+                            "@type": "Annotation",
+                            "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld",
+                        }
+                    ],
+                    "studyGroups": [
+                        {
+                            "@type": "StudyGroup",
+                            "@context": "https://w3id.org/dats/context/sdo/studygroup_sdo_context.jsonld",
+                            "name": "204869 Phase 2a/b in Ulcerative Colitis.",
+                            "size": 29,
+                            "consentInformation": [
+                                {
+                                    "name": {
+                                        "value": "informed consent",
+                                        "valueIRI": "NCIT:C16735",
+                                        "@type": "Annotation",
+                                        "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld",
+                                    },
+                                    "@type": "ConsentInfo",
+                                    "@context": "https://w3id.org/dats/context/sdo/consent_info_obo_context.jsonld",
+                                }
+                            ],
+                        }
+                    ],
+                    "input": [],
+                    "output": [],
+                    "acronym": "ImmUniverse study 2",
+                },
+            ],
+        }
         response_content = {
             "$schema": DATS_SCHEMA_PROJECT,
             "items": [
@@ -516,7 +702,7 @@ class TestDaisyConnector(BaseTest):
                 },
                 {
                     "source": "example.com",
-                    "acronym": "PRECISESADS",
+                    "acronym": "PRECISESADS2",
                     "external_id": "TESTID",
                     "name": "PRECISESADS Sustainability at ELIXIR LU",
                     "description": None,
@@ -526,25 +712,7 @@ class TestDaisyConnector(BaseTest):
                     "national_ethics_approval_notes": "Each data providing study has its own Ethics approval",
                     "start_date": "2020-02-04",
                     "end_date": None,
-                    "metadata": json.dumps(
-                        {
-                            "startDate": {
-                                "@type": "Date",
-                                "@context": "https://w3id.org/dats/context/sdo/date_info_sdo_context.jsonld",
-                                "date": "2020-02-05",
-                                "type": {
-                                    "value": "start date",
-                                    "valueIRI": "SIO:000031",
-                                },
-                            },
-                            "endDate": {
-                                "@type": "Date",
-                                "@context": "https://w3id.org/dats/context/sdo/date_info_sdo_context.jsonld",
-                                "date": "2025-09-06",
-                                "type": {"value": "end date", "valueIRI": "SIO:000036"},
-                            },
-                        }
-                    ),
+                    "metadata": json.dumps(scientific_metadata),
                     "contacts": [
                         {
                             "first_name": "Reinhard",
@@ -576,11 +744,14 @@ class TestDaisyConnector(BaseTest):
             Project,
             app.config.get("DAISY_VERIFY_SSL", True),
         )
-        projects = list(daisy_connector.build_all_entities())
+        entities = list(daisy_connector.build_all_entities())
+        projects = [entity for entity in entities if isinstance(entity, Project)]
+        studies = [entity for entity in entities if isinstance(entity, Study)]
         self.assertEqual(8, len(projects))
+        self.assertEqual(2, len(studies))
         first_project = projects[0]
-        for project in projects:
-            project.save()
+        for entity in entities:
+            entity.save(soft_commit=True)
         self.solr_orm.commit()
         retrieved_project = Project.query.get(first_project.id)
         self.assertEqual("Adrenal tumours", retrieved_project.title)
@@ -591,3 +762,19 @@ class TestDaisyConnector(BaseTest):
             "2020-02-05", last_saved_project.start_date.strftime("%Y-%m-%d")
         )
         self.assertEqual("2025-09-06", last_saved_project.end_date.strftime("%Y-%m-%d"))
+
+    def test_link_between_project_and_datasets(self):
+        self.test_build_all_projects()
+        project = Project.query.get("TESTID")
+        self.assertIsNotNone(project)
+        self.assertEqual(0, len(project.datasets_entities))
+        datasets = self.test_build_all_datasets()
+        datasets[1].save(soft_commit=True)
+        project = Project.query.get("TESTID")
+        studies = project.studies_entities
+        self.assertEqual(2, len(studies))
+        datasets_first_study = studies[0].datasets_entities
+        self.assertEqual(1, len(datasets_first_study))
+        datasets_second_study = studies[1].datasets_entities
+        self.assertEqual(1, len(datasets_second_study))
+        self.assertNotEquals(datasets_first_study[0].id, datasets_second_study[0].id)

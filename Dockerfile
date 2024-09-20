@@ -39,6 +39,7 @@ RUN cd /code/datacatalog/static/vendor && \
 
 # Add the source code (therefore if any backend-related file changes, the build will pick up cache from previous step)
 COPY . /code/
+RUN cp /code/datacatalog/settings.py.template /code/datacatalog/settings.py
 
 # Compile the assets with Flask-Assets
 RUN python manage.py assets build

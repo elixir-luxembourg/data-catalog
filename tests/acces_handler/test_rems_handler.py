@@ -61,6 +61,7 @@ class TestRemsAccessHandler(BaseTest):
         title = "Great dataset!"
         self.dataset = Dataset(title)
         self.dataset.e2e = True
+        self.dataset.form_id = 3
         self.dataset_id = self.dataset.id
 
         self.rems_access_handler = RemsAccessHandler(
@@ -68,7 +69,6 @@ class TestRemsAccessHandler(BaseTest):
             app.config.get("REMS_API_USER"),
             app.config.get("REMS_API_KEY"),
             app.config.get("REMS_URL"),
-            app.config.get("REMS_FORM_ID"),
             app.config.get("REMS_WORKFLOW_ID"),
             app.config.get("REMS_VERIFY_SSL"),
         )

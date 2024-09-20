@@ -45,6 +45,7 @@ from datacatalog.models.dataset import Dataset
 from datacatalog.models.project import Project
 from datacatalog.models.study import Study
 from datacatalog.models.user import User
+from datacatalog.acces_handler.access_handler import Application
 from tests.base_test import BaseTest, get_resource_path, get_clean_html_body
 
 __author__ = "Nirmeen Sallam"
@@ -152,24 +153,22 @@ class TestWebControllers(BaseTest):
         self.assertIn(datasets[0].title, entity_clean_text)
 
     def test_entity_by_slug(self):
-        datasets = Dataset.query.all()
-        if len(datasets) > 0:
-            dataset = datasets[0]
-            with self.client as client:
-                response = client.get(
-                    url_for(
-                        "entity_by_slug", entity_name="dataset", slug_name="precisesads"
-                    ),
-                    follow_redirects=False,
-                )
-            self.assertEqual(301, response.status_code)
-            expected_redirected_location = url_for(
-                "entity_details",
-                entity_name="dataset",
-                entity_id=dataset.id,
-                _external=True,
+        dataset = Dataset.query.get("d6ab9395-1ae3-453b-aa0e-c1de613905d8")
+        with self.client as client:
+            response = client.get(
+                url_for(
+                    "entity_by_slug", entity_name="dataset", slug_name="precisesads"
+                ),
+                follow_redirects=False,
             )
-            self.assertEqual(expected_redirected_location, response.location)
+        self.assertEqual(301, response.status_code)
+        expected_redirected_location = url_for(
+            "entity_details",
+            entity_name="dataset",
+            entity_id=dataset.id,
+            _external=True,
+        )
+        self.assertEqual(expected_redirected_location, response.location)
 
     def test_entity_by_slug_projects(self):
         project = Project.query.get("dc9970e8-147a-11eb-b51f-8c8590c45a21")
@@ -426,6 +425,46 @@ class TestWebControllers(BaseTest):
         )
         applications_cleantext = re.sub(r"\s+", " ", applications_cleantext)
         self.assertIn("My data access requests", applications_cleantext)
+
+    @patch("datacatalog.acces_handler.rems_handler.RemsAccessHandler.my_applications")
+    @patch("flask_login.utils._get_user")
+    def test_my_applications_none_state(self, current_user, my_applications):
+        """
+        Tests that unknown application states are handled gracefully by the `my-applications` web controller
+        """
+        app.config["ACCESS_HANDLERS"] = {"dataset": "Rems"}
+        # Mocking the current user
+        user = User("test", "test", "test")
+        current_user.return_value = user
+
+        # Mocking the list of applications
+        app_id = "2023/1"
+        mock_application = Application(
+            application_id=app_id,
+            state=None,
+            entity_id=1,
+            entity_title="Test dataset",
+            creation_date="2023/09/01",
+            applicant_id=user.id,
+        )
+        my_applications.return_value = [mock_application]
+
+        client = app.test_client()
+        with self.assertLogs(
+            "datacatalog.controllers.web_controllers", level="ERROR"
+        ) as logs:
+            res = client.get(url_for("my_applications", entity_name="dataset"))
+            self.assert200(res, "Page should load correctly")
+
+            res_text = res.data.decode("utf-8")
+            self.assertNotIn(app_id, res_text)
+            self.assertIn("An error occurred while loading some applications", res_text)
+
+        assert len(logs.output) == 1
+        assert (
+            "An error occurred while loading some applications: Unknown state retrieved"
+            in logs.output[0]
+        )
 
     def tearDown(self):
         app.config["_solr_orm"].delete(query="*:*")

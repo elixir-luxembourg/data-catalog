@@ -11,6 +11,7 @@
 .idea/dictionaries
 .idea/vcs.xml
 .idea/jsLibraryMappings.xml
+.idea
 
 # Sensitive or high-churn files:
 .idea/dataSources.ids
@@ -68,6 +69,7 @@ __pycache__/
 .Python
 env/
 build/
+builds/
 develop-eggs/
 /dist/
 downloads/
@@ -102,6 +104,11 @@ nosetests.xml
 coverage.xml
 *,cover
 .hypothesis/
+
+# Unit test / generated data
+tests/data/datasets_new.json
+tests/data/projects_new.json
+tests/data/studies_new.json
 
 # Translations
 *.mo
@@ -152,4 +159,18 @@ pi-squared.db*
 datacatalog/static/public/upload
 datacatalog/settings.py
 datacatalog/static/public/css/common.min.css
+datacatalog/static/public/js/common.min.js
+# Sitemap generated file
+datacatalog/static/public/sitemap.xml
 datacatalog/static/vendor/node_modules
+datacatalog/private
+datacata/static/public/jwks.json
+tests/private/
+tests/static/
+datacatalog/oidc.yaml
+
+# OS generated files 
+.DS_Store
+datacatalog/static/js/react
+
+

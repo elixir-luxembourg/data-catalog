@@ -67,7 +67,7 @@ class JSONConnector(ImportEntitiesConnector):
                 new_entity = self.entity_class()
                 for key in entity:
                     value = entity[key]
-                    if type(value) == float and isnan(value):
+                    if isinstance(value, float) and isnan(value):
                         value = None
                     setattr(new_entity, key, value)
                 yield new_entity

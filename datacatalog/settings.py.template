@@ -20,7 +20,8 @@ dirname = os.path.dirname(__file__)
 
 
 class Config(object):
-    SECRET_KEY = b''
+    BASE_URL = os.environ.get("BASE_URL", "") 
+    SECRET_KEY = os.environ.get("APP_SECRET", b"")
     TITLE = 'Data Catalog'
     ENTITIES = {'dataset': 'datacatalog.models.dataset.Dataset',
                 'project': 'datacatalog.models.project.Project',
@@ -70,23 +71,25 @@ class Config(object):
             "data_standards",
         ],
         'project': [
+            'description',
             'keywords',
             'title',
-            'types'
+            'project_name',
+            'types',
         ],
         'study': [
             'title',
             'organisms',
             'disease',
             'samples_type',
-            'types'
+            'types',
         ]
     }
 
     # NUMBER OF SEARCH RESULTS DISPLAYED PER PAGE
     RESULTS_PER_PAGE = 8
     # SOLR URL
-    SOLR_ENDPOINT = 'http://localhost:8983/solr'
+    SOLR_ENDPOINT = os.environ.get("SOLR_ENDPOINT", "http://localhost:8983/solr")
     # SOLR CORE
     SOLR_COLLECTION = 'datacatalog'
     # FOR ENTITIES IMPORT FROM JSON FILES
@@ -96,17 +99,17 @@ class Config(object):
     # EMAIL ADDRESS TO SEND ACCESS REQUEST TO
     EMAIL_RECIPIENT = ['data-catalog@elixir-luxembourg.org']
     # FLASK-MAIL CONFIGURATION
-    MAIL_SERVER = 'localhost'
-    MAIL_PORT = 25
+    MAIL_SERVER = os.environ.get("MAIL_SERVER", 'localhost')
+    MAIL_PORT = int(os.environ.get("MAIL_PORT", "25"))
     MAIL_USE_TLS = False
     MAIL_USE_SSL = False
     # RECAPTCHA KEYS TO PROTECT THE REQUEST ACCESS FEATURE FROM BOTS
-    RECAPTCHA_PUBLIC_KEY = ''
-    RECAPTCHA_PRIVATE_KEY = ''
+    RECAPTCHA_PUBLIC_KEY = os.environ.get("RECAPTCHA_PUBLIC", "")
+    RECAPTCHA_PRIVATE_KEY = os.environ.get("RECAPTCHA_PRIVATE", "")
     # FAIR INDICATORS ARE DISPLAYED ONLY IF FAIR_VALUES_SHOW IS TRUE
-    FAIR_VALUES_SHOW = False
+    FAIR_VALUES_SHOW = os.environ.get("FAIR_VALUES_SHOW", "False").lower() in ('true', '1')
     # FAIR EVALUATION IS DISPLAYED ONLY IF FAIR_EVALUATIONS_SHOW IS TRUE
-    FAIR_EVALUATIONS_SHOW = True
+    FAIR_EVALUATIONS_SHOW = os.environ.get("FAIR_EVALUATIONS_SHOW", "True").lower() in ('true', '1')
     FAIR_VALUES = {1: {'class': 'good', 'text': 'good'},
                    2: {'class': 'medium', 'text': 'moderate'},
                    3: {'class': 'bad', 'text': 'bad'}}
@@ -114,22 +117,27 @@ class Config(object):
     # WHICH FIELDS ARE USED FOR DEFAULT SEARCH
     SOLR_QUERY_TEXT_FIELD = {
         'dataset': [
+            "id",
             "title",
             "disease",
             "data_types",
-            "data_standards"
+            "data_standards",
         ],
         'project': [
+            'id',
+            'description',
             'keywords',
             'title',
-            'types'
+            'project_name',
+            'types',
         ],
         'study': [
+            'id',
             'title',
             'organisms',
             'disease',
             'samples_type',
-            'types'
+            'types',
         ]
 
     }
@@ -144,18 +152,18 @@ class Config(object):
                      'study': 'data/geo_studies'}
     GEO_TEMP_FOLDER = 'tests/data/geo_studies/temp_files/'
     # AUTHENTICATION_METHOD CAN BE LDAP OR PYOIDC
-    AUTHENTICATION_METHOD = 'LDAP'
+    AUTHENTICATION_METHOD = os.environ.get("AUTHENTICATION_METHOD", "LDAP")
     # LDAP configuration
-    LDAP_HOST = 'ldaps://xxxxxxxxxx'
-    LDAP_USERNAME = 'xxxxx'
-    LDAP_PASSWORD = '12345'
-    LDAP_BASE_DN = 'xxxxxxxx'
-    LDAP_USER_GROUPS_FIELD = 'xxxxxxxxxxxx'
+    LDAP_HOST = os.environ.get("LDAP_HOST", "ldaps://xxxxxxxxxx")
+    LDAP_USERNAME = os.environ.get("LDAP_USERNAME", "xxxx")
+    LDAP_PASSWORD = os.environ.get("LDAP_PASSWORD", "xxxx")
+    LDAP_BASE_DN = os.environ.get("LDAP_BASE_DN", "xxxx")
+    LDAP_USER_GROUPS_FIELD = os.environ.get("LDAP_USER_GROUPS_FIELD", "xxxx")
     AUTHENTICATION_DICT = {LDAP_USERNAME: LDAP_PASSWORD}
     # OIDC CONFIGURATION
-    PYOIDC_CLIENT_ID = ''
-    PYOIDC_CLIENT_SECRET = ''
-    PYOIDC_IDP_URL = ''
+    PYOIDC_CLIENT_ID = os.environ.get("PYOIDC_CLIENT_ID", "")
+    PYOIDC_CLIENT_SECRET = os.environ.get("PYOIDC_CLIENT_SECRET", "")
+    PYOIDC_IDP_URL = os.environ.get("PYOIDC_IDP_URL", "")
     # DISPLAY THE 'LOGIN' LINK IN NAVBAR
     SHOW_LOGIN = False
     # ACCESS HANDLER (used for access requests)
@@ -163,23 +171,23 @@ class Config(object):
     # RemsOidc handler will use rems to create access requests and pull requests statuses but actual accesses will be
     # pulled from user roles coming from OIDC provider
     ACCESS_HANDLERS = {
-        "dataset": "Email"
+        "dataset": os.environ.get("ACCESS_HANDLERS", "Email")
     }
     # If REMS handler
-    REMS_API_KEY = ""
-    REMS_URL = ""
-    REMS_API_USER = ""
-    REMS_FORM_ID = 1
-    REMS_WORKFLOW_ID = 1
-    REMS_ORGANIZATION_ID = ""
+    REMS_API_KEY = os.environ.get("REMS_API_KEY", "")
+    REMS_URL = os.environ.get("REMS_URL", "")
+    REMS_API_USER = os.environ.get("REMS_API_USER", "")
+    REMS_WORKFLOW_ID = int(os.environ.get("REMS_WORKFLOW_ID", "1"))
+    REMS_ORGANIZATION_ID = os.environ.get("REMS_ORGANIZATION_ID", "")
     REMS_LICENSES = [1]
-    REMS_VERIFY_SSL = True
+    REMS_VERIFY_SSL = os.environ.get("REMS_VERIFY_SSL", "False").lower() in ('true', '1')
     # Export entity as dats
-    ALLOW_ENTITY_EXPORT = False
+    ALLOW_ENTITY_EXPORT = os.environ.get("ALLOW_ENTITY_EXPORT", "False").lower() in ('true', '1')
     # Parameters for DAISY connector
+    DAISY_VERIFY_SSL = os.environ.get("DAISY_VERIFY_SSL", "False").lower() in ('true', '1')
     DAISY_API_URLS = {
-        'dataset': "https://xxxxx",
-        'project': "https://xxxxx",
+        'dataset':  os.environ.get("DAISY_API_URLS_DATASET", ""),
+        'project':  os.environ.get("DAISY_API_URLS_PROJECT", ""),
     }
     # Logger configuration
     LOGGING_CONFIG = {
@@ -220,7 +228,7 @@ class Config(object):
     }
 
     # For entities attached files
-    PUBLIC_FILE_STORAGE_ROOT = ""
+    PUBLIC_FILE_STORAGE_ROOT = os.environ.get("PUBLIC_FILE_STORAGE_ROOT", "") 
 
 
     # Autocomplete
@@ -228,14 +236,16 @@ class Config(object):
     TOTAL_SUGGESTED_ENTITY_TITLES = 4
 
     # Dats
-    DATS_SCHEMAS_FOLDER = ""
-    DATS_CONTEXTS_FOLDER = ""
+    DATS_SCHEMAS_FOLDER = os.environ.get("DATS_SCHEMAS_FOLDER", "") 
+    DATS_CONTEXTS_FOLDER = os.environ.get("DATS_CONTEXTS_FOLDER", "")  
     # URL SCHEME, use to force a specific URL scheme when building full URLs (e.g. sitemap URL)
     # SCHEME = 'https'
 
     # NO STORAGES
     CONTACT_ACCESS_RECIPIENT = ""  # who to contact if no storages are defined
     CONTACT_ACCESS_BODY = ""  # the body of the email to send if no storages are defined
+
+    HOSTED_STRING = "hosted"
 
 
 class DockerConfig(Config):
@@ -249,7 +259,7 @@ class ProdConfig(Config):
     # for filesystem cache, set CACHE_DIR with a writable folder path.
     CACHE_CONFIG = {'CACHE_TYPE': 'filesystem', 'CACHE_DIR': "cache",
                     'CACHE_THRESHOLD': 10000, 'CACHE_TIMEOUT': 0}
-    SECRET_KEY = b''
+    SECRET_KEY = b""
 
 
 class DevConfig(Config):
@@ -257,7 +267,7 @@ class DevConfig(Config):
     # cache is disabled for dev environment
     CACHE_CONFIG = {'CACHE_TYPE': 'null', 'CACHE_DIR': "cache",
                     'CACHE_THRESHOLD': 10000, 'CACHE_TIMEOUT': 0}
-    SECRET_KEY = b''
+    SECRET_KEY = b""
 
 
 class TestConfig(Config):

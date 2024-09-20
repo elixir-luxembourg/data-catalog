@@ -27,7 +27,7 @@
 import json
 import logging
 import os
-from typing import Type, Generator
+from typing import Type, Generator, Dict
 import re
 
 from jsonpath_ng import parse
@@ -35,6 +35,7 @@ from slugify import slugify
 
 from .entities_connector import ImportEntitiesConnector
 from .. import app
+from ..exceptions import SkipProjectException, SkipEntityException, SkipStudyException
 from ..models.dataset import Dataset
 from ..models.project import Project
 from ..models.study import Study
@@ -46,6 +47,24 @@ __author__ = "Danielle Welter"
 logger = logging.getLogger(__name__)
 
 HOSTED_AT_INSTITUTION = app.config.get("HOSTED_STRING", "hosted")
+
+
+def check_skip(metadata: Dict) -> bool:
+    """
+    Check if entity is marked as skipped in the metadata
+    """
+    try:
+        if "extraProperties" in metadata:
+            for ep in metadata["extraProperties"]:
+                if ep["category"] == "skipImport":
+                    return ep["values"][0]["value"] == "skip"
+    except KeyError as e:
+        logger.warning(
+            "invalid metadata structure found when checking if entity can be skipped",
+            exc_info=e,
+        )
+        return False
+    return False
 
 
 class DATSConnector(ImportEntitiesConnector):
@@ -86,14 +105,27 @@ class DATSConnector(ImportEntitiesConnector):
                             filename = f"{data_dir}/{data_file.name}".replace(
                                 f"{self.json_folder_path}/", ""
                             )
-                            for entity in self.build_all_entities_for_dict(
+                            generator_entities = self.build_all_entities_for_dict(
                                 data, filename
-                            ):
-                                yield entity
+                            )
+                            while True:
+                                try:
+                                    entity = next(generator_entities)
+                                    yield entity
+                                except SkipEntityException:
+                                    continue
+                                except StopIteration:
+                                    break
 
     @staticmethod
     def build_project(metadata, project, id_required=True, filename: str = None):
         logger.debug("building project")
+        to_skip = check_skip(metadata)
+        if to_skip:
+            logger.info(
+                "skipImport extra property found, skipping project %s", filename
+            )
+            raise SkipProjectException()
         if "identifier" in metadata:
             project.id = metadata["identifier"]["identifier"]
         elif id_required:
@@ -286,7 +318,6 @@ class DATSConnector(ImportEntitiesConnector):
                         study.informed_consent = False
 
             if "characteristics" in cohort:
-
                 characteristics = []
                 for charac in cohort["characteristics"]:
                     dimension = ""
@@ -478,7 +509,7 @@ class DATSConnector(ImportEntitiesConnector):
                 if "description" in condition:
                     restriction["use_restriction_note"] = condition["description"]
                 if "restriction_type" in condition:
-                    if type(condition["restriction_type"]) == str:
+                    if isinstance(condition["restriction_type"], str):
                         restriction["use_restriction_rule"] = condition[
                             "restriction_type"
                         ]
@@ -558,7 +589,6 @@ class DATSConnector(ImportEntitiesConnector):
                 and metadata["creators"][0]["fullName"] != ""
             ):
                 for creator in metadata["creators"]:
-
                     if creator["@type"] == "Organization":
                         dataset.dataset_owner = creator["name"]
 
@@ -589,9 +619,27 @@ class DATSConnector(ImportEntitiesConnector):
                             yield self.build_dataset(dataset_metadata, new_dataset)
         elif self.entity_class == Study:
             if "projectAssets" in data:
+                # check if we are in the case where the project was not imported
+                skipped_project = check_skip(data)
+                project_id = None
+                if skipped_project:
+                    try:
+                        project_id = data["identifier"]["identifier"]
+                        if not project_id:
+                            raise ValueError("Project entity has no identifier")
+                    except KeyError | ValueError:
+                        logger.warning(
+                            "Skipped project but no project identifier found, skipping studies from %s",
+                            filename,
+                        )
+                        raise SkipStudyException()
                 for study_metadata in data["projectAssets"]:
                     if study_metadata["@type"] == "Study":
                         new_study = Study()
+                        if project_id:
+                            # if a project id is specified, this will look for a matching project in the solr index
+                            # and add the study to it
+                            new_study.project = project_id
                         yield self.build_study(study_metadata, new_study)
         else:
             logger.error("Entity type not recognised")

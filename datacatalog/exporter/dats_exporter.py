@@ -24,14 +24,11 @@
 
 
 """
-import json
 import logging
 from typing import Dict
 
 import werkzeug.exceptions
-from flask import safe_join
 
-from .. import app
 from ..models.dataset import Dataset
 from ..models.project import Project
 from ..models.study import Study
@@ -72,47 +69,21 @@ class DATSExporter:
 
     def export_dats_entity(self, entity) -> Dict:
         """
-        Returns Dats json file of the solr entity
+        Returns Dats of the solr entity
         """
         metadata = {}
-        if entity.connector_name and entity.connector_name.lower() == "datsconnector":
-            return DATSExporter.read_dats_file(metadata, entity)
+        if isinstance(entity, Dataset) or isinstance(entity, Study):
+            parent_entity = DATSExporter.get_entity_parent(entity)
+            if isinstance(parent_entity, Project):
+                return self.build_dats_project(metadata, parent_entity)
+        elif isinstance(entity, Project):
+            return self.build_dats_project(metadata, entity)
         else:
-            if isinstance(entity, Dataset) or isinstance(entity, Study):
-                parent_entity = DATSExporter.get_entity_parent(entity)
-                if isinstance(parent_entity, Project):
-                    return self.build_dats_project(metadata, parent_entity)
-            elif isinstance(entity, Project):
-                return self.build_dats_project(metadata, entity)
-            else:
-                logger.warning("Entity type not recognised")
+            logger.warning("Entity type not recognised")
 
     @staticmethod
     def get_entity_filename(entity: SolrEntity) -> str:
         return entity.filename
-
-    @staticmethod
-    def read_dats_file(metadata: dict, entity: SolrEntity) -> dict:
-        """
-        Returns the data directly from a specific file
-        @param: metadata
-        @param: entity
-        """
-        try:
-            entity_path = app.config["JSON_FILE_PATH"][
-                f"{entity.__class__.__name__.lower()}"
-            ]
-            parent_entity = DATSExporter.get_entity_parent(entity)
-            if parent_entity:
-                project_name = DATSExporter.get_entity_filename(parent_entity)
-            else:
-                project_name = DATSExporter.get_entity_filename(entity)
-            filepath = safe_join(entity_path, project_name)
-            with open(filepath, "r") as f:
-                metadata = json.load(f)
-            return metadata
-        except FileNotFoundError as e:
-            logger.error(e)
 
     @staticmethod
     def build_dats_project(metadata, project):

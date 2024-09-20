@@ -66,7 +66,7 @@
                                                        title="Dataset processed by FAIRplus. See FAIRplus Evaluation tab for details."
                                                        src="/static/public/images/fairplus-stamp.png"/></a>
         {% endif %}
-        <h1>{{ dataset.title }}</h1>
+        <h1>{{ dataset.title }}{{macros.small_id_row(dataset)}}</h1>
         {% if has_access.value == 'approved' %}
             <div class="accessStatus">
                 <div class="dataset_request_status">
@@ -204,9 +204,9 @@
 
             {#    ATTACHED FILES    #}
             {% if attachments_exist %}
-                {{ macros.start_panel("Attached files") }}
+                {{ macros.start_panel("Attached files", listType="") }}
                 <div id="attachments-datatable" data-url="{{ attachment_url }}"></div>
-                {{ macros.end_panel() }}
+                {{ macros.end_panel(listType="") }}
             {% endif %}
 
             {#    FAIRified #}
@@ -237,10 +237,9 @@
                     <table class="table table-hover table-condensed table-striped datasetRestrictions">
                         <thead>
                         <tr>
-                            <th>Note</th>
-                            <th>Category Note</th>
-                            <th>GA4GH label</th>
-                            <th>GA4GH code</th>
+                            <th>Use Restriction</th>
+                            <th>Remarks</th>
+                            <th>Category (GA4GH)</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -249,8 +248,7 @@
                             <tr>
                                 <td>{{ restriction['use_restriction_note'] }}</td>
                                 <td>{{ restriction['use_class_note'] }}</td>
-                                <td>{{ restriction['use_class_label'] }}</td>
-                                <td>{{ restriction['use_class'] }}</td>
+                                <td>{{ restriction['use_class_label'] }} ({{ restriction["use_class"] }})</td>
                             </tr>
                         {% endfor %}
                         </tbody>

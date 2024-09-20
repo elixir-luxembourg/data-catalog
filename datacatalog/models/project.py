@@ -49,6 +49,7 @@ class Project(SolrEntity, EntityWithSlugs):
     # specifies the list of compatibles connectors
     COMPATIBLE_CONNECTORS = ["Json", "Dats", "Geo", "Daisy"]
     query_class = SolrAutomaticQuery
+    id = SolrField("id")
     business_fax_number = SolrField("business_fax_number", indexed=False)
     datasets = SolrForeignKeyField(
         "datasets",

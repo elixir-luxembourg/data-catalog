@@ -98,7 +98,6 @@ def get_access_handler(user, entity_name):
             api_username=user_rems_id,
             api_key=app.config.get("REMS_API_KEY"),
             host=app.config.get("REMS_URL"),
-            form_id=app.config.get("REMS_FORM_ID"),
             workflow_id=app.config.get("REMS_WORKFLOW_ID"),
             verify_ssl=app.config.get("REMS_VERIFY_SSL", True),
             all_ids=all_ids,

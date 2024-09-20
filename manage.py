@@ -161,6 +161,42 @@ def extend_entity_index(entity_name):
 
 
 @manager.command
+def drop_connector_entities(connector_name, entity_name):
+    """
+    Unpublish entities of type entity_name using the connector specified by connector_name
+    Trigger a commit and clear the cache.
+    Checks for type mismatch for each field
+    @param connector_name: Short name of the connector to use, e.g. Json. See method get_importer_connector
+    @type entity_name: type of the entities to delete
+    """
+    solr_orm = app.config["_solr_orm"]
+    if solr_orm.check_schema(entity_name):
+        if entity_name not in app.config["entities"]:
+            app.logger.error("unknown entity name")
+            exit(1)
+        entity_class = app.config["entities"][entity_name]
+        connector = get_importer_connector(connector_name, entity_class)
+        if solr_orm.field_type_mismatch(entity_name):
+            app.logger.error("Type mismatch run init_index to fix")
+            exit(1)
+        if not connector:
+            app.logger.error("no known connector found")
+            exit(1)
+
+        solr_orm.delete(
+            query=f"{entity_name}_connector_name:{connector.__class__.__name__}"
+        )
+        solr_orm.commit()
+        app.logger.info(
+            f"All {entity_name}(s) of {connector.__class__.__name__} were deleted"
+        )
+        app.cache.clear()
+    else:
+        app.logger.error("Please run init_index first! ")
+        exit(1)
+
+
+@manager.command
 def export_entities(connector_name, entity_name):
     """
     Import entities of type entity_name using the connector specified by connector_name
@@ -177,7 +213,6 @@ def export_entities(connector_name, entity_name):
         api_username=app.config.get("REMS_API_USER"),
         api_key=app.config.get("REMS_API_KEY"),
         host=app.config.get("REMS_URL"),
-        form_id=app.config.get("REMS_FORM_ID"),
         workflow_id=app.config.get("REMS_WORKFLOW_ID"),
         organization_id=app.config.get("REMS_ORGANIZATION_ID"),
         licenses=app.config.get("REMS_LICENSES"),

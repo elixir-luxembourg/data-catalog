@@ -122,7 +122,7 @@ def split_entities(
 def prepare_value(attribute, value, entity):
     if not value:
         return value
-    if type(value) == float and isnan(value):
+    if isinstance(value, float) and isnan(value):
         return None
     try:
         field = entity._solr_fields[attribute]

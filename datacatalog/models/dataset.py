@@ -24,7 +24,7 @@
 """
 import logging
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field, InitVar
 
 from . import EntityWithSlugs
 from .. import app, DEFAULT_USE_RESTRICTIONS_ICONS
@@ -36,6 +36,7 @@ from ..solr.solr_orm_fields import (
     SolrFloatField,
     SolrJsonField,
     SolrBooleanField,
+    SolrIntField,
 )
 
 logger = logging.getLogger(__name__)
@@ -68,6 +69,7 @@ class Dataset(SolrEntity, EntityWithSlugs):
     # specifies the list of compatibles connectors
     COMPATIBLE_CONNECTORS = ["Ckan", "Limesurvey", "Geo", "Json", "Dats", "Daisy"]
 
+    id = SolrField("id")
     title = SolrField("title")
     data_standards = SolrField("data_standards", multivalued=True)
     data_types = SolrField("data_types", multivalued=True)
@@ -112,6 +114,7 @@ class Dataset(SolrEntity, EntityWithSlugs):
     dataset_email = SolrField("dataset_email", indexed=False)
     dataset_affiliation = SolrField("dataset_affiliation")
     dataset_owner = SolrField("dataset_owner")
+    form_id = SolrIntField("form_id")
 
     def __init__(
         self,
@@ -166,3 +169,25 @@ class Dataset(SolrEntity, EntityWithSlugs):
         if self.study_entity:
             keywords.append(self.study_entity.samples_type)
         return keywords
+
+
+@dataclass
+class StudyDataset:
+    dataset: InitVar[SolrEntity] = None
+    study: InitVar[SolrEntity] = None
+    title: str = field(init=False)
+    dataset_id: str = field(init=False)
+    create_date: str = field(init=False)
+    study_title: str = field(init=False)
+    study_id: str = field(init=False)
+    hosted: bool = field(init=False)
+
+    def __post_init__(self, dataset: SolrEntity, study: SolrEntity):
+        self.title = dataset.title
+        self.dataset_id = dataset.id
+        self.create_date = (
+            str(dataset.dataset_created.date()) if dataset.dataset_created else "-"
+        )
+        self.study_title = study.title if study else "-"
+        self.study_id = study.id if study else "-"
+        self.hosted = "Yes" if dataset.hosted else "No"

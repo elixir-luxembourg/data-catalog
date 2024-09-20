@@ -36,10 +36,12 @@ function DisplayTable() {
             "rejected": "remove-circle",
             "closed": "remove-circle",
             "revoked": "remove-circle",
+            "returned": "alert",
         }[value];
         const color = {
             "submitted": "info",
             "approved": "success",
+            "returned": "warning"
         }[value] || "default";
 
         const classString = "glyphicon glyphicon-" + icon + " text-" + color;

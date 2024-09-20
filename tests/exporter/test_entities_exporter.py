@@ -18,6 +18,8 @@ from datacatalog import app
 from datacatalog.connector.rems_connector import RemsConnector
 from datacatalog.exporter.entities_exporter import EntitiesExporter
 from datacatalog.models.dataset import Dataset
+from datacatalog.connector.rems_connector import CatalogueItemDoesntExistException
+
 from tests.base_test import BaseTest
 
 __author__ = "Nirmeen Sallam"
@@ -28,11 +30,11 @@ class TestEntitiesExporter(BaseTest):
         title = "Great dataset!"
         dataset = Dataset(title)
         dataset.e2e = True
+        dataset.form_id = 3
         connector = RemsConnector(
             api_username=app.config.get("REMS_API_USER"),
             api_key=app.config.get("REMS_API_KEY"),
             host=app.config.get("REMS_URL"),
-            form_id=app.config.get("REMS_FORM_ID"),
             workflow_id=app.config.get("REMS_WORKFLOW_ID"),
             organization_id=app.config.get("REMS_ORGANIZATION_ID"),
             licenses=app.config.get("REMS_LICENSES"),
@@ -40,5 +42,24 @@ class TestEntitiesExporter(BaseTest):
         )
         exporter = EntitiesExporter([connector])
         exporter.export_all([dataset])
-        catalogue_item = connector.get_catalogue_item(dataset.id)
+        catalogue_item = connector.get_catalogue_item(dataset)
         self.assertEqual(catalogue_item.resid, dataset.id)
+
+    def test_entities_exporter_dataset_form_id_none(self):
+        title = "Great dataset!"
+        dataset = Dataset(title)
+        dataset.e2e = True
+        connector = RemsConnector(
+            api_username=app.config.get("REMS_API_USER"),
+            api_key=app.config.get("REMS_API_KEY"),
+            host=app.config.get("REMS_URL"),
+            workflow_id=app.config.get("REMS_WORKFLOW_ID"),
+            organization_id=app.config.get("REMS_ORGANIZATION_ID"),
+            licenses=app.config.get("REMS_LICENSES"),
+            verify_ssl=app.config.get("REMS_VERIFY_SSL", True),
+        )
+        exporter = EntitiesExporter([connector])
+        exporter.export_all([dataset])
+        self.assertRaises(
+            CatalogueItemDoesntExistException, connector.get_catalogue_item, dataset
+        )

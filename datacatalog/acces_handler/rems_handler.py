@@ -61,7 +61,6 @@ class RemsAccessHandler(AccessHandler):
         api_username=None,
         api_key=None,
         host=None,
-        form_id=None,
         workflow_id=None,
         verify_ssl=True,
         all_ids=None,
@@ -75,7 +74,6 @@ class RemsAccessHandler(AccessHandler):
             api_username=api_username,
             api_key=api_key,
             host=host,
-            form_id=form_id,
             workflow_id=workflow_id,
             verify_ssl=verify_ssl,
             admin_user=app.config["REMS_API_USER"],
@@ -146,12 +144,19 @@ class RemsAccessHandler(AccessHandler):
 
     def apply(self, dataset, form):
         logger.info("Access request through rems to dataset %s", dataset.id)
-        if not dataset.e2e:
-            logger.info("e2e not enabled for this dataset, fallback to email handler")
+        if not dataset.e2e or getattr(dataset, "form_id", None) is None:
+            logger.info(
+                "e2e or form_id not enabled for this dataset, fallback to email handler"
+            )
             self.fallback_handler.apply(dataset, form)
             return
 
-        catalogue_item = self.rems_connector.get_catalogue_item(dataset.id)
+        try:
+            catalogue_item = self.rems_connector.get_catalogue_item(dataset)
+        except CatalogueItemDoesntExistException as e:
+            logger.error(e)
+            return self.fallback_handler.apply(dataset, form)
+
         rems_form = self.rems_connector.get_form_for_catalogue_item(
             catalogue_item.formid
         )
@@ -187,15 +192,15 @@ class RemsAccessHandler(AccessHandler):
             pass
 
         logger.debug("Creating form for rems request for dataset %s", dataset.id)
-        if not dataset.e2e:
+        if not dataset.e2e or getattr(dataset, "form_id", None) is None:
             logger.debug("e2e not enabled for this dataset, fallback to email form")
             return self.fallback_handler.create_form(dataset, form_data)
 
         try:
-            catalogue_item = self.rems_connector.get_catalogue_item(dataset.id)
+            catalogue_item = self.rems_connector.get_catalogue_item(dataset)
         except CatalogueItemDoesntExistException as e:
             logger.error(e)
-            return None
+            return self.fallback_handler.create_form(dataset, form_data)
         resource_id = catalogue_item.resource_id
         resource = self.rems_connector.get_resource(resource_id)
 

@@ -88,3 +88,27 @@ class CouldNotSubmitApplicationException(DataCatalogException):
     """
 
     pass
+
+
+class SkipEntityException(DataCatalogException):
+    """
+    When an entity should be skipped during the import_entities command
+    """
+
+    pass
+
+
+class SkipProjectException(SkipEntityException):
+    """
+    When a project should be skipped during the import_entities command
+    """
+
+    pass
+
+
+class SkipStudyException(SkipEntityException):
+    """
+    When a study should be skipped during the import_entities command
+    """
+
+    pass

@@ -55,7 +55,6 @@ class TestExtendEntityIndex(BaseTest):
 
     def test_extend_project_index(self):
         if app.config.get("SOLR_QUERY_SEARCH_EXTENDED"):
-
             EntitiesIndexExtender.extend_project_index()
 
             projects = Project.query.all()
@@ -90,7 +89,6 @@ class TestExtendEntityIndex(BaseTest):
 
     def test_extend_study_index(self):
         if app.config.get("SOLR_QUERY_SEARCH_EXTENDED"):
-
             EntitiesIndexExtender.extend_study_index()
 
             studies = Study.query.all()
@@ -129,7 +127,6 @@ class TestExtendEntityIndex(BaseTest):
         if app.config.get("SOLR_QUERY_SEARCH_EXTENDED") and app.config.get(
             "SOLR_QUERY_SEARCH_EXTENDED_2_WAY_INDEX"
         ):
-
             EntitiesIndexExtender.extend_dataset_index()
 
             datasets = Dataset.query.all()

@@ -59,6 +59,7 @@ from ..exporter.dats_exporter import DATSExporter
 from ..pagination import Pagination
 from ..solr.facets import Facet
 from ..solr.solr_orm_entity import SolrEntity
+from datacatalog.models.dataset import StudyDataset
 
 logger = logging.getLogger(__name__)
 
@@ -304,7 +305,7 @@ def default_search(
         )
     pagination = Pagination(page, results_per_page, results.hits)
     ordered_facets = []
-    for (attribute_name, label) in facets_order:
+    for attribute_name, label in facets_order:
         facet = facets.get(attribute_name, None)
         if facet is not None:
             ordered_facets.append(facet)
@@ -404,9 +405,28 @@ def entity_details(entity_name: str, entity_id: str) -> Response:
             )
             kwargs["has_access"] = access
 
+    if entity.studies_entities or entity.datasets_entities:
+        kwargs["study_datasets"] = _get_entity_datasets(entity)
+
     return render_template(
         entity_name + ".html", fair_evaluations_show=FAIR_EVALUATIONS_SHOW, **kwargs
     )
+
+
+def _get_entity_datasets(entity: SolrEntity) -> List[StudyDataset]:
+    study_datasets = []
+    datasets_ids = set()
+    for study in entity.studies_entities:
+        for dataset in study.datasets_entities:
+            study_datasets.append(StudyDataset(dataset, study))
+            datasets_ids.add(dataset.id)
+
+    # some datasets have no studies
+    for dataset in entity.datasets_entities:
+        if dataset.id in datasets_ids:
+            continue
+        study_datasets.append(StudyDataset(dataset, None))
+    return study_datasets
 
 
 @app.route("/r/<entity_name>/<slug_name>", methods=["GET"])
@@ -467,7 +487,7 @@ def get_entity_with_facets(
         return redirect(
             url_for("entity_details", entity_name=entity_name, entity_id=entity.id)
         )
-    for (attribute_name, label) in facets_order:
+    for attribute_name, label in facets_order:
         facet = facets.get(attribute_name, None)
         if facet is not None:
             values = getattr(entity, attribute_name)
@@ -644,6 +664,16 @@ def my_applications(entity_name):
         applications = [
             a for a in applications if a.state is not ApplicationState.approved
         ]
+    if any([a.state is None for a in applications]):
+        logger.error(
+            "An error occurred while loading some applications: Unknown state retrieved"
+        )
+        flash(
+            "An error occurred while loading some applications, please contact your administrator for more "
+            "informations",
+            "error",
+        )
+
     applications = json.dumps(
         [
             {
@@ -658,6 +688,7 @@ def my_applications(entity_name):
                 ),
             }
             for a in applications
+            if a.state is not None
         ]
     )
     return render_template(

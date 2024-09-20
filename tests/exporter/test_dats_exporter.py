@@ -44,7 +44,9 @@ class TestDATSExporter(BaseTest):
     def test_build_all_datasets(self):
         dats_exporter = DATSExporter()
         base_folder = get_resource_path("imi_projects_test")
-
+        # create the skipped project
+        project = Project(title="TEST-1-ED9C37-1", entity_id="TEST-1-ED9C37-1")
+        project.save(soft_commit=True)
         dats_datasets_connector = DATSConnector(
             base_folder,
             Dataset,
@@ -268,56 +270,6 @@ class TestDATSExporter(BaseTest):
                     f"{base_folder}/{dats_exporter.get_entity_filename(project)}"
                 )
             )
-
-    def test_dats_export_from_imported_dats(self):
-        self.maxDiff = None
-        base_folder = get_resource_path("imi_projects_test")
-        dats_exporter = DATSExporter()
-
-        dats_datasets_connector = DATSConnector(
-            base_folder,
-            Dataset,
-        )
-
-        dats_studies_connector = DATSConnector(
-            base_folder,
-            Study,
-        )
-
-        dats_projects_connector = DATSConnector(
-            base_folder,
-            Project,
-        )
-        dats_importer = EntitiesImporter(
-            [dats_datasets_connector, dats_studies_connector, dats_projects_connector]
-        )
-        dats_importer.import_all()
-
-        project_num = len(os.listdir(base_folder))
-        projects = Project.query.all()
-        self.assertEqual(project_num, len(projects))
-
-        for project in projects:
-            if (
-                project.connector_name
-                and project.connector_name.lower() == "datsconnector"
-            ):
-                dats_exported_entity = dats_exporter.export_dats_entity(project)
-                json_path = os.path.join(
-                    base_folder,
-                    dats_exporter.get_entity_filename(project),
-                )
-
-                with open(json_path, "r") as f:
-                    imported_data = json.load(f)
-
-                self.assertDictEqual(dats_exported_entity, imported_data)
-
-            else:
-                print(
-                    f"{project.project_name} not imported with DATSConnector. Skipping..."
-                )
-                continue
 
     def tearDown(self):
         app.config["_solr_orm"].delete(query="*:*")

@@ -159,7 +159,7 @@ export default function ReactTable({
                         }
                     </div>
             }
-            <table className="table table-striped" {...getTableProps()}>
+            <table className="table table-striped" {...getTableProps({style: {width: "100%"}})}>
                 <thead>
                     {headerGroups.map((headerGroup, index) => (
                         <tr key={index} {...headerGroup.getHeaderGroupProps()}>

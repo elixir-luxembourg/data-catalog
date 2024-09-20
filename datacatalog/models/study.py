@@ -50,6 +50,7 @@ class Study(SolrEntity, EntityWithSlugs):
     # age_range = SolrField("age_range")
     # bmi_range = SolrField("bmi_range", indexed=False)
 
+    id = SolrField("id")
     cohort_characteristics = SolrField("cohort_characteristics", multivalued=True)
 
     cohorts_description = SolrField("cohorts_description")

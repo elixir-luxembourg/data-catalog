@@ -117,7 +117,8 @@ class SolrEntity:
                     linked_entity_class = app.config["entities"][linked_entity_name]
                     for entity_id in entities_ids:
                         linked_entity = linked_entity_class.query.get(entity_id)
-                        results.append(linked_entity)
+                        if linked_entity is not None:
+                            results.append(linked_entity)
             return results
         raise AttributeError(
             "'{}' object has no attribute '{}'".format(
@@ -125,7 +126,7 @@ class SolrEntity:
             )
         )
 
-    def save(self, commit=False) -> str:
+    def save(self, commit=False, soft_commit=False) -> str:
         """
         Create dict representation of the entity instance and index it in solr
         Beware that this method doesn't trigger a commit
@@ -147,12 +148,13 @@ class SolrEntity:
                 source_entity = source_entity_class.query.get(field_value)
                 if source_entity:
                     entities = getattr(source_entity, reversed_field_name, []) or []
-                    entities.append(self.id)
-                    setattr(source_entity, reversed_field_name, entities)
-                    source_entity.save()
+                    if self.id not in entities:
+                        entities.append(self.id)
+                        setattr(source_entity, reversed_field_name, entities)
+                        source_entity.save(commit=commit, soft_commit=soft_commit)
         result_add = self._solr_orm.add(entity_dict)
-        if commit:
-            self._solr_orm.commit()
+        if commit or soft_commit:
+            self._solr_orm.commit(soft_commit=soft_commit)
         return result_add
 
     def to_dict(self, add_prefix=True) -> dict:

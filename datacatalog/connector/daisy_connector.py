@@ -44,6 +44,26 @@ __author__ = "Valentin Grouès"
 logger = logging.getLogger(__name__)
 
 
+def find_study(dataset_id: str, project: Project, metadata: dict) -> Study:
+    """
+    Find the corresponding study for a dataset
+    """
+    if "producedBy" in metadata:
+        study_id = metadata["producedBy"]["@id"]
+        for study in project.studies_entities:
+            if study.id == study_id:
+                return study
+        logger.error(
+            "study not found for dataset %s, fallback to first project's study",
+            dataset_id,
+        )
+    logger.error(
+        "study not specified in dataset's metadata for dataset %s, fallback to first project's study",
+        dataset_id,
+    )
+    return project.studies_entities[0]
+
+
 class DaisyConnector(ImportEntitiesConnector):
     """
     Import entities from DAISY API
@@ -84,6 +104,7 @@ class DaisyConnector(ImportEntitiesConnector):
             # we enable the e2e flow for all daisy datasets
             dataset.e2e = True
             dataset.hosted = True
+
             if "metadata" in item:
                 try:
                     metadata = json.loads(item["metadata"])
@@ -96,6 +117,17 @@ class DaisyConnector(ImportEntitiesConnector):
             for field, attribute in MAPPING_FIELDS.items():
                 setattr(dataset, attribute, item.get(field))
             logger.debug("dataset title is %s", dataset.title)
+
+            try:
+                form_id = int(item.get("form_id", None))
+            except (ValueError, TypeError) as e:
+                logger.error(
+                    "dataset %s form_id is not an integer.", dataset.id, exc_info=e
+                )
+                form_id = None
+
+            dataset.form_id = form_id
+
             data_types_set = set()
             dataset.use_restrictions = []
             for data_declaration in item["data_declarations"]:
@@ -122,9 +154,9 @@ class DaisyConnector(ImportEntitiesConnector):
                 )
             else:
                 if project.studies_entities:
-                    # FIXME, currently supports only projects with a single study
                     logger.debug("linking dataset to study")
-                    study = project.studies_entities[0]
+                    study = find_study(dataset.id, project, metadata)
+
                     dataset.study = study.id
                 else:
                     logger.debug("linking dataset to project")

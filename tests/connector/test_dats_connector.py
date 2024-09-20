@@ -18,7 +18,7 @@
 import json
 import os
 
-from datacatalog.connector.dats_connector import DATSConnector
+from datacatalog.connector.dats_connector import DATSConnector, check_skip
 from tests.base_test import BaseTest, get_resource_path
 
 __author__ = "Danielle Welter"
@@ -36,7 +36,6 @@ class TestDatsConnector(BaseTest):
         base_folder = get_resource_path("imi_projects_test")
         for file in os.listdir(base_folder):
             if file.endswith(".json"):
-                project_count += 1
                 with open(
                     os.path.join(
                         base_folder,
@@ -44,6 +43,8 @@ class TestDatsConnector(BaseTest):
                     )
                 ) as json_file:
                     data = json.load(json_file)
+                    if not check_skip(data):
+                        project_count += 1
                     if "projectAssets" in data:
                         for asset in data["projectAssets"]:
                             if asset["@type"] == "Dataset":
@@ -59,7 +60,6 @@ class TestDatsConnector(BaseTest):
             Dataset,
         )
         datasets = list(dats_datasets_connector.build_all_entities())
-
         self.assertEqual(dataset_count, len(datasets))
         for dataset in datasets:
             if dataset.id == "6bd9243b-0368-4cc9-bc92-d00ba1d40b75":
@@ -74,9 +74,18 @@ class TestDatsConnector(BaseTest):
         projects = list(dats_projects_connector.build_all_entities())
         self.assertEqual(project_count, len(projects))
 
+        # all projects except the skipped one are created
         dats_studies_connector = DATSConnector(
             base_folder,
             Study,
         )
         studies = list(dats_studies_connector.build_all_entities())
         self.assertEqual(study_count, len(studies))
+        # we check that the studies are correctly linked to the skipped project
+        studies_ids = {
+            "bc55c2c8-5f4b-11ed-a1b3-acde48001122",
+            "e03298b0-91c8-11ed-97aa-acde48001122",
+        }
+        studies_to_check = filter(lambda x: x.id in studies_ids, studies)
+        for study in studies_to_check:
+            self.assertEqual(study.project, "TEST-1-ED9C37-1")

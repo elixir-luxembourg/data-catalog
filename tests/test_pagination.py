@@ -23,7 +23,6 @@ __author__ = "Nirmeen Sallam"
 
 
 class TestPagination(BaseTest):
-
     pagination = Pagination(1, 2, 10)
 
     def test_pages(self):

@@ -27,7 +27,6 @@ __author__ = "Nirmeen Sallam"
 
 
 class TestLDAPUserPasswordAuthentication(BaseTest):
-
     ldapauth = LDAPUserPasswordAuthentication(app.config.get("LDAP_HOST"))
     app.config["AUTHENTICATION_METHOD"] = "LDAP"
     username = app.config.get("LDAP_USERNAME")

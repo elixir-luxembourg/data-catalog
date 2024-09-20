@@ -25,7 +25,7 @@ class Autocomplete extends Component {
         super(props);
         this.inputRef = React.createRef();
         this.btnRef = React.createRef();
-        const {query, totalEntityTitle, totalTerms, titlesSearchLink} = props;
+        const {query, totalEntityTitle, totalTerms, titlesSearchLink, secondaryLabel} = props;
         //Number of suggested items to appear during entering input query,
         //Total is divided in 2 between search terms and entity titles to appear
         let totalEntityTitleState = totalEntityTitle;
@@ -52,16 +52,20 @@ class Autocomplete extends Component {
             totalEntityTitleState
         };
 
-        //get entity title list
+        // Get complete list of entity titles and acronyms (if it exists)
         fetch(titlesSearchLink)
             .then((res) => res.json())
             .then((json) => {
                 const entityTitles = [];
                 for (const entryIndex in json.data) {
-                    entityTitles.push({"title": json.data[entryIndex].title, "id": json.data[entryIndex].id});
+                    entityTitles.push({
+                        "title": json.data[entryIndex].title,
+                        "acronym": secondaryLabel ? json.data[entryIndex][secondaryLabel] : "",
+                        "id": json.data[entryIndex].id
+                    });
                 }
                 this.setState({
-                    suggestions: entityTitles
+                    suggestions: entityTitles,
                 });
             });
     }
@@ -71,12 +75,16 @@ class Autocomplete extends Component {
         const {termsSearchLink, entityName} = this.props;
         const suggestionsList = suggestions.filter(x => x.title !== null);
         const input = e.currentTarget.value;
+
+        // Keep only titles and acronyms that contains the input query
         const newFilteredSuggestions = suggestionsList.filter(
             suggestion =>
-                suggestion.title.toLowerCase().indexOf(input.toLowerCase()) > -1
+                suggestion.title.toLowerCase().indexOf(input.toLowerCase()) > -1 
+                || (suggestion.acronym && suggestion.acronym.toLowerCase().indexOf(input.toLowerCase()) > -1)
+                || (suggestion.id.toLowerCase().indexOf(input.toLowerCase()) > -1)
         );
-        //get search term list
 
+        // Get search term suggestions
         let currLink = termsSearchLink + input.toLowerCase().trim();
         if (input.trim() && totalTermsState > 0) {
             fetch(currLink)
@@ -89,15 +97,25 @@ class Autocomplete extends Component {
                         console.log("no suggested terms found");
                     }
                     const terms = [];
-                    const suggestionLowerCase = newFilteredSuggestions.map(function (s) {
-                        return s.title.toLowerCase();
+                    const suggestionLowerCase = [];
+                    const acronymsSuggestionsLowerCase = [];
+                    newFilteredSuggestions.forEach(function (s) {
+                        suggestionLowerCase.push(s.title.toLowerCase());
+                        if (s.acronym) {
+                            acronymsSuggestionsLowerCase.push(s.acronym.toLowerCase());
+                        }
+                        suggestionLowerCase.push(s.id.toLowerCase());
                     });
                     for (const suggestedTermIndex in suggestionsList) {
                         const term = suggestionsList[suggestedTermIndex].term;
-                        if (suggestionLowerCase.length < 0 || !suggestionLowerCase.includes(term.toLowerCase())) {
+                        if (
+                            !suggestionLowerCase.includes(term.toLowerCase()) &&
+                            !acronymsSuggestionsLowerCase.includes(term.toLowerCase())
+                        ) {
                             terms.push(term);
                         }
                     }
+
                     this.setState({
                         suggestionsTerms: terms
                     });
@@ -154,12 +172,18 @@ class Autocomplete extends Component {
         let divider;
         let autocompleteHeaderKeyword;
         let autocompleteHeaderEntity;
+
+        // Create dropdown divider if there are both suggested terms and entity titles
         if (filtered.length > 0 && totalTermsState > 0 && suggestionsTerms.length > 0 && totalEntityTitleState > 0) {
             divider = <div className="dropdown-divider"></div>;
         }
+
+        // Create entity header if there are entities left after filtering
         if (filtered.length > 0 && totalEntityTitleState > 0) {
             autocompleteHeaderEntity = <div className="autocomplete_header">{entityName + "s"}</div>;
         }
+
+        // Create keywords header if there are suggested terms
         if (suggestionsTerms.length > 0 && totalTermsState > 0) {
             autocompleteHeaderKeyword = <div className="autocomplete_header">Keywords</div>;
         }
@@ -170,38 +194,43 @@ class Autocomplete extends Component {
             return (
                 <div className="autocomplete dropdown">
                     {autocompleteHeaderKeyword}
-                    {suggestionsTerms.slice(0, totalTermsState).map((suggestion, index) => {
-                        let className = "dropdown-item";
-                        if (index === this.state.active) {
-                            className += " active";
-                        }
+                    {
+                        // List of suggested terms for search
+                        suggestionsTerms.slice(0, totalTermsState).map((suggestion, index) => {
+                            let className = "dropdown-item";
+                            if (index === this.state.active) {
+                                className += " active";
+                            }
 
-                        return (
-                            <div className={className} key={index} onClick={() => this.onItemClick(suggestion)}>
-                                {suggestion}
-                            </div>
-                        );
-                    })
+                            return (
+                                <div className={className} key={index} onClick={() => this.onItemClick(suggestion)}>
+                                    {suggestion}
+                                </div>
+                            );
+                        })
                     }
                     {divider}
                     {autocompleteHeaderEntity}
-                    {filtered.slice(0, totalEntityTitleState).map((suggestion, index) => {
-                        let className = "dropdown-item";
-                        if (suggestionsTerms.slice(0, totalTermsState).length + index === this.state.active) {
-                            className += " active";
-                        }
-                        return (
-                            <a href={entityLinkPattern + suggestion.id} id={suggestion.id}
-                                key={suggestion.id}>
-                                <div className={className}
-                                    key={suggestionsTerms.slice(0, totalTermsState).length + index}
-                                    data-entity-id={suggestion.id}
-                                    onClick={() => this.onItemClick(suggestion)}>
-                                    {suggestion.title}
-                                </div>
-                            </a>
-                        );
-                    })}
+                    {
+                        // List of entities with acronym or title containing the input
+                        filtered.slice(0, totalEntityTitleState).map((suggestion, index) => {
+                            let className = "dropdown-item";
+                            if (suggestionsTerms.slice(0, totalTermsState).length + index === this.state.active) {
+                                className += " active";
+                            }
+                            return (
+                                <a href={entityLinkPattern + suggestion.id} id={suggestion.id}
+                                    key={suggestion.id}>
+                                    <div className={className}
+                                        key={suggestionsTerms.slice(0, totalTermsState).length + index}
+                                        data-entity-id={suggestion.id}
+                                        onClick={() => this.onItemClick(suggestion)}>
+                                        {suggestion.acronym ? `${suggestion.acronym} - ${suggestion.title}` : suggestion.title} <small>({suggestion.id})</small>
+                                    </div>
+                                </a>
+                            );
+                        })
+                    }
                 </div>
             );
 
@@ -237,6 +266,7 @@ class Autocomplete extends Component {
 Autocomplete.propTypes = {
     query: PropTypes.string.isRequired,
     titlesSearchLink: PropTypes.string.isRequired,
+    secondaryLabel: PropTypes.string,
     termsSearchLink: PropTypes.string.isRequired,
     entityLinkPattern: PropTypes.string.isRequired,
     entityName: PropTypes.string.isRequired,
@@ -252,9 +282,10 @@ if (domContainer !== null) {
     const totalEntityTitle = domContainer.getAttribute("data-total-entity-titles");
     const totalTerms = domContainer.getAttribute("data-total-terms");
     const entityName = domContainer.getAttribute("data-entity-name");
+    const secondaryLabel = entityName === "project" ? "project_name" : undefined;
 
     ReactDOM.render(<Autocomplete entityName={entityName} totalTerms={totalTerms} totalEntityTitle={totalEntityTitle}
-        query={query}
+        query={query} secondaryLabel={secondaryLabel}
         entityLinkPattern={entityLinkPattern} titlesSearchLink={titlesSearchLink}
         termsSearchLink={termsSearchLink}
     />, domContainer);

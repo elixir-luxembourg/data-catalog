@@ -52,7 +52,7 @@
                                              title="Dataset processed by FAIRplus. See FAIRplus Evaluation tab for details."
                                              src="/static/public/images/fairplus-stamp.png"/></p>
         {% endif %}
-        <h1>{{ study.title }}</h1>
+        <h1>{{ study.title }}{{macros.small_id_row(study)}}</h1>
         {% if config.get('ALLOW_ENTITY_EXPORT', False) %}
             <div class="form-inline">
                 <div class="button-link input-group">
@@ -91,9 +91,9 @@
                 <div class="col-md-6">
                     {#    DATASETS    #}
 
-                    {{ macros.start_panel("Datasets", "datasets", True) }}
+                    {{ macros.start_panel("Datasets", "datasets", True, listType="ol") }}
                     {{ macros.show_field_list_entities(study.datasets_entities , "Datasets", 'dataset') }}
-                    {{ macros.end_panel() }}
+                    {{ macros.end_panel(listType='ol') }}
                 </div>
             </div>
             <br/>
@@ -132,9 +132,9 @@
 
             {#    ATTACHED FILES    #}
             {% if attachment_exist %}
-                {{ macros.start_panel("Attached files") }}
+                {{ macros.start_panel("Attached files", listType="") }}
                 <div id="attachments-datatable" data-url="{{ attachment_url }}"></div>
-                {{ macros.end_panel() }}
+                {{ macros.end_panel(listType="") }}
             {% endif %}
 
 

@@ -14,6 +14,7 @@
 #
 #   You should have received a copy of the GNU Affero General Public License
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
+from typing import List
 from .lft_handler import LFTStorageHandler
 from .link_handler import LinkStorageHandler
 from .. import app
@@ -22,7 +23,7 @@ all_handlers = [LFTStorageHandler, LinkStorageHandler]
 
 
 @app.template_filter("storage_templates")
-def _jinja2_filter_storage(storages) -> list[str]:
+def _jinja2_filter_storage(storages) -> List[str]:
     templates = []
     for storage in storages:
         for handler in all_handlers:

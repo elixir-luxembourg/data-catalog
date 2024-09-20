@@ -16,8 +16,16 @@
 
             <div class="panel-body" style="position:relative">
                 <h3>
-                    <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=project.id) }}">{{ project.title| truncate(55, True) }}</a>
+                    <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=project.id) }}">    
+                        {% if project.project_name and project.project_name != project.title %}
+                        {{ project.project_name| truncate(55, True) }}&nbsp;-&nbsp;{{ project.title| truncate(55, True) }}
+                        {% else %}
+                            {{ project.title| truncate(55, True) }}
+                        {% endif %}
+                    </a>
+                {{macros.small_id_row(project)}}
                 </h3>
+               
                 <p class="search-description">{{ project.description | default("", True)|truncate(500, True) }}</p>
                 {% if project.keywords %}
                     <p>
@@ -33,7 +41,6 @@
                                                      title="Dataset processed by FAIRplus. See FAIRplus Evaluation tab for details."
                                                      src="/static/public/images/fairplus-stamp.png"/></a>
                 {% endif %}
-                <p style="position:absolute;top:0;right:0;padding:2px;"><span>{{ loop.index + start_rank }}</span></p>
             </div>
             <div class="panel-footer">
                 <div class="row">
