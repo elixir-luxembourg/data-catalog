@@ -21,12 +21,6 @@ from unittest.mock import MagicMock
 
 from flask_login import current_user
 from flask_wtf import FlaskForm
-from remsclient import (
-    FormTemplate,
-    FieldTemplate,
-    FormTemplateFieldsOptions,
-    OrganizationOverview,
-)
 from werkzeug.datastructures import ImmutableMultiDict
 from wtforms import (
     StringField,
@@ -42,6 +36,12 @@ from datacatalog import app
 from datacatalog.acces_handler.access_handler import ApplicationState
 from datacatalog.acces_handler.rems_handler import RemsAccessHandler
 from datacatalog.models.dataset import Dataset
+from datacatalog.connector.rems_client import (
+    Form,
+    FormField,
+    FormTemplateFieldsOptions,
+    OrganizationOverview,
+)
 from tests.base_test import BaseTest
 
 __author__ = "Nirmeen Sallam"
@@ -94,22 +94,20 @@ class TestRemsAccessHandler(BaseTest):
     def test_has_access_application_userid_not_equal_api_username(self):
         applications = [
             {
-                "applicationapplicant": {
+                "applicant": {
                     "email": "test@lcsb.lu",
                     "name": "test",
                     "notification_email": None,
                     "organization": None,
-                    "userid": "test",
+                    "user_id": "test",
                 },
-                "applicationfirst_submitted": None,
-                "applicationstate": "application.state/draft",
+                "first_submitted": None,
+                "state": "application.state/draft",
             }
         ]
 
         applications[0] = dotdict(applications[0])
-        applications[0].applicationapplicant = dotdict(
-            applications[0].applicationapplicant
-        )
+        applications[0].applicant = dotdict(applications[0].applicant)
 
         self.rems_access_handler.rems_connector.applications = MagicMock()
         self.rems_access_handler.rems_connector.applications.return_value = applications
@@ -119,22 +117,20 @@ class TestRemsAccessHandler(BaseTest):
     def test_has_access_application_approved(self):
         applications = [
             {
-                "applicationapplicant": {
+                "applicant": {
                     "email": "test@lcsb.lu",
                     "name": "test",
                     "notification_email": None,
                     "organization": None,
-                    "userid": app.config.get("REMS_API_USER"),
+                    "user_id": app.config.get("REMS_API_USER"),
                 },
-                "applicationfirst_submitted": None,
-                "applicationstate": "application.state/approved",
+                "first_submitted": None,
+                "state": "application.state/approved",
             }
         ]
 
         applications[0] = dotdict(applications[0])
-        applications[0].applicationapplicant = dotdict(
-            applications[0].applicationapplicant
-        )
+        applications[0].applicant = dotdict(applications[0].applicant)
 
         self.rems_access_handler.rems_connector.applications = MagicMock()
         self.rems_access_handler.rems_connector.applications.return_value = applications
@@ -144,22 +140,20 @@ class TestRemsAccessHandler(BaseTest):
     def test_has_access_application_draft(self):
         applications = [
             {
-                "applicationapplicant": {
+                "applicant": {
                     "email": "test@lcsb.lu",
                     "name": "test",
                     "notification_email": None,
                     "organization": None,
-                    "userid": app.config.get("REMS_API_USER"),
+                    "user_id": app.config.get("REMS_API_USER"),
                 },
-                "applicationfirst_submitted": None,
-                "applicationstate": "application.state/draft",
+                "first_submitted": None,
+                "state": "application.state/draft",
             }
         ]
 
         applications[0] = dotdict(applications[0])
-        applications[0].applicationapplicant = dotdict(
-            applications[0].applicationapplicant
-        )
+        applications[0].applicant = dotdict(applications[0].applicant)
 
         self.rems_access_handler.rems_connector.applications = MagicMock()
         self.rems_access_handler.rems_connector.applications.return_value = applications
@@ -204,89 +198,115 @@ class TestRemsAccessHandler(BaseTest):
         )
         fields = [
             # string
-            FieldTemplate(
-                fieldid="text",
-                fieldtype="text",
-                fieldtitle={"en": "field1"},
-                fieldoptional=False,
-                fieldmax_length=10,
-                fieldplaceholder={"en": "placeholder1"},
+            FormField(
+                **{
+                    "field/id": "text",
+                    "field/type": "text",
+                    "field/title": {"en": "field1"},
+                    "field/optional": False,
+                    "field/max_length": 10,
+                    "field/placeholder": {"en": "placeholder1"},
+                }
             ),
             # label
-            FieldTemplate(
-                fieldid="label",
-                fieldtype="label",
-                fieldtitle={"en": "field2"},
-                fieldoptional=True,
-                fieldmax_length=10,
-                fieldplaceholder={"en": "placeholder2"},
+            FormField(
+                **{
+                    "field/id": "label",
+                    "field/type": "label",
+                    "field/title": {"en": "field2"},
+                    "field/optional": True,
+                    "field/max_length": 10,
+                    "field/placeholder": {"en": "placeholder2"},
+                }
             ),
             # header
-            FieldTemplate(
-                fieldid="header",
-                fieldtype="header",
-                fieldtitle={"en": "field3"},
-                fieldoptional=False,
+            FormField(
+                **{
+                    "field/id": "header",
+                    "field/type": "header",
+                    "field/title": {"en": "field3"},
+                    "field/optional": False,
+                }
             ),
             # textarea
-            FieldTemplate(
-                fieldid="texta",
-                fieldtype="texta",
-                fieldtitle={"en": "field4"},
-                fieldoptional=False,
+            FormField(
+                **{
+                    "field/id": "texta",
+                    "field/type": "texta",
+                    "field/title": {"en": "field4"},
+                    "field/optional": False,
+                }
             ),
             # attachment
-            FieldTemplate(
-                fieldid="attachment",
-                fieldtype="attachment",
-                fieldtitle={"en": "field5"},
-                fieldoptional=False,
+            FormField(
+                **{
+                    "field/id": "attachment",
+                    "field/type": "attachment",
+                    "field/title": {"en": "field5"},
+                    "field/optional": False,
+                }
             ),
             # date
-            FieldTemplate(
-                fieldid="date",
-                fieldtype="date",
-                fieldtitle={"en": "field6"},
-                fieldoptional=False,
+            FormField(
+                **{
+                    "field/id": "date",
+                    "field/type": "date",
+                    "field/title": {"en": "field6"},
+                    "field/optional": False,
+                }
             ),
             # select
-            FieldTemplate(
-                fieldid="option",
-                fieldtype="option",
-                fieldtitle={"en": "field7"},
-                fieldoptional=False,
-                fieldoptions=[FormTemplateFieldsOptions(key=1, label={"en": "test"})],
+            FormField.model_validate(
+                {
+                    "field/id": "option",
+                    "field/type": "option",
+                    "field/title": {"en": "field7"},
+                    "field/optional": False,
+                    "field/options": [
+                        FormTemplateFieldsOptions(key="1", label={"en": "test"})
+                    ],
+                }
             ),
             # multiselect
-            FieldTemplate(
-                fieldid="multiselect",
-                fieldtype="multiselect",
-                fieldtitle={"en": "field8"},
-                fieldoptional=False,
-                fieldoptions=[FormTemplateFieldsOptions(key=2, label={"en": "test2"})],
+            FormField.model_validate(
+                {
+                    "field/id": "multiselect",
+                    "field/type": "multiselect",
+                    "field/title": {"en": "field8"},
+                    "field/optional": False,
+                    "field/options": [
+                        FormTemplateFieldsOptions(key="2", label={"en": "test2"})
+                    ],
+                }
             ),
             # email
-            FieldTemplate(
-                fieldid="email",
-                fieldtype="email",
-                fieldtitle={"en": "field6"},
-                fieldoptional=False,
+            FormField(
+                **{
+                    "field/id": "email",
+                    "field/type": "email",
+                    "field/title": {"en": "field6"},
+                    "field/optional": False,
+                }
             ),
         ]
-        organization = OrganizationOverview(
-            organizationid=self.rems_access_handler.rems_connector.organization_id,
-            organizationshort_name="",
-            organizationname="",
+        organization = OrganizationOverview.model_validate(
+            {
+                "organization/id": self.rems_access_handler.rems_connector.organization_id,
+                "organization/short_name": {"en": "text in English"},
+                "organization/name": {"en": "text in English"},
+            }
         )
-        form = FormTemplate(
-            formid=6,
-            organization=organization,
-            forminternal_name="test",
-            formtitle="form",
-            formfields=fields,
-            enabled=True,
-            formexternal_title="test",
-            archived=False,
+        form = Form.model_validate(
+            {
+                "form/id": 6,
+                "organization": organization,
+                "form/internal-name": "test",
+                "form/title": "form",
+                "form/fields": fields,
+                "enabled": True,
+                "form/external-title": {"en": "text in English"},
+                "archived": False,
+            }
         )
         self.rems_access_handler.rems_connector.get_form_for_catalogue_item.return_value = (
             form
@@ -304,40 +324,40 @@ class TestRemsAccessHandler(BaseTest):
         self.assertIsInstance(result.multiselect, SelectMultipleField)
         self.assertIsInstance(result.email, EmailField)
 
-        def test_build_application(self):
-            application = {
-                "applicationstate": "application.state/draft",
-                "applicationcreated": datetime.datetime(2021, 4, 2, 8, 34, 35, 587000),
-                "applicationresources": [
-                    {
-                        "catalogue_itemtitle": {"en": "Great dataset!"},
-                        "resourceext_id": "224b4550-9386-11eb-b0ff-acde48001122",
-                    }
-                ],
-            }
-            application = dotdict(application)
-            application.applicationresources[0] = dotdict(
-                application.applicationresources[0]
-            )
+    def test_build_application(self):
+        application = {
+            "state": "application.state/draft",
+            "created": datetime.datetime.now().isoformat(),
+            "resources": [
+                {
+                    "title": {"en": "Great dataset!"},
+                    "ext_id": "224b4550-9386-11eb-b0ff-acde48001122",
+                }
+            ],
+            "applicant": {"user_id": "test"},
+        }
+        application = dotdict(application)
+        application.resources[0] = dotdict(application.resources[0])
+        application.applicant = dotdict(application.applicant)
 
-            built_application = RemsAccessHandler.build_application(application)
-            self.assertEqual(built_application.state.value, "draft")
+        built_application = RemsAccessHandler.build_application(application)
+        self.assertEqual(built_application.state.value, "draft")
 
-        def test_build_application_state_value_error(self):
-            application = {
-                "applicationstate": "application.state/test_state_error",
-                "applicationcreated": datetime.datetime(2021, 4, 2, 8, 34, 35, 587000),
-                "applicationresources": [
-                    {
-                        "catalogue_itemtitle": {"en": "Great dataset!"},
-                        "resourceext_id": "224b4550-9386-11eb-b0ff-acde48001122",
-                    }
-                ],
-            }
-            application = dotdict(application)
-            application.applicationresources[0] = dotdict(
-                application.applicationresources[0]
-            )
+    def test_build_application_state_value_error(self):
+        application = {
+            "state": "application.state/test_state_error",
+            "created": datetime.datetime.now().isoformat(),
+            "resources": [
+                {
+                    "title": {"en": "Great dataset!"},
+                    "ext_id": "224b4550-9386-11eb-b0ff-acde48001122",
+                }
+            ],
+            "applicant": {"user_id": "test"},
+        }
+        application = dotdict(application)
+        application.resources[0] = dotdict(application.resources[0])
+        application.applicant = dotdict(application.applicant)
 
-            built_application = RemsAccessHandler.build_application(application)
-            self.assertIsNone(built_application.state)
+        built_application = RemsAccessHandler.build_application(application)
+        self.assertIsNone(built_application.state)

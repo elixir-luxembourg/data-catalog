@@ -1,0 +1,44 @@
+name: build & push Docker image to GHCR
+
+on:
+  push:
+    branches: [main, develop]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set image name and tag
+        id: vars
+        run: |
+          IMAGE_NAME=ghcr.io/${{ github.repository }}
+          if [[ "${GITHUB_REF}" == refs/heads/develop ]]; then
+            echo "tag=unstable" >> $GITHUB_OUTPUT
+          elif [[ "${GITHUB_REF}" == refs/heads/main ]]; then
+            echo "tag=latest" >> $GITHUB_OUTPUT
+          fi
+          echo "image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Build Docker image
+        run: |
+          cp datacatalog/settings.py.template datacatalog/settings.py && docker build -t ${{ steps.vars.outputs.image_name }}:${{ steps.vars.outputs.tag }} .
+
+
+      - name: Push Docker image(s)
+        run: |
+          docker push ${{ steps.vars.outputs.image_name }}:${{ steps.vars.outputs.tag }}

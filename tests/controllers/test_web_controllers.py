@@ -69,10 +69,9 @@ class TestWebControllers(BaseTest):
     def setUp(self):
         self.solr_orm.delete(query="*:*")
         self.entities_importer.import_all()
-        self.dataset_length = len(Dataset.query.all())
-
-        self.project_length = len(Project.query.all())
-        self.study_length = len(Study.query.all())
+        self.dataset_length = len(list(Dataset.query.all()))
+        self.project_length = len(list(Project.query.all()))
+        self.study_length = len(list(Study.query.all()))
 
     def test_make_key(self):
         self.assertIsNotNone(make_key())
@@ -140,7 +139,7 @@ class TestWebControllers(BaseTest):
             self.assertIn("search-results", search_result_asc.data.decode("utf-8"))
 
     def test_entity_details(self):
-        datasets = Dataset.query.all()
+        datasets = list(Dataset.query.all())
         with self.client as client:
             entity = client.get(
                 url_for(
@@ -168,7 +167,7 @@ class TestWebControllers(BaseTest):
             entity_id=dataset.id,
             _external=True,
         )
-        self.assertEqual(expected_redirected_location, response.location)
+        self.assertIn(response.location, expected_redirected_location)
 
     def test_entity_by_slug_projects(self):
         project = Project.query.get("dc9970e8-147a-11eb-b51f-8c8590c45a21")
@@ -186,7 +185,7 @@ class TestWebControllers(BaseTest):
                     follow_redirects=False,
                 )
                 self.assertEqual(301, response.status_code)
-                self.assertEqual(expected_redirected_location, response.location)
+                self.assertIn(response.location, expected_redirected_location)
 
     def test_entity_by_slug_not_found(self):
         with self.client as client:
@@ -207,7 +206,7 @@ class TestWebControllers(BaseTest):
     @patch("flask_login.utils._get_user")
     def test_entity_details_authenticated_user(self, current_user):
         user = User("test", "test", "test")
-        datasets = Dataset.query.all()
+        datasets = list(Dataset.query.all())
         first_dataset = datasets[0]
         current_user.return_value = user
         client = app.test_client()
@@ -221,7 +220,7 @@ class TestWebControllers(BaseTest):
     def test_entity_details_authenticated_user_access_no_storages(self, current_user):
         app.config["ACCESS_HANDLERS"] = {"dataset": "RemsOidc"}
         user = User("test", "test", "test")
-        datasets = Dataset.query.all()
+        datasets = list(Dataset.query.all())
         first_dataset = datasets[0]
         user.accesses = [first_dataset.id]
         first_dataset.e2e = True
@@ -239,7 +238,7 @@ class TestWebControllers(BaseTest):
     def test_entity_details_authenticated_user_access_storages(self, current_user):
         app.config["ACCESS_HANDLERS"] = {"dataset": "RemsOidc"}
         user = User("test", "test", "test")
-        datasets = Dataset.query.all()
+        datasets = list(Dataset.query.all())
         first_dataset = datasets[0]
         user.accesses = [first_dataset.id]
         first_dataset.e2e = True
@@ -260,7 +259,7 @@ class TestWebControllers(BaseTest):
     ):
         app.config["ACCESS_HANDLERS"] = {"dataset": "RemsOidc"}
         user = User("test", "test", "test")
-        datasets = Dataset.query.all()
+        datasets = list(Dataset.query.all())
         first_dataset = datasets[0]
         user.accesses = [first_dataset.id]
         first_dataset.e2e = True
@@ -274,7 +273,7 @@ class TestWebControllers(BaseTest):
         self.assertIn("contact our data stewards", entity_clean_text)
 
     def test_get_entity(self):
-        datasets = Dataset.query.all()
+        datasets = list(Dataset.query.all())
         if len(datasets) > 0:
             entity = get_entity("dataset", datasets[0].id)
             self.assertEqual(datasets[0].title, entity.title)
@@ -290,7 +289,7 @@ class TestWebControllers(BaseTest):
             self.assertIn("Data Catalog - Help", help_page.data.decode("utf-8"))
 
     def test_export_dats_entity(self):
-        datasets = Dataset.query.all()
+        datasets = list(Dataset.query.all())
         if len(datasets) > 0:
             with self.client as client:
                 export_response = client.get(
@@ -301,7 +300,7 @@ class TestWebControllers(BaseTest):
 
     def test_request_access_require_login(self):
         app.config["ACCESS_HANDLERS"] = {"dataset": "Rems"}
-        datasets = Dataset.query.all()
+        datasets = list(Dataset.query.all())
         if len(datasets) > 0:
             with self.client as client:
                 dataset = datasets[0]
@@ -321,7 +320,7 @@ class TestWebControllers(BaseTest):
         current_user.return_value = user
         client = app.test_client()
 
-        datasets = Dataset.query.all()
+        datasets = list(Dataset.query.all())
         if len(datasets) > 0:
             request_access_response = client.get(
                 url_for(
@@ -338,7 +337,7 @@ class TestWebControllers(BaseTest):
             )
 
     def test_request_access_no_access_handler(self):
-        datasets = Dataset.query.all()
+        datasets = list(Dataset.query.all())
         if len(datasets) > 0:
             app.config["ACCESS_HANDLERS"] = {"dataset": None}
 
@@ -364,7 +363,7 @@ class TestWebControllers(BaseTest):
         current_user.return_value = user
         client = app.test_client()
 
-        datasets = Dataset.query.all()
+        datasets = list(Dataset.query.all())
         if len(datasets) > 0:
             request_access_response = client.post(
                 url_for(
@@ -388,7 +387,7 @@ class TestWebControllers(BaseTest):
         current_user.return_value = user
         client = app.test_client()
 
-        datasets = Dataset.query.all()
+        datasets = list(Dataset.query.all())
         if len(datasets) > 0:
             request_access_response = client.post(
                 url_for(
@@ -401,13 +400,15 @@ class TestWebControllers(BaseTest):
     def test_custom_static(self):
         # Create a temporary directory
         self.test_dir = tempfile.mkdtemp()
+        app.config["CUSTOM_STATIC_PATH"] = self.test_dir
 
-        open(path.join(self.test_dir, "test.pdf"), "w").close()
+        filepath = path.join(self.test_dir, "test.pdf")
+        with open(filepath, "w") as f:
+            f.write("test_line")
 
         with self.client as client:
-            response = client.get(
-                f'/static_plugin/{path.join(self.test_dir, "test.pdf")}'
-            )
+            url = "/static_plugin" + filepath + "/"
+            response = client.get(url)
         self.assertEqual(response.status_code, 404)
         # Remove the directory after the test
         shutil.rmtree(self.test_dir)

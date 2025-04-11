@@ -15,10 +15,10 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-    datacatalog.models.dataset
-    -------------------
+ datacatalog.models.dataset
+ -------------------
 
-   Module containing the Dataset entity
+Module containing the Dataset entity
 
 
 """
@@ -71,6 +71,7 @@ class Dataset(SolrEntity, EntityWithSlugs):
 
     id = SolrField("id")
     title = SolrField("title")
+    description = SolrField("description")
     data_standards = SolrField("data_standards", multivalued=True)
     data_types = SolrField("data_types", multivalued=True)
     dataset_created = SolrDateTimeField("dataset_created")
@@ -103,6 +104,7 @@ class Dataset(SolrEntity, EntityWithSlugs):
     use_restrictions_class_label = SolrField(
         "use_restrictions_class_label", multivalued=True
     )
+    access_mode = SolrField("access_mode")
     platform = SolrField("platform")
     query_class = SolrAutomaticQuery
     samples_number = SolrField("samples_number", indexed=False)
@@ -115,6 +117,14 @@ class Dataset(SolrEntity, EntityWithSlugs):
     dataset_affiliation = SolrField("dataset_affiliation")
     dataset_owner = SolrField("dataset_owner")
     form_id = SolrIntField("form_id")
+    deprecated = SolrField("deprecated")
+    deprecation_date = SolrDateTimeField("deprecation_date")
+    deprecation_notes = SolrField("deprecation_notes")
+    released_on = SolrDateTimeField("released_on")
+    size = SolrField("size")
+    checksum = SolrField("checksum")
+    checksum_algorithm = SolrField("checksum_algorithm")
+    number_of_files = SolrIntField("number_of_files")
 
     def __init__(
         self,
@@ -122,6 +132,7 @@ class Dataset(SolrEntity, EntityWithSlugs):
         entity_id: str = None,
         e2e: bool = False,
         hosted: bool = False,
+        deprecated: str = "Active",
     ) -> None:
         """
         Initialize a new Dataset instance with title and entity_id
@@ -132,6 +143,7 @@ class Dataset(SolrEntity, EntityWithSlugs):
         self.title = title
         self.e2e = e2e
         self.hosted = hosted
+        self.deprecated = deprecated
 
     def set_computed_values(self):
         results = dict()  # using dict instead of set to preserve order
@@ -140,6 +152,7 @@ class Dataset(SolrEntity, EntityWithSlugs):
             results[use_restriction] = None
         self.use_restrictions_class_label = [u.use_class_label for u in results]
         self.use_restrictions = [r.__dict__ for r in results.keys()]
+        self.access_mode = "Open" if self.dataset_link_href else "Controlled"
 
     @property
     def use_restrictions_by_type(self):
@@ -181,6 +194,7 @@ class StudyDataset:
     study_title: str = field(init=False)
     study_id: str = field(init=False)
     hosted: bool = field(init=False)
+    access_mode: bool = field(init=False)
 
     def __post_init__(self, dataset: SolrEntity, study: SolrEntity):
         self.title = dataset.title

@@ -52,7 +52,7 @@ class TestDaisyConnector(BaseTest):
                     "project": "MDEG2",
                     "name": "MDEG2 data",
                     "external_id": "d1",
-                    "description": "....",
+                    "description": "Metabolomics test data",
                     "elu_uuid": "3d3eddf8-1488-4b98-b46e-701d4e5e986b",
                     "other_external_id": None,
                     "project_external_id": "TESTID",
@@ -130,7 +130,7 @@ class TestDaisyConnector(BaseTest):
                     "project": "MDEG2",
                     "name": "MDEG2 data test",
                     "external_id": "d2",
-                    "description": "fdsf",
+                    "description": "Metabolomics test data",
                     "elu_uuid": "2d3eddf8-1488-4b98-b46e-701d4e5e486b",
                     "other_external_id": None,
                     "project_external_id": "TESTID",
@@ -777,4 +777,4 @@ class TestDaisyConnector(BaseTest):
         self.assertEqual(1, len(datasets_first_study))
         datasets_second_study = studies[1].datasets_entities
         self.assertEqual(1, len(datasets_second_study))
-        self.assertNotEquals(datasets_first_study[0].id, datasets_second_study[0].id)
+        self.assertNotEqual(datasets_first_study[0].id, datasets_second_study[0].id)

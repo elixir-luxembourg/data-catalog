@@ -15,15 +15,15 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-    datacatalog.web_controllers
-    -------------------
+datacatalog.web_controllers
+-------------------
 
-    HTML endpoints:
-        - entities_search
-        - search
-        - entity_details
-        - about
-        - request_access
+HTML endpoints:
+    - entities_search
+    - search
+    - entity_details
+    - about
+    - request_access
 """
 import json
 import logging
@@ -59,6 +59,7 @@ from ..exporter.dats_exporter import DATSExporter
 from ..pagination import Pagination
 from ..solr.facets import Facet
 from ..solr.solr_orm_entity import SolrEntity
+from ..solr.solr_orm import SolrQuery
 from datacatalog.models.dataset import StudyDataset
 
 logger = logging.getLogger(__name__)
@@ -140,7 +141,7 @@ def internal_server_error(e) -> Response:
 
 
 @app.route("/<entity_name>s", methods=["GET"])
-@app.cache.cached(timeout=0, query_string=True)
+@app.cache.cached(query_string=True)
 def entities_search(entity_name: str) -> Response:
     """
     Generic search endpoint for any entity
@@ -165,6 +166,7 @@ def entities_search(entity_name: str) -> Response:
 
 
 @app.route("/", methods=["GET"])
+@app.cache.cached(query_string=True)
 def home() -> Response:
     """
     Search view for default entity, home page
@@ -190,6 +192,7 @@ def landing():
 
 
 @app.route("/search", methods=["GET"])
+@app.cache.cached(query_string=True)
 def search() -> Response:
     """
     Search view for default entity, home page
@@ -223,7 +226,7 @@ def default_search(
     @return: HTML page showing search results
     """
     query = search_request.args.get("query", "").strip()
-    searcher = entity.query
+    searcher: SolrQuery = entity.query
     entity_type = searcher.entity_name
     logger.debug("searching entity %s with query %s", entity_type, query)
     if template is None:
@@ -244,8 +247,8 @@ def default_search(
         page = 1
     if (
         page < 1
-        or sort_order not in ["asc", "desc"]
-        or (sort_by and sort_by not in sort_options)
+        or sort_order not in ["asc", "desc", None]
+        or (sort_by and isinstance(sort_by, str) and sort_by not in sort_options)
     ):
         return render_template("error.html", message="wrong parameters"), 400
     if export_excel:
@@ -260,12 +263,16 @@ def default_search(
     # only do facet when some records are present as solr triggers an error if not
     if searcher.count() > 0:
         facets = searcher.get_facets(facets_order)
+        no_default = search_request.args.getlist("no_default", None)
+        if no_default is None:
+            no_default = []
         for facet in facets.values():
             if facet.field_name in search_request.args:
                 values = search_request.args.getlist(facet.field_name)
                 facet.set_values(values)
             else:
-                facet.use_default()
+                if facet.field_name not in no_default:
+                    facet.use_default()
     else:
         facets = {}
     try:
@@ -303,7 +310,8 @@ def default_search(
         return excel_exporter.export_results_as_xlsx(
             entity_type, getattr(results, entity_type + "s")
         )
-    pagination = Pagination(page, results_per_page, results.hits)
+    total_count = results.hits if results else 0
+    pagination = Pagination(page, results_per_page, total_count)
     ordered_facets = []
     for attribute_name, label in facets_order:
         facet = facets.get(attribute_name, None)
@@ -327,7 +335,7 @@ def default_search(
 
 
 @app.route("/e/<entity_name>/<entity_id>", methods=["GET"])
-@app.cache.cached(timeout=0)
+@app.cache.cached()
 def entity_details(entity_name: str, entity_id: str) -> Response:
     """
     Show the detailed view of a specific entity
@@ -355,16 +363,18 @@ def entity_details(entity_name: str, entity_id: str) -> Response:
     available_field_names = [x.field_name for x in facets]
     solr_fields = app.config["_solr_orm"].get_fields_for_class(entity_class)
     facets_base_url = {
-        key: url_for(
-            "entities_search",
-            entity_name=entity_name,
-            query="",
-            sort_by=searcher_default_sort,
-            order=searcher_default_sort_order,
+        key: (
+            url_for(
+                "entities_search",
+                entity_name=entity_name,
+                query="",
+                sort_by=searcher_default_sort,
+                order=searcher_default_sort_order,
+            )
+            + f"&{key}="
+            if key in available_field_names
+            else None
         )
-        + f"&{key}="
-        if key in available_field_names
-        else None
         for key in solr_fields.keys()
     }
 
@@ -430,7 +440,7 @@ def _get_entity_datasets(entity: SolrEntity) -> List[StudyDataset]:
 
 
 @app.route("/r/<entity_name>/<slug_name>", methods=["GET"])
-@app.cache.cached(timeout=0)
+@app.cache.cached()
 def entity_by_slug(entity_name: str, slug_name: str) -> Response:
     try:
         entity_class = app.config["entities"][entity_name]
@@ -469,16 +479,18 @@ def get_entity_with_facets(
     searcher = entity_class.query
     # only do facet when some records are present as solr triggers an error if not
     facets = searcher.get_facets(facets_order)
-    for facet in facets.values():
-        facet.use_default()
-    fq = [
-        "id:{}_{} or {}_former_ids:{}".format(
+    # for facet in facets.values():
+    #     facet.use_default()
+    if entity_class.ADD_PREFIX_ID:
+        fq_id = "id:{}_{} or {}_former_ids:{}".format(
             entity_name, entity_id, entity_name, entity_id
         )
-    ]
+    else:
+        fq_id = "id:{} or {}_former_ids:{}".format(entity_id, entity_name, entity_id)
+    fq = [fq_id]
     results = searcher.search(query="", fq=fq, rows=1, facets=facets.values())
     ordered_facets = []
-    if len(results.entities) == 0:
+    if results is None or not results.entities:
         abort(404)
     entity = results.entities[0]
     # check if URL doesn't match current id (using a former id)
@@ -498,7 +510,7 @@ def get_entity_with_facets(
 
 
 @app.route("/about", methods=["GET"])
-@app.cache.cached(timeout=0)
+@app.cache.cached()
 def about() -> Response:
     """
     Static about page
@@ -508,7 +520,7 @@ def about() -> Response:
 
 
 @app.route("/help", methods=["GET"])
-@app.cache.cached(timeout=0)
+@app.cache.cached()
 def help() -> Response:
     """
     Static help page
@@ -518,6 +530,7 @@ def help() -> Response:
 
 
 @app.route("/e/<entity_name>/<entity_id>/export_dats_entity", methods=["GET"])
+@app.cache.cached()
 def export_dats_entity(entity_name: str, entity_id: str) -> Response:
     try:
         dats_exporter = DATSExporter()
@@ -621,7 +634,11 @@ def request_access(entity_name: str, entity_id: str) -> Response:
                     current_user_id,
                 )
                 flash("Access request sent successfully.", category="success")
-                return redirect(url_for("search"))
+                return redirect(
+                    url_for(
+                        "entity_details", entity_name=entity_name, entity_id=entity.id
+                    )
+                )
             except DataCatalogException as e:
                 logger.error(
                     "An exception occurred while applying for access for entity %s (%s) - User %s",

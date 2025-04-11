@@ -112,7 +112,7 @@ def load_user(user_id: str) -> Optional[User]:
         if email and display_name:
             user = User(user_id, email, display_name, accesses=accesses, extra=extra)
             auth = app.config["authentication"]
-            if auth.validate_user(user):
+            if auth is not None and auth.validate_user(user):
                 user = auth.check_and_refresh(user)
             return user
     else:

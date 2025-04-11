@@ -1,6 +1,6 @@
 # Data Catalog
 
-**Name:** Data Catalog
+**Name:** # Data Catalog
 
 **Goal:** Advertise bio-medical **projects** and their associated **datasets**
 
@@ -9,10 +9,10 @@ Local installation of development environment and procedure for docker version a
 **Instances:**
 
 This software is behind the following instances:
-  
+
 * [ELIXIR-LU Data Catalog](https://datacatalog.elixir-luxembourg.org)
 * [Biomap Cohort Catalog](https://biomap-cohort-catalog.uni.lu)
-     
+
 
 ## Table of content
 
@@ -32,7 +32,7 @@ This software is behind the following instances:
 
 ### Requirements
 
-Python ≥ 3.7  
+Python ≥ 3.10
 Solr ≥ 8.2  
 npm ≥ 7.5.6
 
@@ -47,7 +47,7 @@ sudo apt-get install libsasl2-dev libldap2-dev libssl-dev
 1. Install python requirements with:
 
     ```
-    python setup.py install
+    python -m pip install .
     ```
 
 1. The less compiler needs to be installed to generate the css files.
@@ -83,45 +83,51 @@ sudo apt-get install libsasl2-dev libldap2-dev libssl-dev
 1. Back to the application folder, build the assets:
 
     ```
-    ./manage.py assets build
+    flask assets build
     ```
 
 1. Initialize the solr schema:
 
     ```
-    ./manage.py init_index
+    flask indexer init
     ```
-1. Index the provided studies, projects and datasets:
+1. Index the provided studies, projects and datasets.
+For local development, change `JSON_FILE_PATH` from `'data/imi_projects'`to `'tests/data/imi_projects_test'` or use data from [dats-elixir-files](https://gitlab.lcsb.uni.lu/core-services/datacatalog/dats-elixir-files).
 
      ```
-     ./manage.py import_entities Dats study
-     ./manage.py import_entities Dats project
-     ./manage.py import_entities Dats dataset
+     flask import entities Dats study
+     flask import entities Dats project
+     flask import entities Dats dataset
      ```
 1. [Optional] Automatically generate sitemap while indexing the datasets:
 
-       ```
-       ./manage.py import_entities Dats study --sitemap
-       ./manage.py import_entities Dats project --sitemap
-       ./manage.py import_entities Dats dataset --sitemap
-       ```
+   ```
+   flask import entities Dats study --sitemap
+   flask import entities Dats project --sitemap
+   flask import entities Dats dataset --sitemap
+   ```
 1. Generate Sitemap:
 
      ```
-     ./manage.py generate_sitemaps
+     flask generate_sitemaps
      ```
 1. [Optional] Extend Index for studies, projects and datasets:
 
       ```
-      ./manage.py extend_entity_index project
-      ./manage.py extend_entity_index study
-      ./manage.py extend_entity_index dataset
+      flask indexer extend project
+      flask indexer extend study
+      flask indexer extend dataset
       ```
+1. [Optional] Drop connector entities - removes connector entities from solr:
 
+      ```
+      flask indexer drop_connector_entities Daisy dataset
+      ```
+   
 1. Run the development server:
 
      ```
-     ./manage.py runserver
+     flask run
      ```
 
 The application should now be available under http://localhost:5000
@@ -131,7 +137,7 @@ The application should now be available under http://localhost:5000
 To run the unit tests:
 
 ```
-python setup.py test
+pytest --cov .
 ```
 
 Note that a different core is used for tests and will have to be created. By default, it should be called
@@ -184,10 +190,10 @@ Docker and git must be installed.
 
    ```
    (local) $ docker-compose exec web /bin/bash
-   (web container) $ python manage.py init_index
-   (web container) $ python manage.py import_entities Dats study
-   (web container) $ python manage.py import_entities Dats project
-   (web container) $ python manage.py import_entities Dats dataset
+   (web container) $ flask indexer init
+   (web container) $ flask import entities Dats study
+   (web container) $ flask import entities Dats project
+   (web container) $ flask import entities Dats dataset
 
    (PRESS CTRL+D or type: "exit" to exit)
    ```
@@ -230,9 +236,9 @@ to rebuild and restart the containers
 
 ```
 (local) $ docker-compose exec web /bin/bash
-(web container) $ python manage.py import_entities Dats study 
-(web container) $ python manage.py import_entities Dats project
-(web container) $ python manage.py import_entities Dats dataset
+(web container) $ flask import entities Dats study 
+(web container) $ flask import entities Dats project
+(web container) $ flask import entities Dats dataset
  
 
 (PRESS CTRL+D or type: "exit" to exit)
@@ -254,11 +260,7 @@ runnning). Then, simply use:
 
 Install needed dependencies with:
 
-`pip install -r requirements-dev.txt`
+`pip install .[testing]`
 
 Configure pre-commit hook for black and flake8:  
 see https://dev.to/m1yag1/how-to-setup-your-project-with-pre-commit-black-and-flake8-183k
-
-## Acknowledgments
-
-This tool was initially developed as a joint effort among [IMI-FAIRplus](https://www.imi.europa.eu/projects-results/project-factsheets/fairplus), [IMI-eTRIKS](https://www.imi.europa.eu/projects-results/project-factsheets/etriks) and [ELIXIR-Luxembourg](https://elixir-luxembourg.org/). The original code can be found [here](https://github.com/FAIRplus/imi-data-catalogue).

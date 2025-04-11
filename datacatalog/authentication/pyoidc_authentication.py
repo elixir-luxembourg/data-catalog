@@ -53,7 +53,8 @@ class PyOIDCAuthentication(RemoteAuthentication):
         self.oidc_client.store_registration_info(client_reg)
         from .pyoidc_views import pyoidc_views
 
-        app.register_blueprint(pyoidc_views)
+        if pyoidc_views.name not in app.blueprints.keys():
+            app.register_blueprint(pyoidc_views)
         self.oidc_client.post_logout_redirect_uris = [logout_redirect_url]
         self.oidc_client.redirect_uris = [self.redirect_url]
 
@@ -109,7 +110,7 @@ class PyOIDCAuthentication(RemoteAuthentication):
             "check access token and eventually refresh token and userinfo for user %s",
             user.id,
         )
-        now = datetime.datetime.now()
+        now = datetime.datetime.now(datetime.timezone.utc)
         expires_in = user.extra.get("expires_in")
         if not expires_in:
             logger.debug("expires_in not found, will not login user")

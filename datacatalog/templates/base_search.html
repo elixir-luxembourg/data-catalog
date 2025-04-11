@@ -11,26 +11,29 @@
             {% for i in range(0,  [facet_field | count, 20] | min, 2) %}
                 {% set facet_value = facet_field[i] %}
                 {% set facet_value_count = facet_field[i + 1] %}
+                {% set facet_value_cleaned =  facet_value | yesno | title if facet_value | boolean else facet_value %}
                 {% set facet_selected = facet_value in facet.values %}
-                {% if facet_selected %}
-                    <li class="facet-option facet-option-selected">
-                        <a href="{{ macros.build_link(query, sort_by, order, facets, none, (facet.field_name, facet_value), no_default, search_controller=search_controller, entity_name=entity_name) }}">
-                            {{ facet_value | yesno | title if facet_value | boolean else facet_value }}
-                            ({{ facet_value_count }})
-                            <p class="facet-remove pull-right">
-                                <i class="material-icons text-primary">cancel</i>
-                            </p>
-                        </a>
+                {% if facet_value_count != 0 %}
+                    {% if facet_selected %}
+                        <li class="facet-option facet-option-selected">
+                            <a href="{{ macros.build_link(query, sort_by, order, facets, none, (facet.field_name, facet_value), no_default, search_controller=search_controller, entity_name=entity_name) }}">
+                                {{ facet_value_cleaned }}
+                                ({{ facet_value_count }})
+                                <p class="facet-remove pull-right">
+                                    <i class="material-icons text-primary">cancel</i>
+                                </p>
+                            </a>
 
-                    </li>
-                {% else %}
-                    <li class="facet-option">
-                        <a href="{{ macros.build_link(query, sort_by, order, facets, (facet.field_name, facet_value), none, no_default, search_controller=search_controller, entity_name=entity_name) }}">
-                            {{ facet_value | yesno | title if facet_value | boolean else facet_value }}
-                            ({{ facet_value_count }})
-                        </a>
-                    </li>
-                {% endif %}
+                        </li>
+                    {% else %}
+                        <li class="facet-option">
+                            <a href="{{ macros.build_link(query, sort_by, order, facets, (facet.field_name, facet_value), none, no_default, search_controller=search_controller, entity_name=entity_name) }}">
+                                 {{ facet_value_cleaned }}
+                                ({{ facet_value_count }})
+                            </a>
+                        </li>
+                    {% endif %}
+                 {% endif %}
             {% endfor %}
         </ul>
     </div>
@@ -41,11 +44,14 @@
     {% set facet_field_counts = facet_field['counts'] %}
     <div class="row facet">
         <h3>{{ facet.label }}</h3>
+     {{ facet.__dict__ }}
+    {{ facet_field }}
         <ul>
             {% for start, end in facet.range.iter_intervals() %}
                 {% set facet_value_count = facet_field_counts[loop.index0 * 2 + 1] %}
                 {% set facet_value = "[{} TO {}]".format(start, end) %}
                 {% set facet_selected = facet_value in facet.values %}
+                {{ facet_selected }}
                 {% if facet_value_count != 0 %}
                     {% if facet_selected %}
                         <li class="facet-option  facet-option-selected">

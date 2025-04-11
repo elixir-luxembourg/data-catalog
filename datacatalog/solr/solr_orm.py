@@ -17,19 +17,19 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-    datacatalog.solr.solr_orm
-    -------------------
+ datacatalog.solr.solr_orm
+ -------------------
 
-   Module containing the following classes:
-     - SolrORM: update and create solr fields using the solr api
-     - SolrQuery: base class to query solr
+Module containing the following classes:
+  - SolrORM: update and create solr fields using the solr api
+  - SolrQuery: base class to query solr
 
 """
 import json
 import logging
 
 from datetime import datetime
-from typing import Type, Dict, List, Tuple, Optional, Union
+from typing import Type, Dict, List, Tuple, Optional, Union, Iterable
 
 import pysolr
 import requests
@@ -50,6 +50,7 @@ from ..exceptions import SolrQueryException
 # default is 4
 
 FUZZY_SEARCH_SUFFIX = "~{}".format(app.config.get("FUZZY_SEARCH_LEVEL", 4))
+BATCH_SIZE = "500"
 
 logger = logging.getLogger(__name__)
 
@@ -125,6 +126,12 @@ class SolrQuery(object):
         results.entities = entities
         return results
 
+    def format_field_name_with_order(self, field_name):
+        if field_name.split(" ")[0] in ["id", "score"]:
+            return field_name
+        else:
+            return f"{self.entity_name}_{field_name}"
+
     def search(
         self,
         query: str,
@@ -135,6 +142,9 @@ class SolrQuery(object):
         fq: List[str] = None,
         facets: List[Facet] = None,
         fuzzy: bool = False,
+        edismax: bool = False,
+        bq: str = None,
+        sorts: List[str] = None,
     ) -> pysolr.Results:
         """
         Execute a solr search
@@ -157,6 +167,10 @@ class SolrQuery(object):
                 sort_with_order = "score " + order
         else:
             sort_with_order = ""
+        if sorts:
+            sort_with_order = ", ".join(
+                [self.format_field_name_with_order(sort) for sort in sorts]
+            )
         if fq is None:
             fq = []
         params = {
@@ -164,6 +178,7 @@ class SolrQuery(object):
             "defType": "edismax",
             "qf": self.__class__.BOOST,
             "fq": fq,
+            "bq": bq,
         }
 
         query = query.strip()
@@ -182,9 +197,11 @@ class SolrQuery(object):
                         self.entity_name, query, fuzzy_terms
                     )
                 else:
-                    query = "{}_text_:'{}'".format(
-                        self.entity_name, FUZZY_SEARCH_SUFFIX
-                    )
+                    if edismax:
+                        pattern = query
+                    else:
+                        pattern = "{}_text_:'{}'"
+                    query = pattern.format(self.entity_name, query)
 
                 if (
                     "score" in sort_with_order
@@ -270,8 +287,10 @@ class SolrQuery(object):
         """
         if query:
             return "", "desc"
-        else:
+        elif isinstance(self.DEFAULT_SORT, str):
             return self.entity_name + "_" + self.DEFAULT_SORT, self.DEFAULT_SORT_ORDER
+        else:
+            return None, None
 
     def get_facets(self, facet_list: List[Tuple[str, str]]) -> List[Facet]:
         """
@@ -283,7 +302,10 @@ class SolrQuery(object):
         for attribute_name, label in facet_list:
             solr_field = self.class_object._solr_fields.get(attribute_name, None)
             if solr_field is not None:
-                facets[attribute_name] = Facet(solr_field.name, label)
+                if attribute_name == "deprecated":
+                    facets[attribute_name] = Facet(solr_field.name, label, ["Active"])
+                else:
+                    facets[attribute_name] = Facet(solr_field.name, label)
         return facets
 
     def get_sort_options(self) -> Tuple[List[str], List[str]]:
@@ -305,8 +327,12 @@ class SolrQuery(object):
         @param entity_id: id of the entity to retrieve from solr
         @return: a self.class_object instance or None if not found
         """
+        if getattr(self.class_object, "ADD_PREFIX_ID", True):
+            entity_id_query = "{}_{}".format(self.entity_name, entity_id)
+        else:
+            entity_id_query = entity_id
         results = self.solr_orm.indexer.search(
-            q='id:"{}_{}"'.format(self.entity_name, entity_id), rows=1
+            q='id:"{}"'.format(entity_id_query), rows=1
         )
         if results.hits == 0:
             return None
@@ -360,7 +386,7 @@ class SolrQuery(object):
             setattr(new_instance, attribute_name, solr_value)
         doc_id = doc.get("id", None)
         # remove prefix from id (entity_name_)
-        if doc_id:
+        if doc_id and new_instance.ADD_PREFIX_ID:
             start_index = len(self.entity_name) + 1
             doc_id = doc_id[start_index:]
         setattr(new_instance, "id", doc_id)
@@ -387,19 +413,33 @@ class SolrQuery(object):
         )
         return results.hits
 
-    def all(self) -> List[SolrEntity]:
+    def delete(self, query, commit=False):
+        """
+        Delete entities from solr
+        @param query: query string to select entities to delete
+        """
+        self.solr_orm.indexer.delete(q=f"{query} AND type:{self.entity_name}")
+        if commit:
+            self.solr_orm.indexer.commit()
+
+    def all(self) -> Iterable[SolrEntity]:
         """
         Retrieve from solr all the entities of the underlying SolrEntity as defined by self.class_object
-        @return: a list of solr entities
+        @return: a generator with solr entities
         """
-        # TODO, use pagination and yield results
-        results = self.solr_orm.indexer.search(
-            q="type:" + self.entity_name, rows=1000000
-        )
-        instances = []
-        for result in results:
-            instances.append(self._build_instance(result))
-        return instances
+        next_cursor = "*"
+        cursor = None
+        while next_cursor != cursor:
+            cursor = next_cursor
+            results = self.solr_orm.indexer.search(
+                q="type:" + self.entity_name,
+                cursorMark=cursor,
+                rows=BATCH_SIZE,
+                sort="id asc",
+            )
+            next_cursor = results.nextCursorMark
+            for result in results:
+                yield self._build_instance(result)
 
     def all_ids(self) -> List[SolrEntity]:
         """
@@ -409,7 +449,10 @@ class SolrQuery(object):
         results = self.solr_orm.indexer.search(
             q="type:" + self.entity_name, fl="id", rows=1000000
         )
-        start_index = len(self.entity_name) + 1
+        if self.class_object.ADD_PREFIX_ID:
+            start_index = len(self.entity_name) + 1
+        else:
+            start_index = 0
         return [r["id"][start_index:] for r in results.docs]
 
 
@@ -712,14 +755,13 @@ class SolrORM(object):
                 data=json.dumps(data_add_fieldtype),
                 params=params,
             )
-
             data_add_copyfield3 = {
                 "add-field": {
                     "name": entity_name + "_autocomplete_text_",
                     "type": "autocomplete_text",
                     "indexed": "true",
+                    "stored": "true",
                     "multiValued": "true",
-                    "stored": "false",
                 }
             }
             response_add_copyfield3 = requests.post(
@@ -732,9 +774,11 @@ class SolrORM(object):
             # if the text field exists but have copy fields attached. Deleting all the copy fields
             if not response_add_copyfield.status_code == 200:
                 for source in solr_query_fields:
+                    if source != "id":
+                        source = entity_name + "_" + source
                     data_delete_copyfield = {
                         "delete-copy-field": {
-                            "source": entity_name + "_" + source,
+                            "source": source,
                             "dest": entity_name + "_text_",
                         }
                     }
@@ -747,9 +791,11 @@ class SolrORM(object):
 
             if not response_add_copyfield2.status_code == 200:
                 for source in solr_query_fields:
+                    if source != "id":
+                        source = entity_name + "_" + source
                     data_delete_copyfield2 = {
                         "delete-copy-field": {
-                            "source": entity_name + "_" + source,
+                            "source": source,
                             "dest": entity_name + "_textfuzzy_",
                         }
                     }
@@ -762,9 +808,11 @@ class SolrORM(object):
 
             if not response_add_copyfield3.status_code == 200:
                 for source in solr_query_fields:
+                    if source != "id":
+                        source = entity_name + "_" + source
                     data_delete_copyfield3 = {
                         "delete-copy-field": {
-                            "source": entity_name + "_" + source,
+                            "source": source,
                             "dest": entity_name + "_autocomplete_text_",
                         }
                     }
@@ -777,9 +825,11 @@ class SolrORM(object):
 
             # recreating all the copy fields with _text_ and _textfuzzy_ as dest field
             for source in solr_query_fields:
+                if source != "id":
+                    source = entity_name + "_" + source
                 data_create_copyfield = {
                     "add-copy-field": {
-                        "source": entity_name + "_" + source,
+                        "source": source,
                         "dest": entity_name + "_text_",
                     }
                 }
@@ -791,7 +841,7 @@ class SolrORM(object):
                 )
                 data_create_copyfield2 = {
                     "add-copy-field": {
-                        "source": entity_name + "_" + source,
+                        "source": source,
                         "dest": entity_name + "_textfuzzy_",
                     }
                 }
@@ -804,7 +854,7 @@ class SolrORM(object):
 
                 data_create_copyfield3 = {
                     "add-copy-field": {
-                        "source": entity_name + "_" + source,
+                        "source": source,
                         "dest": entity_name + "_autocomplete_text_",
                     }
                 }
@@ -856,19 +906,21 @@ class SolrORM(object):
         headers = {"Content-type": "application/json", "Content-Type": "text/xml"}
         params = {"commit": "true", "indent": "true"}
         for source in solr_query_fields:
+            if source != "id":
+                source = entity_name + "_" + source
             logger.debug("deleting copy field for %s", source)
             data_delete_copyfield = {
                 "delete-copy-field": [
                     {
-                        "source": entity_name + "_" + source,
+                        "source": source,
                         "dest": entity_name + "_text_",
                     },
                     {
-                        "source": entity_name + "_" + source,
+                        "source": source,
                         "dest": entity_name + "_textfuzzy_",
                     },
                     {
-                        "source": entity_name + "_" + source,
+                        "source": source,
                         "dest": entity_name + "_autocomplete_text_",
                     },
                 ]

@@ -76,9 +76,9 @@ class TestApiEntities(BaseTest):
         self.entities_importer.import_all()
 
     def test_api_entity(self):
-        dataset = Dataset.query.all()
-        study = Study.query.all()
-        project = Project.query.all()
+        dataset = list(Dataset.query.all())
+        study = list(Study.query.all())
+        project = list(Project.query.all())
         self.assert200(api_entity("dataset", dataset[0].id))
         self.assert200(api_entity("study", study[0].id))
         self.assert200(api_entity("project", project[0].id))
@@ -91,9 +91,9 @@ class TestApiEntities(BaseTest):
 
     @patch("datacatalog.solr.solr_orm_entity.SolrEntity.list_attached_files")
     def test_api_entity_attachment(self, mock_list):
-        dataset = Dataset.query.all()
-        study = Study.query.all()
-        project = Project.query.all()
+        dataset = list(Dataset.query.all())
+        study = list(Study.query.all())
+        project = list(Project.query.all())
         self.assertIsNotNone(api_entity_attachments("dataset", dataset[0].id).data)
         self.assertIsNotNone(api_entity_attachments("study", study[0].id).data)
         self.assertIsNotNone(api_entity_attachments("project", project[0].id).data)
@@ -145,7 +145,7 @@ class TestApiEntities(BaseTest):
 
     @patch("flask_login.utils._get_user")
     def test_download_link_no_access(self, current_user):
-        random_dataset = random.choice(Dataset.query.all())
+        random_dataset = random.choice(list(Dataset.query.all()))
 
         with self.client as client:
             app.config["ACCESS_HANDLERS"] = {"dataset": "RemsOidc"}
@@ -169,7 +169,7 @@ class TestApiEntities(BaseTest):
     @patch("datacatalog.controllers.api_entities.get_downloads_handler")
     @patch("flask_login.utils._get_user")
     def test_download_link_access(self, current_user, get_handler, refresh_user):
-        random_dataset = random.choice(Dataset.query.all())
+        random_dataset = random.choice(list(Dataset.query.all()))
         with self.client as client:
             app.config["ACCESS_HANDLERS"] = {"dataset": "RemsOidc"}
             app.config["DOWNLOADS_HANDLER"] = "LFT"

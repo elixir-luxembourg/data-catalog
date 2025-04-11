@@ -62,11 +62,17 @@ class TestDatsConnector(BaseTest):
         datasets = list(dats_datasets_connector.build_all_entities())
         self.assertEqual(dataset_count, len(datasets))
         for dataset in datasets:
+            if dataset.id == "92579926-71e8-11eb-bafe-3e22fbb3883f":
+                self.assertTrue(dataset.number_of_files)
+                self.assertEqual(dataset.number_of_files, 1)
+                self.assertTrue(dataset.size)
             if dataset.id == "6bd9243b-0368-4cc9-bc92-d00ba1d40b75":
                 self.assertTrue(dataset.hosted)
+                self.assertTrue(dataset.description)
             else:
                 self.assertFalse(dataset.hosted)
             self.assertFalse(dataset.e2e)
+
         dats_projects_connector = DATSConnector(
             base_folder,
             Project,

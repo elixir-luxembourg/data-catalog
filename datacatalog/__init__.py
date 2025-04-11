@@ -26,18 +26,20 @@ import os
 import json
 from collections import defaultdict
 from datetime import datetime
+from importlib import import_module
 from logging.config import dictConfig
 from typing import Optional, List
 
 import jinja2
 import ldap
+
 from datacatalog.solr.solr_orm_fields import SolrField
 from flask import Flask, request, redirect, url_for
 from flask_assets import Environment
 from flask_caching import Cache
 from flask_login import LoginManager, current_user
 from flask_mail import Mail
-from flask_reverse_proxy_fix.middleware import ReverseProxyPrefixFix
+from datacatalog.reverse_proxy_fix import ReverseProxyPrefixFix
 from flask_wtf.csrf import CSRFProtect
 from webassets.loaders import PythonLoader as PythonAssetsLoader
 
@@ -78,6 +80,8 @@ def get_access_handler(user, entity_name):
     access_handler_map = app.config.get("ACCESS_HANDLERS", {"dataset": "Email"})
     access_handler_string = access_handler_map.get(entity_name)
     if access_handler_string and "Rems" in access_handler_string:
+        if not user:
+            return None
         if access_handler_string == "Rems":
             from .acces_handler.rems_handler import RemsAccessHandler
 
@@ -131,6 +135,9 @@ def configure_authentication_system() -> None:
                 client_secret=app.config["PYOIDC_CLIENT_SECRET"],
                 idp_url=app.config["PYOIDC_IDP_URL"],
             )
+        elif authentication_method is None:
+            authentication = None
+            app.config["SHOW_LOGIN"] = False
         else:
             raise ValueError("Unsupported authentication method")
     except Exception as e:
@@ -270,6 +277,12 @@ assets_env = Environment(app)
 assets_loader = PythonAssetsLoader(assets)
 for name, bundle in assets_loader.load_bundles().items():
     assets_env.register(name, bundle)
+custom_assets = app.config.get("CUSTOM_ASSETS")
+if custom_assets:
+    plugin_assets = import_module(custom_assets)
+    assets_loader = PythonAssetsLoader(plugin_assets)
+    for name, bundle in assets_loader.load_bundles().items():
+        assets_env.register(name, bundle)
 
 
 @app.before_request
@@ -315,7 +328,7 @@ def _jinja_2_filter_render_keywords(keywords: List["SolrField"]) -> str:
     ]
     return json.dumps(
         [
-            {"@type": "DefinedTerm", "@id": "", "name": f"{ keyword }"}
+            {"@type": "DefinedTerm", "@id": "", "name": f"{keyword}"}
             for keyword in entries
         ]
     )

@@ -17,10 +17,10 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-    datacatalog.connector.dats_connector
-    -------------------
+ datacatalog.connector.dats_connector
+ -------------------
 
-   Module containing the DATSConnector class
+Module containing the DATSConnector class
 
 
 """
@@ -29,7 +29,7 @@ import logging
 import os
 from typing import Type, Generator, Dict
 import re
-
+from dateutil import parser
 from jsonpath_ng import parse
 from slugify import slugify
 
@@ -444,6 +444,9 @@ class DATSConnector(ImportEntitiesConnector):
         if "title" in metadata:
             dataset.title = metadata["title"]
         logger.debug("dataset title is %s", dataset.title)
+        if dataset.description is None:
+            if "description" in metadata:
+                dataset.description = metadata["description"]
         if "types" in metadata:
             jsonpath_expr = parse("types[*].value")
             dataset.data_types = [match.value for match in jsonpath_expr.find(metadata)]
@@ -535,6 +538,17 @@ class DATSConnector(ImportEntitiesConnector):
                         for value in ep.get("values", [])
                         if value.get("value")
                     ]
+                elif ep["category"] == "deprecated":
+                    if ep["values"][0]["value"]:
+                        dataset.deprecated = (
+                            "Deprecated" if ep["values"][0]["value"] else "Active"
+                        )
+                elif ep["category"] == "deprecation_notes":
+                    if ep["values"][0]["value"]:
+                        dataset.deprecation_notes = ep["values"][0]["value"]
+                elif ep["category"] == "number_of_files":
+                    if ep["values"][0]["value"]:
+                        dataset.number_of_files = ep["values"][0]["value"]
                 else:
                     category = re.split("(?=[A-Z])", ep["category"])
                     attribute = "_".join(map(str.lower, category))
@@ -570,15 +584,29 @@ class DATSConnector(ImportEntitiesConnector):
                         dataset.dataset_created = date["date"]
                     elif date["type"]["value"] == "last update date":
                         dataset.dataset_modified = date["date"]
+                    elif date["type"]["value"] == "deprecation_date":
+                        dataset.deprecation_date = parser.parse(date["date"])
+                    elif date["type"]["value"] == "released_on":
+                        dataset.released_on = parser.parse(date["date"])
 
             file_formats = []
             if "formats" in distro:
-                for format in distro["formats"]:
-                    if type(format) is str:
-                        file_formats.append(format)
+                for data_format in distro["formats"]:
+                    if type(data_format) is str:
+                        file_formats.append(data_format)
                     else:
-                        file_formats.append(format["value"])
+                        file_formats.append(data_format["value"])
             dataset.file_formats = file_formats
+            size = ""
+            if "size" in distro:
+                size = str(distro["size"])
+            if "unit" in distro:
+                size += " " + distro["unit"]["value"]
+            dataset.size = size
+            if "checksum" in distro:
+                dataset.checksum = distro["checksum"]
+            if "checksumAlgorithm" in distro:
+                dataset.checksum_algorithm = distro["checksumAlgorithm"]["value"]
 
         if "creators" in metadata:
             if (

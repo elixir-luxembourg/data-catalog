@@ -19,7 +19,7 @@ FIELDS_TO_KEEP = ["access_token", "refresh_token", "expires_in", "refresh_expire
 
 @pyoidc_views.route("/pyoidc/authz")
 def authz():
-    now = datetime.datetime.now()
+    now = datetime.datetime.now(datetime.timezone.utc)
     auth = current_app.config["authentication"]
     try:
         auth_response = auth.oidc_client.parse_response(

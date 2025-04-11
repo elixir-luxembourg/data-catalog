@@ -36,16 +36,9 @@
                 <div class="row">
                     <div class="col-md-12">
                         <ul class="dataset-card">
-                            {% if dataset.groups %}
-                                <li><span class="dataset-field-label">Groups:</span>
-                                    {% for group in dataset.groups %}
-                                        <span class="label label-default">{{ group }}</span>
-                                    {% endfor %}
-                                </li>
-                            {% endif %}
-                            {% if dataset.dataset_created %}
+                            {% if dataset.released_on %}
                                 <li><span
-                                        class="dataset-field-label">Created:</span> {{ dataset.dataset_created | date }}
+                                        class="dataset-field-label">Released on:</span> {{ dataset.released_on | date }}
                                 </li>
                             {% endif %}
                             {% if dataset.tags %}

@@ -16,6 +16,7 @@ import logging
 import os
 import tempfile
 from abc import ABCMeta, abstractmethod
+from datetime import datetime as dt
 
 from flask import request
 from flask_login import current_user
@@ -100,14 +101,14 @@ class RemsAccessHandler(AccessHandler):
         if not applications:
             return False
         for application in applications:
-            if application.applicationapplicant["userid"] != self.api_username:
+            if application.applicant.user_id != self.api_username:
                 continue
-            if application.applicationstate[18:] == ApplicationState.approved.value:
+            if application.state[18:] == ApplicationState.approved.value:
                 logger.info(
                     "application found for user %s, approved state", self.api_username
                 )
                 return ApplicationState.approved
-            if application.applicationstate[18:] == ApplicationState.submitted.value:
+            if application.state[18:] == ApplicationState.submitted.value:
                 has_submitted = True
         if has_submitted:
             logger.info(
@@ -133,9 +134,8 @@ class RemsAccessHandler(AccessHandler):
         applications = self.rems_connector.my_applications()
         results = []
         for a in applications:
-            if a.applicationstate[18:] != ApplicationState.draft.value and (
-                a.applicationresources[0].resourceext_id in self.all_ids
-                or not self.all_ids
+            if a.state[18:] != ApplicationState.draft.value and (
+                a.resources[0].ext_id in self.all_ids or not self.all_ids
             ):
                 application = self.build_application(a)
                 results.append(application)
@@ -158,12 +158,12 @@ class RemsAccessHandler(AccessHandler):
             return self.fallback_handler.apply(dataset, form)
 
         rems_form = self.rems_connector.get_form_for_catalogue_item(
-            catalogue_item.formid
+            catalogue_item.form_id
         )
         field_values = {}
         # create application
         application_id = self.rems_connector.create_application([catalogue_item.id])
-        for field in rems_form.formfields:
+        for field in rems_form.fields:
             rems_field_id = field.fieldid
             wtf_field = FieldBuilder.build_field_builder(field)
             flask_form_value = getattr(form, rems_field_id).data
@@ -172,7 +172,7 @@ class RemsAccessHandler(AccessHandler):
             )
         # save draftFormTemplate
         self.rems_connector.save_application_draft(
-            application_id, rems_form.formid, field_values
+            application_id, rems_form.id, field_values
         )
         resource_id = catalogue_item.resource_id
         resource = self.rems_connector.get_resource(resource_id)
@@ -204,8 +204,8 @@ class RemsAccessHandler(AccessHandler):
         resource_id = catalogue_item.resource_id
         resource = self.rems_connector.get_resource(resource_id)
 
-        form = self.rems_connector.get_form_for_catalogue_item(catalogue_item.formid)
-        fields = form.formfields
+        form = self.rems_connector.get_form_for_catalogue_item(catalogue_item.form_id)
+        fields = form.fields
         for field in fields:
             try:
                 wtf_field = FieldBuilder.build_field(field)
@@ -276,25 +276,19 @@ class RemsAccessHandler(AccessHandler):
 
     @staticmethod
     def build_application(application):
-        resource_id = application.applicationresources[0].resourceext_id
-        resource_title = application.applicationresources[0].catalogue_itemtitle["en"]
-        creation_date = application.applicationcreated
-        external_id = application.applicationexternal_id
-        application_id = application.applicationid
-        applicant_id = application.applicationapplicant["userid"]
         try:
-            state = ApplicationState(application.applicationstate[18:])
+            state = ApplicationState(application.state[18:])
         except ValueError as e:
             logger.error(e)
             state = None
         return Application(
-            application_id,
-            state,
-            resource_id,
-            resource_title,
-            creation_date,
-            applicant_id,
-            external_id,
+            application_id=application.id,
+            state=state,  # could be None if state is not recognized
+            entity_id=application.resources[0].ext_id,
+            entity_title=application.resources[0].title["en"],
+            creation_date=dt.fromisoformat(application.created),
+            applicant_id=application.applicant.user_id,
+            external_id=application.external_id,
         )
 
 

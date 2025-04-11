@@ -18,7 +18,6 @@
 
 import shutil
 import tempfile
-import unittest
 from os import path
 
 from datacatalog import app
@@ -71,12 +70,12 @@ class TestRemsConnector(BaseTest):
         self.rems_connector.export_entities([self.dataset])
         catalogue_item = self.rems_connector.get_catalogue_item(self.dataset)
         rems_form = self.rems_connector.get_form_for_catalogue_item(
-            catalogue_item.formid
+            catalogue_item.form_id
         )
         field_values = {}
         # create application
         application_id = self.rems_connector.create_application([catalogue_item.id])
-        for field in rems_form.formfields:
+        for field in rems_form.fields:
             rems_field_id = field.fieldid
             wtf_field = FieldBuilder.build_field_builder(field)
             flask_form_value = "test"
@@ -85,7 +84,7 @@ class TestRemsConnector(BaseTest):
             )
         # save draftFormTemplate
         response = self.rems_connector.save_application_draft(
-            application_id, rems_form.formid, field_values
+            application_id, rems_form.id, field_values
         )
         self.assertTrue(response)
 
@@ -110,7 +109,7 @@ class TestRemsConnector(BaseTest):
         self.rems_connector.export_entities([self.dataset])
         catalogue_item = self.rems_connector.get_catalogue_item(self.dataset)
         self.assertEqual(catalogue_item.resid, self.dataset_id)
-        self.assertEqual(catalogue_item.formid, self.dataset.form_id)
+        self.assertEqual(catalogue_item.form_id, self.dataset.form_id)
 
     def test_get_catalogue_item_not_found(self):
         self.rems_connector.export_entities([self.dataset])
@@ -130,7 +129,7 @@ class TestRemsConnector(BaseTest):
     def test_get_form_for_catalogue_item(self):
         self.rems_connector.export_entities([self.dataset])
         catalogue_item = self.rems_connector.get_catalogue_item(self.dataset)
-        form = self.rems_connector.get_form_for_catalogue_item(catalogue_item.formid)
+        form = self.rems_connector.get_form_for_catalogue_item(catalogue_item.form_id)
         self.assertIsNotNone(form)
 
     def test_accept_license(self):
@@ -145,29 +144,25 @@ class TestRemsConnector(BaseTest):
             license_id = license.id
             license_ids.append(license_id)
 
-        applications = self.rems_connector.applications(
-            ("applicationid", application_id)
-        )
-        self.assertFalse(applications[0].applicationaccepted_licenses)
+        application = self.rems_connector.get_application(application_id)
+        self.assertFalse(application.accepted_licenses)
 
         self.rems_connector.accept_license(application_id, license_ids)
 
-        applications = self.rems_connector.applications(
-            ("applicationid", application_id)
-        )
-        self.assertTrue(applications[0].applicationaccepted_licenses)
+        application = self.rems_connector.get_application(application_id)
+        self.assertTrue(application.accepted_licenses)
 
     def test_submit_application(self):
         self.rems_connector.export_entities([self.dataset])
         catalogue_item = self.rems_connector.get_catalogue_item(self.dataset)
         rems_form = self.rems_connector.get_form_for_catalogue_item(
-            catalogue_item.formid
+            catalogue_item.form_id
         )
         # create application
         application_id = self.rems_connector.create_application([catalogue_item.id])
         # save draftFormTemplate
         self.rems_connector.save_application_draft(
-            application_id, rems_form.formid, {"fld1": "test"}
+            application_id, rems_form.id, {"fld1": "test"}
         )
 
         resource_id = catalogue_item.resource_id
@@ -178,18 +173,14 @@ class TestRemsConnector(BaseTest):
             license_id = license.id
             license_ids.append(license_id)
 
-        applications = self.rems_connector.applications(
-            ("applicationid", application_id)
-        )
-        self.assertIsNone(applications[0].applicationfirst_submitted)
+        application = self.rems_connector.get_application(application_id)
+        self.assertIsNone(application.first_submitted)
 
         self.rems_connector.accept_license(application_id, license_ids)
         self.rems_connector.submit_application(application_id)
 
-        applications = self.rems_connector.applications(
-            ("applicationid", application_id)
-        )
-        self.assertIsNotNone(applications[0].applicationfirst_submitted)
+        application = self.rems_connector.get_application(application_id)
+        self.assertIsNotNone(application.first_submitted)
 
     def test_my_applications(self):
         result = self.rems_connector.my_applications()
@@ -203,9 +194,8 @@ class TestRemsConnector(BaseTest):
         response = self.rems_connector.create_user(
             app.config.get("REMS_API_USER"), "test", "test@lcsb.lu"
         )
-        self.assertTrue(response.success)
+        self.assertTrue(response)
 
-    @unittest.skip("attachments not working with last rems version")
     def test_add_attachment(self):
         # Create a temporary directory
         self.test_dir = tempfile.mkdtemp()

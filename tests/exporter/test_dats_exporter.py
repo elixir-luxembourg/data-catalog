@@ -70,7 +70,7 @@ class TestDATSExporter(BaseTest):
         datasets = list(dats_datasets_connector.build_all_entities())
         for dataset in datasets:
             dats_entity = dats_exporter.export_dats_entity(dataset)
-            if len(dats_entity["projectAssets"]) > 0:
+            if dats_entity and len(dats_entity["projectAssets"]) > 0:
                 datasets_list = [
                     x.get("title")
                     for x in dats_entity["projectAssets"]
@@ -95,7 +95,7 @@ class TestDATSExporter(BaseTest):
         studies = list(dats_studies_connector.build_all_entities())
         for study in studies:
             dats_entity = dats_exporter.export_dats_entity(study)
-            if len(dats_entity["projectAssets"]) > 0:
+            if dats_entity and len(dats_entity["projectAssets"]) > 0:
                 studies_list = [
                     x.get("acronym")
                     for x in dats_entity["projectAssets"]

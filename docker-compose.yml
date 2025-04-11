@@ -1,46 +1,86 @@
-version: '3'
-
 services:
-  web:
-    build: .
-    expose:
-      - '5000'
-    command: "-t 600 -w 2 datacatalog:app --bind 0.0.0.0:5000"
-    entrypoint: "gunicorn"
-    environment:
-      - DATACATALOG_ENV=docker
-    volumes:
-      - static_files:/static/
-    depends_on:
-      - solr
-  solr:
-    image: solr:8.8.1
-    expose:
-      - "8983"
-    volumes:
-      - solrdata:/var/solr
-  nginx:
-    command:
-      - nginx-debug
-      - "-g"
-      - "daemon off;"
-    image: "nginx:alpine"
-    ports:
-      - "80:80"
-      - "443:443"
-    depends_on:
-      - web
-      - solr
-    volumes:
-      - "./docker/nginx/nginx.conf:/etc/nginx/nginx.conf"
-      - "./docker/nginx/nginx-selfsigned.crt:/etc/ssl/certs/nginx-selfsigned.crt"
-      - "./docker/nginx/nginx-selfsigned.key:/etc/ssl/private/nginx-selfsigned.key"
-      - "./docker/nginx/dhparam.pem:/etc/ssl/certs/dhparam.pem"
-      - "./docker/nginx/datacatalog.conf:/etc/nginx/conf.d/datacatalog.conf"
-      - static_files:/var/www/shared/static/
-      - nginx_logs:/log
+    web:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: datacatalog_web_dev
+        volumes:
+            - .:/code
+            - static_files:/code/datacatalog/static/
+        expose:
+            - '${WEB_INTERNAL_PORT:-5000}'
+        command: > 
+            gunicorn --reload
+            --workers ${GUNICORN_DEV_WORKERS:-1}
+            --timeout ${GUNICORN_TIMEOUT:-600}
+            --bind 0.0.0.0:${WEB_INTERNAL_PORT:-5000}
+            --log-level=debug
+            datacatalog:app
+        entrypoint: ""
+        environment:
+            - DATACATALOG_ENV=docker
+            - PYTHONUNBUFFERED=1
+            - FLASK_DEBUG=1
+            - BASE_URL=${BASE_URL:-https://localhost}
+            - APP_SECRET=${APP_SECRET}
+        depends_on:
+            solr:
+                condition: service_healthy
+        networks:
+            - datacatalog-network
+        restart: unless-stopped
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:${WEB_INTERNAL_PORT:-5000}/"]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 30s # Allow time for app and reload server to start
+    solr:
+        image: solr:9.7.0
+        container_name: datacatalog_solr_dev
+        expose:
+            - "${SOLR_PORT:-8983}"
+        volumes:
+            - solrdata:/var/solr
+        user: "8983:8983"
+        networks:
+            - datacatalog-network
+        restart: unless-stopped
+        healthcheck:
+            # Same healthcheck as production is usually fine
+            test: ["CMD", "curl", "-f", "http://localhost:${SOLR_PORT:-8983}/solr/"]
+            interval: 30s
+            timeout: 15s
+            retries: 5
+            start_period: 45s
+
+    nginx:
+        image: "nginx:1.27-alpine"
+        container_name: datacatalog_nginx_dev
+        command: ["nginx-debug", "-g", "daemon off;"]
+        ports:
+            - "${HOST_HTTP_PORT:-80}:80"
+            - "${HOST_HTTPS_PORT:-443}:443"
+        volumes:
+            - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+            - ./docker/nginx/datacatalog.conf:/etc/nginx/conf.d/datacatalog.conf:ro
+            - ./docker/nginx/nginx-selfsigned.crt:/etc/ssl/certs/nginx-selfsigned.crt:ro
+            - ./docker/nginx/nginx-selfsigned.key:/etc/ssl/private/nginx-selfsigned.key:ro
+            - ./docker/nginx/dhparam.pem:/etc/ssl/certs/dhparam.pem:ro
+            - static_files:/var/www/shared/static/:ro
+            - nginx_logs:/log
+        depends_on:
+            - web
+        networks:
+            - datacatalog-network
+        restart: unless-stopped
 
 volumes:
-  solrdata:
-  static_files:
-  nginx_logs:
+    solrdata:
+    static_files:
+    nginx_logs:
+
+networks:
+    datacatalog-network:
+        driver: bridge
+        name: datacatalog_dev_net

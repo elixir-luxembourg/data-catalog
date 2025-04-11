@@ -17,10 +17,10 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-    datacatalog.connector.daisy_connector
-    -------------------
+ datacatalog.connector.daisy_connector
+ -------------------
 
-   Module containing the DaisyConnector class
+Module containing the DaisyConnector class
 
 
 """
@@ -104,6 +104,12 @@ class DaisyConnector(ImportEntitiesConnector):
             # we enable the e2e flow for all daisy datasets
             dataset.e2e = True
             dataset.hosted = True
+            dataset.description = item.get("description", None)
+            deprecated = item.get("deprecated")
+            dataset.deprecated = "Deprecated" if deprecated else "Active"
+            dataset.deprecation_date = item.get("deprecation_date", None)
+            dataset.deprecation_notes = item.get("deprecation_notes", None)
+            dataset.released_on = item.get("released_date", None)
 
             if "metadata" in item:
                 try:
@@ -117,7 +123,6 @@ class DaisyConnector(ImportEntitiesConnector):
             for field, attribute in MAPPING_FIELDS.items():
                 setattr(dataset, attribute, item.get(field))
             logger.debug("dataset title is %s", dataset.title)
-
             try:
                 form_id = int(item.get("form_id", None))
             except (ValueError, TypeError) as e:
