@@ -2,15 +2,22 @@
 
 A tool for advertising bio-medical **projects** and their associated **datasets**
 
-Local installation of development environment and procedure for docker version are described below.
+The catalogue enhances visibility and accessibility of biomedical datasets, fostering collaboration and accelerating research. It supports data sharing, compliance, and reproducibility across the research ecosystem.
 
-**Instances:**
+Developed through lean, user-centered design, the catalogue integrates community-accepted metadata models and supports diverse data types. It continues to grow through contributions from ELIXIR-LU and partner projects.</p>
+
+## Instances:
 
 This software is behind the following instances:
 
 * [ELIXIR Luxembourg Data Catalogue](https://datacatalog.elixir-luxembourg.org)
 * [Biomap Cohort Catalog](https://biomap-cohort-catalog.uni.lu)
 
+## Acknowledgement
+Initially launched as the [Translational Data Catalogue](https://github.com/FAIRplus/imi-data-catalogue) under IMI and H2020 initiatives jointly developed through ELIXIR Luxembourg, IMI-FAIRplus and IMI-eTRIKS collaborations. Over time, its development and support have evolved into a broader service now provided by ELIXIR Luxembourg.
+
+## License
+The code is available under **AGPL-3.0 license**. 
 
 ## Table of content
 
@@ -27,6 +34,8 @@ This software is behind the following instances:
 * [Development](#development)
 
 ## Local installation
+
+Local installation of development environment and procedure for docker version are described below.
 
 ### Requirements
 
