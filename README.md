@@ -1,6 +1,6 @@
 # Data Catalog
 
-**Name:** # Data Catalog
+**Name:** # Data Catalogue
 
 **Goal:** Advertise bio-medical **projects** and their associated **datasets**
 
@@ -10,7 +10,7 @@ Local installation of development environment and procedure for docker version a
 
 This software is behind the following instances:
 
-* [ELIXIR-LU Data Catalog](https://datacatalog.elixir-luxembourg.org)
+* [ELIXIR Luxembourg Data Catalogue](https://datacatalog.elixir-luxembourg.org)
 * [Biomap Cohort Catalog](https://biomap-cohort-catalog.uni.lu)
 
 
