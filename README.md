@@ -123,7 +123,9 @@ For local development, change `JSON_FILE_PATH` from `'data/imi_projects'`to `'te
       ```
       flask indexer drop_connector_entities Daisy dataset
       ```
-   
+
+1. [Optional] Customize the [About](./datacatalog/templates/about.html) and [Help](./datacatalog/templates/help.html) pages to relect your services.
+
 1. Run the development server:
 
      ```

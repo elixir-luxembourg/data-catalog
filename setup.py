@@ -55,7 +55,7 @@ test_requirements = ["coverage==5.5"]
 setup(
     name="datacatalog",
     version="0.0.1",
-    description="Data catalog",
+    description="A tool for advertising bio-medical projects and their associated datasets.",
     author="Valentin Grouès",
     author_email="valentin.groues@uni.lu",
     url="https://git-r3lab.uni.lu/core-services/data-catalog",
