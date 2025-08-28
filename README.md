@@ -1,8 +1,6 @@
 # Data Catalog
 
-**Name:** # Data Catalogue
-
-**Goal:** Advertise bio-medical **projects** and their associated **datasets**
+A tool for advertising bio-medical **projects** and their associated **datasets**
 
 Local installation of development environment and procedure for docker version are described below.
 
