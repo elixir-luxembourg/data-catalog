@@ -280,7 +280,7 @@
             </div>
         {% elif field.render_kw and 'label' in field.render_kw %}
             <div class="form-group">
-                <p>{{ field.label.text }}</p>
+                <p>{{ field.label.text | urlize }}</p>
             </div>
         {% elif field.render_kw and 'header' in field.render_kw %}
             <h2>{{ field.label.text }}</h2>
