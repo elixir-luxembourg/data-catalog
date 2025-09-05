@@ -51,34 +51,34 @@ class TestModels(BaseTest):
         self.solr_orm.delete(query="*:*")
         title = "Great dataset!"
         dataset = Dataset(title)
-        use_restriction_1 = {
+        use_condition_1 = {
             "use_class": "PS",
             "use_class_label": "test",
             "use_class_note": "Use is restricted to projects: MDEG2",
-            "use_restriction_note": "test2",
-            "use_restriction_rule": "CONSTRAINED_PERMISSION",
+            "use_condition_note": "test2",
+            "use_condition_rule": "CONSTRAINED_PERMISSION",
         }
-        use_restriction_2 = {
+        use_condition_2 = {
             "use_class": "PUB",
             "use_class_label": "test2",
             "use_class_note": "test5",
-            "use_restriction_note": "Acknowledgement required.",
-            "use_restriction_rule": "CONSTRAINED_PERMISSION",
+            "use_condition_note": "Acknowledgement required.",
+            "use_condition_rule": "CONSTRAINED_PERMISSION",
         }
-        dataset.use_restrictions = [use_restriction_1, use_restriction_2]
+        dataset.use_conditions = [use_condition_1, use_condition_2]
         dataset.set_computed_values()
         dataset.save()
         self.solr_orm.commit()
 
-        self.assertEqual(set(dataset.use_restrictions_class_label), {"test2", "test"})
-        results, icons = dataset.use_restrictions_by_type
-        expected_result = [use_restriction_1, use_restriction_2]
+        self.assertEqual(set(dataset.use_conditions_class_label), {"test2", "test"})
+        results, icons = dataset.use_conditions_by_type
+        expected_result = [use_condition_1, use_condition_2]
         for attribute in [
             "use_class",
             "use_class_label",
             "use_class_note",
-            "use_restriction_note",
-            "use_restriction_rule",
+            "use_condition_note",
+            "use_condition_rule",
         ]:
             self.assertEqual(
                 results["CONSTRAINED_PERMISSION"][0][attribute],

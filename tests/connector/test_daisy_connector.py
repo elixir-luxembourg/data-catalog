@@ -75,18 +75,18 @@ class TestDaisyConnector(BaseTest):
                             "embargo_date": None,
                             "storage_end_date": None,
                             "storage_duration_criteria": None,
-                            "use_restrictions": [
+                            "use_conditions": [
                                 {
                                     "use_class": "PS",
                                     "use_class_label": None,
-                                    "use_restriction_note": "Use is restricted to projects: MDEG2",
-                                    "use_restriction_rule": "CONSTRAINED_PERMISSION",
+                                    "use_condition_note": "Use is restricted to projects: MDEG2",
+                                    "use_condition_rule": "CONSTRAINED_PERMISSION",
                                 },
                                 {
                                     "use_class": "PUB",
                                     "use_class_label": None,
-                                    "use_restriction_note": "Acknowledgement required.",
-                                    "use_restriction_rule": "CONSTRAINED_PERMISSION",
+                                    "use_condition_note": "Acknowledgement required.",
+                                    "use_condition_rule": "CONSTRAINED_PERMISSION",
                                 },
                             ],
                         }
@@ -153,18 +153,18 @@ class TestDaisyConnector(BaseTest):
                             "embargo_date": None,
                             "storage_end_date": None,
                             "storage_duration_criteria": None,
-                            "use_restrictions": [
+                            "use_conditions": [
                                 {
                                     "use_class": "PS",
                                     "use_class_label": None,
-                                    "use_restriction_note": "Use is restricted to projects: MDEG2",
-                                    "use_restriction_rule": "CONSTRAINED_PERMISSION",
+                                    "use_condition_note": "Use is restricted to projects: MDEG2",
+                                    "use_condition_rule": "CONSTRAINED_PERMISSION",
                                 },
                                 {
                                     "use_class": "PUB",
                                     "use_class_label": None,
-                                    "use_restriction_note": "Acknowledgement required.",
-                                    "use_restriction_rule": "CONSTRAINED_PERMISSION",
+                                    "use_condition_note": "Acknowledgement required.",
+                                    "use_condition_rule": "CONSTRAINED_PERMISSION",
                                 },
                             ],
                         }
@@ -217,7 +217,7 @@ class TestDaisyConnector(BaseTest):
         first_dataset.save(soft_commit=True)
         retrieved_dataset = Dataset.query.get(first_dataset.id)
         self.assertEqual("MDEG2 data", retrieved_dataset.title)
-        self.assertEqual(2, len(retrieved_dataset.use_restrictions))
+        self.assertEqual(2, len(retrieved_dataset.use_conditions))
         self.assertEqual(
             {"Metabolomics", "Methylation_array", "Clinical_data"},
             set(retrieved_dataset.data_types),

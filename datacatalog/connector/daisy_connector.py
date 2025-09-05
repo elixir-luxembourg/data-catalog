@@ -134,11 +134,11 @@ class DaisyConnector(ImportEntitiesConnector):
             dataset.form_id = form_id
 
             data_types_set = set()
-            dataset.use_restrictions = []
+            dataset.use_conditions = []
             for data_declaration in item["data_declarations"]:
                 data_types_set.update(data_declaration.get("data_types", []))
-                dataset.use_restrictions.extend(
-                    data_declaration.get("use_restrictions", [])
+                dataset.use_conditions.extend(
+                    data_declaration.get("use_conditions", [])
                 )
             dataset.storages = []
             for storage in item.get("storages", []):

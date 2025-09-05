@@ -272,6 +272,39 @@ class TestWebControllers(BaseTest):
         self.assertIn(first_dataset.title, entity_clean_text)
         self.assertIn("contact our data stewards", entity_clean_text)
 
+    def test_entity_details_project_deprecated_datasets(self):
+        project = Project.query.get("dc9970e8-147a-11eb-b51f-8c8590c45a21")
+        self.assertIsNotNone(project)
+
+        active_dataset = Dataset("Active Test Dataset")
+        active_dataset.deprecated = "Active"
+        active_dataset.save()
+
+        deprecated_dataset = Dataset("Deprecated Test Dataset")
+        deprecated_dataset.deprecated = "Deprecated"
+        deprecated_dataset.save()
+
+        study = Study("Test Study")
+        study.datasets = [active_dataset.id, deprecated_dataset.id]
+        study.save()
+
+        project.studies = [study.id]
+        project.save()
+        self.solr_orm.commit()
+
+        with self.client as client:
+            # Test default behavior (hide deprecated)
+            response = client.get(f"/e/project/{project.id}")
+            text = get_clean_html_body(response)
+            self.assertIn("Active Test Dataset", text)
+            self.assertNotIn("Deprecated Test Dataset", text)
+
+            # Test with show_deprecated=true
+            response = client.get(f"/e/project/{project.id}?show_deprecated=true")
+            text = get_clean_html_body(response)
+            self.assertIn("Active Test Dataset", text)
+            self.assertIn("Deprecated Test Dataset", text)
+
     def test_get_entity(self):
         datasets = list(Dataset.query.all())
         if len(datasets) > 0:

@@ -27,7 +27,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field, InitVar
 
 from . import EntityWithSlugs
-from .. import app, DEFAULT_USE_RESTRICTIONS_ICONS
+from .. import app, DEFAULT_USE_CONDITIONS_ICONS
 from ..solr.solr_orm import SolrAutomaticQuery
 from ..solr.solr_orm_entity import SolrEntity
 from ..solr.solr_orm_fields import (
@@ -43,20 +43,20 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
-class UseRestriction:
-    use_restriction_note: str
+class UseCondition:
+    use_condition_note: str
     use_class: str
     use_class_label: str
-    use_restriction_rule: str
+    use_condition_rule: str
     use_class_note: str
 
     @classmethod
     def from_dict(cls, source_dict):
         return cls(
-            use_restriction_note=source_dict.get("use_restriction_note"),
+            use_condition_note=source_dict.get("use_condition_note"),
             use_class=source_dict.get("use_class"),
             use_class_label=source_dict.get("use_class_label"),
-            use_restriction_rule=source_dict.get("use_restriction_rule"),
+            use_condition_rule=source_dict.get("use_condition_rule"),
             use_class_note=source_dict.get("use_class_note"),
         )
 
@@ -99,10 +99,10 @@ class Dataset(SolrEntity, EntityWithSlugs):
     fair_evaluation = SolrField("fair_evaluation")
     e2e = SolrBooleanField("e2e")
     hosted = SolrBooleanField("hosted")
-    use_restrictions = SolrJsonField("use_restrictions")
+    use_conditions = SolrJsonField("use_conditions")
     storages = SolrJsonField("storages")
-    use_restrictions_class_label = SolrField(
-        "use_restrictions_class_label", multivalued=True
+    use_conditions_class_label = SolrField(
+        "use_conditions_class_label", multivalued=True
     )
     access_mode = SolrField("access_mode")
     platform = SolrField("platform")
@@ -147,27 +147,25 @@ class Dataset(SolrEntity, EntityWithSlugs):
 
     def set_computed_values(self):
         results = dict()  # using dict instead of set to preserve order
-        for restriction in self.use_restrictions or []:
-            use_restriction = UseRestriction.from_dict(restriction)
-            results[use_restriction] = None
-        self.use_restrictions_class_label = [u.use_class_label for u in results]
-        self.use_restrictions = [r.__dict__ for r in results.keys()]
+        for condition in self.use_conditions or []:
+            use_condition = UseCondition.from_dict(condition)
+            results[use_condition] = None
+        self.use_conditions_class_label = [u.use_class_label for u in results]
+        self.use_conditions = [r.__dict__ for r in results.keys()]
         self.access_mode = "Open" if self.dataset_link_href else "Controlled"
 
     @property
-    def use_restrictions_by_type(self):
+    def use_conditions_by_type(self):
         results = defaultdict(list)
         mapping_icons = app.config.get(
-            "USE_RESTRICTIONS_ICONS", DEFAULT_USE_RESTRICTIONS_ICONS
+            "USE_CONDITIONS_ICONS", DEFAULT_USE_CONDITIONS_ICONS
         )
         icons = {}
-        for use_restriction in self.use_restrictions:
-            if use_restriction.get("use_restriction_rule"):
-                results[use_restriction.get("use_restriction_rule")].append(
-                    use_restriction
-                )
-        for restriction_type in results:
-            icons[restriction_type] = mapping_icons.get(restriction_type)
+        for use_condition in self.use_conditions:
+            if use_condition.get("use_condition_rule"):
+                results[use_condition.get("use_condition_rule")].append(use_condition)
+        for condition_type in results:
+            icons[condition_type] = mapping_icons.get(condition_type)
         return results, icons
 
     def get_keywords(self):
@@ -195,6 +193,7 @@ class StudyDataset:
     study_id: str = field(init=False)
     hosted: bool = field(init=False)
     access_mode: bool = field(init=False)
+    is_deprecated: bool = field(init=False)
 
     def __post_init__(self, dataset: SolrEntity, study: SolrEntity):
         self.title = dataset.title
@@ -205,3 +204,6 @@ class StudyDataset:
         self.study_title = study.title if study else "-"
         self.study_id = study.id if study else "-"
         self.hosted = "Yes" if dataset.hosted else "No"
+        self.is_deprecated = (
+            dataset.deprecated != "Active" if dataset.deprecated else False
+        )

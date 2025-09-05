@@ -38,6 +38,8 @@ RUN cd /code/datacatalog/static/vendor && \
 # Copy source code
 COPY . /code/
 
+RUN cp /code/datacatalog/settings.py.template /code/datacatalog/settings.py
+
 # Compile Flask assets
 RUN /usr/local/bin/flask assets build
 

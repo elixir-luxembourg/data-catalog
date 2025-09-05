@@ -88,8 +88,9 @@
 
         {# DATASETS #}
 
-        {% if study_datasets %}
+        {% if study_datasets or has_deprecated_datasets %}
         {{ macros.start_panel("Datasets", "datasets", expanded=True, listType="") }}
+        {% if study_datasets %}
         <table class="table table-striped project-table">
             <thead>
                 <tr class="bold-row">
@@ -108,6 +109,7 @@
                         <a href="{{ url_for('entity_details', entity_name='dataset', entity_id=dataset.dataset_id) }}">
                             {{ dataset.title }}
                         </a>
+                        {% if dataset.is_deprecated %}<span class="label label-deprecated">deprecated</span>{% endif %}
                     </td>
                     <td>{{ dataset.create_date }}</td>
                     <td>
@@ -122,8 +124,24 @@
                     <td>{{ dataset.hosted }}</td>
                 </tr>
                 {% endfor %}
+                {% if has_deprecated_datasets %}
+                <tr>
+                    <td colspan="5" class="text-center">
+                        {% if show_deprecated %}
+                            <a href="{{ url_for('entity_details', entity_name='project', entity_id=project.id) }}" class="small text-muted">Hide deprecated records</a>
+                        {% else %}
+                            <a href="{{ url_for('entity_details', entity_name='project', entity_id=project.id, show_deprecated='true') }}" class="small text-muted">Show deprecated records</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endif %}
             </tbody>
         </table>
+        {% else %}
+        <div class="text-center">
+            <a href="{{ url_for('entity_details', entity_name='project', entity_id=project.id, show_deprecated='true') }}" class="small text-muted">Show deprecated records</a>
+        </div>
+        {% endif %}
         {{ macros.end_panel(listType="") }}
         {% endif %}
 
