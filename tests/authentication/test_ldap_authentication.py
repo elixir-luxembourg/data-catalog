@@ -16,6 +16,8 @@
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import pytest
+
 from datacatalog.exceptions import AuthenticationException
 from tests.base_test import BaseTest
 from datacatalog import app
@@ -26,6 +28,7 @@ from datacatalog.authentication.ldap_authentication import (
 __author__ = "Nirmeen Sallam"
 
 
+@pytest.mark.skip(reason="LDAP tests skipped - requires LDAP server configuration")
 class TestLDAPUserPasswordAuthentication(BaseTest):
     ldapauth = LDAPUserPasswordAuthentication(app.config.get("LDAP_HOST"))
     app.config["AUTHENTICATION_METHOD"] = "LDAP"
