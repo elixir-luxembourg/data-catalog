@@ -22,7 +22,7 @@ dirname = os.path.dirname(__file__)
 class Config(object):
     BASE_URL = os.environ.get("BASE_URL", "")
     SECRET_KEY = os.environ.get("APP_SECRET", b"")
-    INSTANCE_TITLE = "Data Catalog"
+    TITLE = "Data Catalog"
     ENTITIES = {
         "dataset": "datacatalog.models.dataset.Dataset",
         "project": "datacatalog.models.project.Project",

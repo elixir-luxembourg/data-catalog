@@ -15,7 +15,7 @@
                     {% if config.get('USE_LOGO', True) %}
                         <img width=160 src="{{ logo }}" alt="logo"/>
                     {% else %}
-                        {{ config.get('INSTANCE_TITLE', 'Data Catalogue') }}
+                        {{ config.get('TITLE', 'Data Catalogue') }}
                     {% endif %}
                 {% endblock %}
             </a>

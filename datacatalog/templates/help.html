@@ -6,10 +6,10 @@
 {% block content %}
 
     <div class="wrapper wrapper-text"><h1 id="helpHeader">Frequently Asked Questions</h1>
-        <p>Here are some of the most frequently asked questions about the {{ config.get('INSTANCE_TITLE', 'Data Catalogue') }} and how to use it. If you
+        <p>Here are some of the most frequently asked questions about the {{ config.get('TITLE', 'Data Catalogue') }} and how to use it. If you
             have a question that isn't answered here, please don't hesitate to <strong><a
                     href="mailto:data-catalog@elixir-luxembourg.org">contact us.</a></strong></p>
-        <h2>What is the {{ config.get('INSTANCE_TITLE', 'Data Catalogue') }}?</h2>
+        <h2>What is the {{ config.get('TITLE', 'Data Catalogue') }}?</h2>
         <p>For more information on the catalogue, see our <strong><a href="{{ url_for('about') }}">About page</a></strong>.
         </p>
 
@@ -51,7 +51,7 @@
             request to the system. These datasets are hosted by <a href="https://elixir-luxembourg.org/services/data-hosting/">ELIXIR Luxembourg's data hosting service</a> so we are able to process these access requests according to the data reuse conditions specified by the data owner.
             We are not able to provide or facilitate dataset access for projects not hosted at ELIXIR Luxembourg, except where the data is already available through a public data repository, in which case a direct link to the data is provided.</p>
 
-        <h2>What are the reuse conditions for the information displayed in the {{ config.get('INSTANCE_TITLE', 'Data Catalogue') }}?</h2>
+        <h2>What are the reuse conditions for the information displayed in the {{ config.get('TITLE', 'Data Catalogue') }}?</h2>
         <p>All project-, study- and dataset-related information published in the catalogue is freely available for reuse under the <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0 license</a>. The catalogue code base is licensed under the <a href="https://www.gnu.org/licenses/agpl-3.0.en.html">GNU Affero General Public License
 </a> (AGPL).</p>
 
