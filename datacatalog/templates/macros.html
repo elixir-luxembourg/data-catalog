@@ -199,7 +199,7 @@
 
 {% macro form_group(field) -%}
     <div class="form-group {% if field.flags.required %}required{% endif %}">
-        <label for="{{ field.id }}" class="form-control-label">{{ field.label.text }}</label>
+        <label for="{{ field.id }}" class="form-control-label">{{ field.label.text | urlize }}</label>
         {% if field.errors %}
             {{ field(class_="form-control is-invalid") }}
         {% else %}
@@ -252,7 +252,7 @@
             {% endif %}
         {% elif field.type == 'MultiCheckboxField' %}
             <div class="form-group {% if field.flags.required %}required{% endif %}">
-                <label for="{{ field.id }}" class="form-control-label">{{ field.label.text }}</label>
+                <label for="{{ field.id }}" class="form-control-label">{{ field.label.text | urlize }}</label>
                 {% for choice in field.choices %}
                     <div class="flex-checkbox checkbox">
                         <label><input id="{{ field.name ~ '-' ~ loop0 }}" name="{{ field.name }}"
@@ -269,12 +269,12 @@
             </div>
         {% elif field.type == 'TextAreaField' %}
             <div class="form-group {% if field.flags.required %}required{% endif %}">
-                <label for="{{ field.id }}" class="form-control-label">{{ field.label.text }}</label>
+                <label for="{{ field.id }}" class="form-control-label">{{ field.label.text | urlize }}</label>
                 {{ field(class_="form-control ", rows='4',cols='15') }}
             </div>
         {% elif field.type == 'FileField' %}
             <div class="form-group {% if field.flags.required %}required{% endif %} is-fileinput">
-                <label for="{{ field.id }}" class="form-control-label">{{ field.label.text }}</label>
+                <label for="{{ field.id }}" class="form-control-label">{{ field.label.text | urlize }}</label>
                 <input type="text" readonly="" class="form-control" placeholder="Browse...">
                 <input class="form-control" id="{{ field.id }}" name="{{ field.id }}" type="file">
             </div>
