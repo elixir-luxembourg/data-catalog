@@ -63,6 +63,7 @@ def _create_access_token_with_roles(roles):
     jwt["realm_access"] = {"roles": [f"ACCESS::{role}" for role in roles]}
     return jwt.to_jwt()
 
+
 @pytest.mark.skip(reason="PyOIDC tests skipped - requires OIDC provider configuration")
 class TestPyOIDCviews(BaseTest):
     TEST_ROLES = {"TEST-2-836C5D-1", "TEST-2-FDED22-1"}
