@@ -173,4 +173,6 @@ datacatalog/oidc.yaml
 .DS_Store
 datacatalog/static/js/react
 
-
+*data
+.vscode
+.pip

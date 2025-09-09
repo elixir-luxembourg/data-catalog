@@ -385,6 +385,7 @@ def entity_details(entity_name: str, entity_id: str) -> Response:
         "results": results,
         "has_access": False,
         "attachments_exist": False,
+        "show_deprecated": request.args.get("show_deprecated", "false") == "true",
     }
 
     if hasattr(entity, "contacts"):
@@ -417,6 +418,15 @@ def entity_details(entity_name: str, entity_id: str) -> Response:
 
     if entity.studies_entities or entity.datasets_entities:
         kwargs["study_datasets"] = _get_entity_datasets(entity)
+        kwargs["has_deprecated_datasets"] = any(
+            study_dataset.is_deprecated for study_dataset in kwargs["study_datasets"]
+        )
+        if not kwargs["show_deprecated"]:
+            kwargs["study_datasets"] = [
+                study_dataset
+                for study_dataset in kwargs["study_datasets"]
+                if not study_dataset.is_deprecated
+            ]
 
     return render_template(
         entity_name + ".html", fair_evaluations_show=FAIR_EVALUATIONS_SHOW, **kwargs
@@ -436,6 +446,13 @@ def _get_entity_datasets(entity: SolrEntity) -> List[StudyDataset]:
         if dataset.id in datasets_ids:
             continue
         study_datasets.append(StudyDataset(dataset, None))
+    # Sort datasets: non-deprecated first (alphabetically), then deprecated (alphabetically)
+    study_datasets.sort(
+        key=lambda sd: (
+            sd.is_deprecated,
+            getattr(getattr(sd, "dataset", None), "title", "").lower(),
+        )
+    )
     return study_datasets
 
 

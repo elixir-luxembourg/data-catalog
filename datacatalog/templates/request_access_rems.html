@@ -1,22 +1,22 @@
 {% extends 'request_access.html' %}
-{% set restrictions_fields, icons = form | use_restrictions %}
+{% set conditions_fields, icons = form | use_conditions %}
 
 {% block form %}
-    {{ macros.quick_form(form, include_form_tag=False, show_submit=False, render_rw_filter='use_restriction_rule') }}
-    {% if restrictions_fields %}
-        <h3>Use Restrictions</h3>
-        <p>All use restrictions must be accepted to be able to request access to this dataset</p>
-        <div class="restrictions">
-            {% for restriction_type in restrictions_fields %}
-                <h4 class="restrictionType">
-                    <i class="material-icons {{ icons[restriction_type][1] }}">{{ icons[restriction_type][0] }}</i><span> {{ icons[restriction_type][2] }}
+    {{ macros.quick_form(form, include_form_tag=False, show_submit=False, render_rw_filter='use_condition_rule') }}
+    {% if conditions_fields %}
+        <h3>Use Conditions</h3>
+        <p>All use conditions must be accepted to be able to request access to this dataset</p>
+        <div class="conditions">
+            {% for condition_type in conditions_fields %}
+                <h4 class="conditionType">
+                    <i class="material-icons {{ icons[condition_type][1] }}">{{ icons[condition_type][0] }}</i><span> {{ icons[condition_type][2] }}
         </span>
                 </h4>
-                {% for field in restrictions_fields[restriction_type] %}
+                {% for field in conditions_fields[condition_type] %}
                     <div class="form-group form-group-compact required">
                         {{ macros.render_checkbox(field) }}
                         {% if field.errors %}
-                            {% for error in field.errors %}<p class="help-block">*You must accept this restriction</p>
+                            {% for error in field.errors %}<p class="help-block">*You must accept this condition</p>
                             {% endfor %}
                         {% endif %}
                     </div>
@@ -30,8 +30,8 @@
 {% endblock %}
 
 {% block extra_form_content %}
-    {% if restrictions_fields %}
-        <p>Explanation of use restriction code can be found on the <a
+    {% if conditions_fields %}
+        <p>Explanation of use condition code can be found on the <a
                 href="https://www.ga4gh.org/wp-content/uploads/DataUseBeacon_160209_tab_0.pdf">GA4GH website</a></p>
     {% endif %}
 {% endblock %}

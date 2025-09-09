@@ -229,27 +229,25 @@ class RemsAccessHandler(AccessHandler):
             )
             field_id = f"license_{license_id}"
             setattr(FormClass, field_id, license_field)
-        use_restrictions = dataset.use_restrictions or []
-        logger.debug(
-            "processing use restrictions, %d restrictions", len(use_restrictions)
-        )
-        for index, use_restriction in enumerate(use_restrictions):
-            field_id = f"use_restriction_{index}"
+        use_conditions = dataset.use_conditions or []
+        logger.debug("processing use conditions, %d conditions", len(use_conditions))
+        for index, use_condition in enumerate(use_conditions):
+            field_id = f"use_condition_{index}"
             values = []
-            use_restriction_note = use_restriction.get("use_restriction_note")
-            use_class = use_restriction.get("use_class") or ""
-            use_class_label = use_restriction.get("use_class_label", "")
-            use_restriction_rule = use_restriction.get("use_restriction_rule", "")
-            use_class_note = use_restriction.get("use_class_note", "")
+            use_condition_note = use_condition.get("use_condition_note")
+            use_class = use_condition.get("use_class") or ""
+            use_class_label = use_condition.get("use_class_label", "")
+            use_condition_rule = use_condition.get("use_condition_rule", "")
+            use_class_note = use_condition.get("use_class_note", "")
             tooltip_values = []
-            if use_restriction_note:
-                values.append(use_restriction_note)
+            if use_condition_note:
+                values.append(use_condition_note)
             if use_class_label:
                 values.append(f"({use_class_label})")
-            if use_restriction_rule:
-                tooltip_values.append(use_restriction_rule)
+            if use_condition_rule:
+                tooltip_values.append(use_condition_rule)
             if use_class:
-                tooltip_values.append(f"GA4GH use restriction code: {use_class}")
+                tooltip_values.append(f"GA4GH use condition code: {use_class}")
             if use_class_note:
                 tooltip_values.append(f"{use_class_note}")
             tooltip = ", ".join(tooltip_values)
@@ -260,14 +258,12 @@ class RemsAccessHandler(AccessHandler):
                     " ".join(values),
                     validators=[
                         DataRequired(),
-                        AnyOf(
-                            [True], message="You must accept all the use restrictions"
-                        ),
+                        AnyOf([True], message="You must accept all the use conditions"),
                     ],
                     render_kw={
                         "compact": True,
                         "tooltip": tooltip,
-                        "use_restriction_rule": use_restriction["use_restriction_rule"],
+                        "use_condition_rule": use_condition["use_condition_rule"],
                     },
                 ),
             )

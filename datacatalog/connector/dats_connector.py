@@ -494,33 +494,33 @@ class DATSConnector(ImportEntitiesConnector):
             dataset.samples_type = sampleType
 
         if "dataUseConditions" in metadata:
-            dataset.use_restrictions = []
-            restriction_label = []
+            dataset.use_conditions = []
+            condition_label = []
             for condition in metadata["dataUseConditions"]:
-                restriction = {
+                condition_dict = {
                     "use_class": "",
                     "use_class_label": "",
                     "use_class_note": "",
-                    "use_restriction_note": "",
-                    "use_restriction_rule": "",
+                    "use_condition_note": "",
+                    "use_condition_rule": "",
                 }
                 if "abbreviation" in condition:
-                    restriction["use_class"] = condition["abbreviation"]
+                    condition_dict["use_class"] = condition["abbreviation"]
                 if "name" in condition:
-                    restriction["use_class_label"] = condition["name"]
-                    restriction_label.append(condition["name"])
+                    condition_dict["use_class_label"] = condition["name"]
+                    condition_label.append(condition["name"])
                 if "description" in condition:
-                    restriction["use_restriction_note"] = condition["description"]
+                    condition_dict["use_condition_note"] = condition["description"]
                 if "restriction_type" in condition:
                     if isinstance(condition["restriction_type"], str):
-                        restriction["use_restriction_rule"] = condition[
+                        condition_dict["use_condition_rule"] = condition[
                             "restriction_type"
                         ]
                     else:
-                        restriction["use_restriction_rule"] = condition[
+                        condition_dict["use_condition_rule"] = condition[
                             "restriction_type"
                         ]["value"]
-                dataset.use_restrictions.append(restriction)
+                dataset.use_conditions.append(condition_dict)
 
         if "dimensions" in metadata:
             for dimension in metadata["dimensions"]:

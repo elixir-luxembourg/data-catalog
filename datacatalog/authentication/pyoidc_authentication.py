@@ -190,7 +190,7 @@ class PyOIDCAuthentication(RemoteAuthentication):
                 raise AuthenticationException("invalid sub")
             user.displayname = user_info["name"]
             user.email = user_info["email"]
-            user.accesses = extract_accesses(user_info)
+            user.accesses = extract_accesses(access_token)
             user.save()
         except (KeyError, MessageException, AuthenticationException) as e:
             logger.error("could not retrieve user info, will logout user")

@@ -14,11 +14,11 @@
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-    datacatalog
-    -------------------
+ datacatalog
+ -------------------
 
-   DataCatalog root package
-   Loads configuration and creates the Flask application
+DataCatalog root package
+Loads configuration and creates the Flask application
 
 """
 import logging
@@ -55,7 +55,7 @@ DEFAULT_ENTITIES = {
     "project": "datacatalog.models.project.Project",
 }
 
-DEFAULT_USE_RESTRICTIONS_ICONS = {
+DEFAULT_USE_CONDITIONS_ICONS = {
     "PERMISSION": ("thumb_up", "text-default", "Permissions"),
     "OBLIGATION": ("hardware", "text-default", "Obligations"),
     "CONSTRAINED_PERMISSION": ("info", "text-default", "Constrained permissions"),
@@ -304,18 +304,16 @@ def public_route(decorated_function):
     return decorated_function
 
 
-@app.template_filter("use_restrictions")
-def _jinja2_filter_use_restrictions(form):
-    mapping_icons = app.config.get(
-        "USE_RESTRICTIONS_ICONS", DEFAULT_USE_RESTRICTIONS_ICONS
-    )
+@app.template_filter("use_conditions")
+def _jinja2_filter_use_conditions(form):
+    mapping_icons = app.config.get("USE_CONDITIONS_ICONS", DEFAULT_USE_CONDITIONS_ICONS)
     result = defaultdict(list)
     icons = {}
     for field in form:
-        if field.render_kw and "use_restriction_rule" in field.render_kw:
-            result[field.render_kw["use_restriction_rule"]].append(field)
-    for restriction_type in result:
-        icons[restriction_type] = mapping_icons.get(restriction_type)
+        if field.render_kw and "use_condition_rule" in field.render_kw:
+            result[field.render_kw["use_condition_rule"]].append(field)
+    for condition_type in result:
+        icons[condition_type] = mapping_icons.get(condition_type)
     return result, icons
 
 
