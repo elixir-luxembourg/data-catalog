@@ -66,13 +66,11 @@ jobs:
         ports:
           - 8983:8983
         options: >-
-          --health-cmd="curl -f http://localhost:8983/solr/"
-          --health-interval=30s
-          --health-timeout=10s
-          --health-retries=5
-        # Create test core
-        env:
-          SOLR_CORES: test
+          --health-cmd="curl -f http://localhost:8983/solr/admin/cores?action=STATUS"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+          solr-precreate test
 
     steps:
       - uses: actions/checkout@v4
@@ -139,13 +137,35 @@ jobs:
           DATS_SCHEMAS_FOLDER: ${{ github.workspace }}/dats-schema
           DATS_CONTEXTS_FOLDER: ${{ github.workspace }}/dats-context
 
-      - name: Wait for Solr to be ready
+      - name: Wait for Solr to be ready and verify test collection
         run: |
           echo "Waiting for Solr to be ready..."
-          timeout 60 bash -c 'until curl -f http://localhost:8983/solr/admin/cores?action=STATUS; do sleep 2; done'
-          echo "Creating test collection if it doesn't exist..."
-          curl -X POST "http://localhost:8983/solr/admin/cores?action=CREATE&name=test&configSet=_default" || echo "Core might already exist"
-          echo "Solr is ready!"
+          timeout 120 bash -c 'until curl -f http://localhost:8983/solr/admin/cores?action=STATUS; do sleep 2; done'
+          echo "Solr admin API is responding"
+          
+          # Verify the test core exists (it should be pre-created by solr-precreate)
+          if curl -s "http://localhost:8983/solr/admin/cores?action=STATUS" | grep -q '"name":"test"'; then
+            echo "✅ Test core exists and is ready!"
+            
+            # Test schema API access (important for dynamic schema operations)
+            echo "Testing schema API..."
+            if curl -s "http://localhost:8983/solr/test/schema/fields" | grep -q "fields"; then
+              echo "✅ Schema API is working"
+            else
+              echo "⚠️ Schema API test failed, but continuing..."
+            fi
+            
+            # Test basic operations
+            echo "Testing basic Solr operations..."
+            curl -X POST "http://localhost:8983/solr/test/update?commit=true" -H "Content-Type: application/json" -d '[]' || echo "Update test failed"
+            
+            echo "✅ Solr is ready for tests!"
+          else
+            echo "❌ Test core is not available"
+            echo "Available cores:"
+            curl -s "http://localhost:8983/solr/admin/cores?action=STATUS"
+            exit 1
+          fi
 
       - name: Run tests
         run: |
