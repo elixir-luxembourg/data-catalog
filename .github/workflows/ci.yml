@@ -153,22 +153,13 @@ jobs:
             exit 1
           fi
           
-          # Create test core using a different approach - stop Solr, create core, restart
-          echo "Stopping Solr temporarily to create core..."
-          docker exec $SOLR_CONTAINER solr stop
+          # Create test core using the standard Solr command (as shown in README.md)
+          echo "Creating test core using: solr create_core -c test"
+          docker exec $SOLR_CONTAINER solr create_core -c test
           
-          # Run solr-precreate in the stopped container to create the core properly
-          echo "Creating core using solr-precreate approach..."
-          docker exec $SOLR_CONTAINER solr-precreate test
-          
-          # Start Solr again
-          echo "Starting Solr..."
-          docker exec -d $SOLR_CONTAINER solr start -f
-          
-          # Wait for Solr to start
-          echo "Waiting for Solr to start..."
-          sleep 15
-          timeout 120 bash -c 'until curl -f http://localhost:8983/solr/admin/cores?action=STATUS; do sleep 2; done'
+          # Wait a moment for core creation to complete
+          echo "Waiting for core creation to complete..."
+          sleep 5
           
           # Verify the test core was created
           if curl -s "http://localhost:8983/solr/admin/cores?action=STATUS" | grep -q '"name":"test"'; then
