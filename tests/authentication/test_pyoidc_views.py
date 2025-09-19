@@ -64,7 +64,6 @@ def _create_access_token_with_roles(roles):
     return jwt.to_jwt()
 
 
-@pytest.mark.skip(reason="PyOIDC tests skipped - requires OIDC provider configuration")
 class TestPyOIDCviews(BaseTest):
     TEST_ROLES = {"TEST-2-836C5D-1", "TEST-2-FDED22-1"}
     AUTH_RESPONSE = AuthorizationResponse(
@@ -138,13 +137,13 @@ class TestPyOIDCviews(BaseTest):
         session["state"] = "testsessionkey"
         self.AUTH_RESPONSE["state"] = session.get("state")
         current_app.config["authentication"].get_token = MagicMock()
-        current_app.config[
-            "authentication"
-        ].get_token.return_value = self.TOKEN_RESPONSE
+        current_app.config["authentication"].get_token.return_value = (
+            self.TOKEN_RESPONSE
+        )
 
-        current_app.config[
-            "authentication"
-        ].oidc_client.do_user_info_request = MagicMock()
+        current_app.config["authentication"].oidc_client.do_user_info_request = (
+            MagicMock()
+        )
         current_app.config[
             "authentication"
         ].oidc_client.do_user_info_request.return_value = self.USERINFO_RESPONSE

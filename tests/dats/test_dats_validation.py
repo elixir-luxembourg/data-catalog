@@ -25,7 +25,6 @@ from tests.dats import dats_model
 __author__ = "Danielle Welter"
 
 
-@pytest.mark.skip(reason="DATS validation tests skipped - requires DATS schema files")
 class TestDatsJson(BaseTest):
     def test_validate_all_projects(self):
         base_folder = get_resource_path("imi_projects_test")

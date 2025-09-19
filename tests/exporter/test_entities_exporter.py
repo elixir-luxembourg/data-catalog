@@ -14,7 +14,8 @@
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from datacatalog import app
+import requests_mock
+
 from datacatalog.connector.rems_connector import RemsConnector
 from datacatalog.exporter.entities_exporter import EntitiesExporter
 from datacatalog.models.dataset import Dataset
@@ -25,41 +26,86 @@ from tests.base_test import BaseTest
 __author__ = "Nirmeen Sallam"
 
 
+@requests_mock.Mocker()
 class TestEntitiesExporter(BaseTest):
-    def test_entities_exporter(self):
+    def setUp(self):
+        self.rems_connector = RemsConnector(
+            api_username="test-api-user",
+            api_key="test-api-key",
+            host="http://rems-mock-host",
+            workflow_id=5,
+            organization_id="89fca267-693e-41e1-830b-b4e6326c1dd0",
+            licenses=[1, 2],
+            verify_ssl=False,
+        )
+
+    def test_entities_exporter(self, m):
         title = "Great dataset!"
         dataset = Dataset(title)
         dataset.e2e = True
         dataset.form_id = 3
-        connector = RemsConnector(
-            api_username=app.config.get("REMS_API_USER"),
-            api_key=app.config.get("REMS_API_KEY"),
-            host=app.config.get("REMS_URL"),
-            workflow_id=app.config.get("REMS_WORKFLOW_ID"),
-            organization_id=app.config.get("REMS_ORGANIZATION_ID"),
-            licenses=app.config.get("REMS_LICENSES"),
-            verify_ssl=app.config.get("REMS_VERIFY_SSL", True),
+
+        # Mock export_entities calls
+        m.get("http://rems-mock-host/api/resources", json=[])
+        m.post(
+            "http://rems-mock-host/api/resources/create",
+            json={"success": True, "id": 1},
         )
-        exporter = EntitiesExporter([connector])
+        m.post(
+            "http://rems-mock-host/api/catalogue-items/create",
+            json={"success": True, "id": 1},
+        )
+        m.put("http://rems-mock-host/api/catalogue-items/edit", json={"success": True})
+        # Mock get_catalogue_item call
+        catalogue_item_data = {
+            "id": 1,
+            "resid": dataset.id,
+            "formid": 3,
+            "wfid": 5,
+            "resource-id": 1,
+            "archived": False,
+            "localizations": {"en": {"title": "Test Dataset"}},
+            "start": "2023-01-01T00:00:00Z",
+            "organization": {"organization/id": "test-org"},
+            "expired": False,
+            "end": None,
+            "enabled": True,
+        }
+        # Use simple string pattern for catalogue-items endpoint
+        m.get(
+            "http://rems-mock-host/api/catalogue-items",
+            json=[catalogue_item_data],
+        )
+
+        exporter = EntitiesExporter([self.rems_connector])
         exporter.export_all([dataset])
-        catalogue_item = connector.get_catalogue_item(dataset)
+        catalogue_item = self.rems_connector.get_catalogue_item(dataset)
         self.assertEqual(catalogue_item.resid, dataset.id)
 
-    def test_entities_exporter_dataset_form_id_none(self):
+    def test_entities_exporter_dataset_form_id_none(self, m):
         title = "Great dataset!"
         dataset = Dataset(title)
         dataset.e2e = True
-        connector = RemsConnector(
-            api_username=app.config.get("REMS_API_USER"),
-            api_key=app.config.get("REMS_API_KEY"),
-            host=app.config.get("REMS_URL"),
-            workflow_id=app.config.get("REMS_WORKFLOW_ID"),
-            organization_id=app.config.get("REMS_ORGANIZATION_ID"),
-            licenses=app.config.get("REMS_LICENSES"),
-            verify_ssl=app.config.get("REMS_VERIFY_SSL", True),
+        dataset.form_id = None
+
+        # Mock export_entities calls
+        m.get("http://rems-mock-host/api/resources", json=[])
+        m.post(
+            "http://rems-mock-host/api/resources/create",
+            json={"success": True, "id": 1},
         )
-        exporter = EntitiesExporter([connector])
+        m.post(
+            "http://rems-mock-host/api/catalogue-items/create",
+            json={"success": True, "id": 1},
+        )
+        m.put("http://rems-mock-host/api/catalogue-items/edit", json={"success": True})
+        # Mock get_catalogue_item call to return empty list
+        m.get("http://rems-mock-host/api/catalogue-items", json=[])
+
+        exporter = EntitiesExporter([self.rems_connector])
         exporter.export_all([dataset])
         self.assertRaises(
-            CatalogueItemDoesntExistException, connector.get_catalogue_item, dataset
+            CatalogueItemDoesntExistException,
+            self.rems_connector.get_catalogue_item,
+            dataset,
         )
