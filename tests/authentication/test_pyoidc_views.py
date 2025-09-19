@@ -91,14 +91,18 @@ class TestPyOIDCviews(BaseTest):
         **{"sub": "test_sub", "email": "test_user@uni.lu", "name": "Test User"}
     )
 
-    with app.app_context():
-        authentication = PyOIDCAuthentication(
-            current_app.config.get("BASE_URL"),
-            current_app.config.get("PYOIDC_CLIENT_ID"),
-            current_app.config.get("PYOIDC_CLIENT_SECRET"),
-            current_app.config.get("PYOIDC_IDP_URL"),
-        )
-        app.config["authentication"] = authentication
+    def setUp(self):
+        super().setUp()
+        with self.app.app_context():
+            authentication = PyOIDCAuthentication(
+                current_app.config.get("BASE_URL", "http://localhost:5000"),
+                current_app.config.get("PYOIDC_CLIENT_ID", "test-client"),
+                current_app.config.get("PYOIDC_CLIENT_SECRET", "test-secret"),
+                current_app.config.get(
+                    "PYOIDC_IDP_URL", "https://test-idp.example.com"
+                ),
+            )
+            current_app.config["authentication"] = authentication
 
     def test_authz_should_handle_error_response(self):
         datacatalog.authentication.pyoidc_views.AuthorizationResponse = MagicMock()
