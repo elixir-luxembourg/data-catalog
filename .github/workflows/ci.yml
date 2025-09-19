@@ -65,12 +65,13 @@ jobs:
         image: solr:9.7.0
         ports:
           - 8983:8983
+        env:
+          SOLR_HEAP: 512m
         options: >-
           --health-cmd="curl -f http://localhost:8983/solr/admin/cores?action=STATUS"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=10
-          solr-precreate test
 
     steps:
       - uses: actions/checkout@v4
@@ -137,31 +138,33 @@ jobs:
           DATS_SCHEMAS_FOLDER: ${{ github.workspace }}/dats-schema
           DATS_CONTEXTS_FOLDER: ${{ github.workspace }}/dats-context
 
-      - name: Wait for Solr to be ready and verify test collection
+      - name: Create Solr test core (replicate GitLab CI behavior)
         run: |
           echo "Waiting for Solr to be ready..."
           timeout 120 bash -c 'until curl -f http://localhost:8983/solr/admin/cores?action=STATUS; do sleep 2; done'
-          echo "Solr admin API is responding"
+          echo "Solr is ready, now creating test core using solr-precreate approach..."
           
-          # Verify the test core exists (it should be pre-created by solr-precreate)
+          # Run solr-precreate in a temporary container to create the core
+          # This replicates the GitLab CI command: [ "solr-precreate", "test" ]
+          docker run --rm --network host solr:9.7.0 solr-precreate test
+          
+          echo "Waiting for core creation to complete..."
+          sleep 5
+          
+          # Verify the test core was created
           if curl -s "http://localhost:8983/solr/admin/cores?action=STATUS" | grep -q '"name":"test"'; then
-            echo "✅ Test core exists and is ready!"
+            echo "✅ Test core created successfully using solr-precreate!"
             
-            # Test schema API access (important for dynamic schema operations)
-            echo "Testing schema API..."
+            # Test schema API access
             if curl -s "http://localhost:8983/solr/test/schema/fields" | grep -q "fields"; then
               echo "✅ Schema API is working"
             else
               echo "⚠️ Schema API test failed, but continuing..."
             fi
             
-            # Test basic operations
-            echo "Testing basic Solr operations..."
-            curl -X POST "http://localhost:8983/solr/test/update?commit=true" -H "Content-Type: application/json" -d '[]' || echo "Update test failed"
-            
             echo "✅ Solr is ready for tests!"
           else
-            echo "❌ Test core is not available"
+            echo "❌ Test core creation failed"
             echo "Available cores:"
             curl -s "http://localhost:8983/solr/admin/cores?action=STATUS"
             exit 1
