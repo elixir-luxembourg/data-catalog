@@ -144,37 +144,33 @@ jobs:
           timeout 120 bash -c 'until curl -f http://localhost:8983/solr/admin/cores?action=STATUS; do sleep 2; done'
           echo "Solr is ready, now creating test core..."
           
-          # The solr-precreate script creates a core with the default configSet
-          # Let's replicate that behavior by using the same configSet it would use
-          echo "Creating test core with configSet that solr-precreate would use..."
+          # Get the Solr container ID
+          SOLR_CONTAINER=$(docker ps --filter "ancestor=solr:9.7.0" --format "{{.ID}}")
+          echo "Solr container: $SOLR_CONTAINER"
           
-          # Check available configSets first
-          echo "Available configSets:"
-          curl -s "http://localhost:8983/solr/admin/configs?action=LIST" || echo "Could not list configSets"
-          
-          # solr-precreate uses _default configSet by default
-          # Try different approaches to create the core
-          CREATE_RESULT=""
-          
-          # Try with _default first (what solr-precreate typically uses)
-          echo "Trying to create core with _default configSet..."
-          CREATE_RESULT=$(curl -s -X POST "http://localhost:8983/solr/admin/cores?action=CREATE&name=test&configSet=_default")
-          echo "Result: $CREATE_RESULT"
-          
-          if ! echo "$CREATE_RESULT" | grep -q '"status":0'; then
-            echo "Trying with sample_techproducts_configs..."
-            CREATE_RESULT=$(curl -s -X POST "http://localhost:8983/solr/admin/cores?action=CREATE&name=test&configSet=sample_techproducts_configs")
-            echo "Result: $CREATE_RESULT"
+          if [ -z "$SOLR_CONTAINER" ]; then
+            echo "❌ Could not find Solr container"
+            exit 1
           fi
           
-          if ! echo "$CREATE_RESULT" | grep -q '"status":0'; then
-            echo "Trying without specifying configSet..."
-            CREATE_RESULT=$(curl -s -X POST "http://localhost:8983/solr/admin/cores?action=CREATE&name=test")
-            echo "Result: $CREATE_RESULT"
-          fi
+          # Create test core using a different approach - stop Solr, create core, restart
+          echo "Stopping Solr temporarily to create core..."
+          docker exec $SOLR_CONTAINER solr stop
           
-          # Check if core was created successfully
-          sleep 3
+          # Run solr-precreate in the stopped container to create the core properly
+          echo "Creating core using solr-precreate approach..."
+          docker exec $SOLR_CONTAINER solr-precreate test
+          
+          # Start Solr again
+          echo "Starting Solr..."
+          docker exec -d $SOLR_CONTAINER solr start -f
+          
+          # Wait for Solr to start
+          echo "Waiting for Solr to start..."
+          sleep 15
+          timeout 120 bash -c 'until curl -f http://localhost:8983/solr/admin/cores?action=STATUS; do sleep 2; done'
+          
+          # Verify the test core was created
           if curl -s "http://localhost:8983/solr/admin/cores?action=STATUS" | grep -q '"name":"test"'; then
             echo "✅ Test core created successfully!"
             
@@ -190,7 +186,8 @@ jobs:
             echo "❌ Test core creation failed"
             echo "Available cores:"
             curl -s "http://localhost:8983/solr/admin/cores?action=STATUS"
-            echo "Final create result was: $CREATE_RESULT"
+            echo "Checking container logs..."
+            docker logs $SOLR_CONTAINER | tail -20
             exit 1
           fi
 
