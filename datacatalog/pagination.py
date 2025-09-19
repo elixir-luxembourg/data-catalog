@@ -16,11 +16,11 @@
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-    datacatalog.pagination
-    -------------------
+ datacatalog.pagination
+ -------------------
 
-   Module containing the Pagination utility class.
-   It is used to handle pagination in jinja templates.
+Module containing the Pagination utility class.
+It is used to handle pagination in jinja templates.
 
 """
 import logging

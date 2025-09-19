@@ -16,10 +16,10 @@
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-    datacatalog.authentication.ldap_authentication
-    -------------------
+datacatalog.authentication.ldap_authentication
+-------------------
 
-    Contains an implementation of class UserPasswordAuthentication for LDAP authentication
+Contains an implementation of class UserPasswordAuthentication for LDAP authentication
 
 """
 import logging

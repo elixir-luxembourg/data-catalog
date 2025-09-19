@@ -17,10 +17,10 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-    datacatalog.connector.extend_entity_index.py
-    -------------------
+ datacatalog.connector.extend_entity_index.py
+ -------------------
 
-   Module containing the EntitiesIndexExtender class
+Module containing the EntitiesIndexExtender class
 
 
 """

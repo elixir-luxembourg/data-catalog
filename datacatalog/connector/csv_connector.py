@@ -17,10 +17,10 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-    datacatalog.connector.csv_connector
-    -------------------
+ datacatalog.connector.csv_connector
+ -------------------
 
-   Module containing the CSVConnector class
+Module containing the CSVConnector class
 
 
 """

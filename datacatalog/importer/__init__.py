@@ -15,10 +15,10 @@
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-    datacatalog.importer
-    -------------------
+datacatalog.importer
+-------------------
 
-    Package for all the entity importers
+Package for all the entity importers
 
 """
 __author__ = "Valentin Grouès"

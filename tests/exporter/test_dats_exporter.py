@@ -18,7 +18,6 @@
 
 import json
 import os
-import pytest
 import tempfile
 
 from datacatalog import app

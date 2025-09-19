@@ -14,13 +14,13 @@
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-    datacatalog.solr.facets
-    -------------------
+ datacatalog.solr.facets
+ -------------------
 
-   Module containing the facets class and related utility classes:
-     - Range
-     - Facet
-     - FacetRange
+Module containing the facets class and related utility classes:
+  - Range
+  - Facet
+  - FacetRange
 
 """
 import logging

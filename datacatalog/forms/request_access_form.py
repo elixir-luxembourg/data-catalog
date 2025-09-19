@@ -14,10 +14,10 @@
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-    datacatalog.forms.request_access_form
-    -------------------
+datacatalog.forms.request_access_form
+-------------------
 
-    Form to request access to an entity
+Form to request access to an entity
 
 """
 import logging

@@ -17,10 +17,10 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-    datacatalog.connector.json_connector
-    -------------------
+ datacatalog.connector.json_connector
+ -------------------
 
-   Module containing the JsonConnector class
+Module containing the JsonConnector class
 
 
 """

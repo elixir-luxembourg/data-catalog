@@ -15,9 +15,9 @@
 #
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 import json
 import os
-import pytest
 
 from tests.base_test import BaseTest, get_resource_path
 from tests.dats import dats_model

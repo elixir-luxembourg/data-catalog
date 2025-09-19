@@ -17,10 +17,10 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-    datacatalog.exporter.dats_exporter
-    -------------------
+ datacatalog.exporter.dats_exporter
+ -------------------
 
-   Module containing the DATSExporter class
+Module containing the DATSExporter class
 
 
 """
