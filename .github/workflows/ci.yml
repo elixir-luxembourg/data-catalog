@@ -104,10 +104,11 @@ jobs:
         run: |
           pip install .[testing] --default-timeout=180
 
-      - name: Install DATS validator
-        run: |
-          pip install git+https://${{ secrets.CI_DV_ACCESS_USER }}:${{ secrets.CI_DV_ACCESS_TOKEN }}@gitlab.lcsb.uni.lu/core-services/datacatalog/dats-validator.git
-        continue-on-error: true
+      # cp as tests/dats/dats_validator.py
+      # - name: Install DATS validator
+      #   run: |
+      #     pip install git+https://${{ secrets.CI_DV_ACCESS_USER }}:${{ secrets.CI_DV_ACCESS_TOKEN }}@gitlab.lcsb.uni.lu/core-services/datacatalog/dats-validator.git
+      #   continue-on-error: true
 
       - name: Clone DATS schema
         run: |
@@ -137,6 +138,14 @@ jobs:
           DATACATALOG_ENV: test
           DATS_SCHEMAS_FOLDER: ${{ github.workspace }}/dats-schema
           DATS_CONTEXTS_FOLDER: ${{ github.workspace }}/dats-context
+
+      - name: Wait for Solr to be ready
+        run: |
+          echo "Waiting for Solr to be ready..."
+          timeout 60 bash -c 'until curl -f http://localhost:8983/solr/admin/cores?action=STATUS; do sleep 2; done'
+          echo "Creating test collection if it doesn't exist..."
+          curl -X POST "http://localhost:8983/solr/admin/cores?action=CREATE&name=test&configSet=_default" || echo "Core might already exist"
+          echo "Solr is ready!"
 
       - name: Run tests
         run: |

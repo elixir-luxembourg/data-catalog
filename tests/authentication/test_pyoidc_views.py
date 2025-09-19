@@ -32,7 +32,6 @@ from oic.oic.message import (
 )
 
 import datacatalog
-from datacatalog import app
 from datacatalog.authentication.pyoidc_authentication import PyOIDCAuthentication
 from datacatalog.authentication.pyoidc_views import pyoidc_logged_out, authz
 from datacatalog.exceptions import AuthenticationException
