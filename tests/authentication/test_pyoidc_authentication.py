@@ -29,7 +29,7 @@ from tests.base_test import BaseTest
 __author__ = "Nirmeen Sallam"
 
 
-BASE_URL = app.config.get("BASE_URL", "http://test-oidc-url:5000")
+BASE_URL = app.config.get("BASE_URL", "http://localhost:5000")
 PYOIDC_CLIENT_ID = app.config.get("PYOIDC_CLIENT_ID", "test-client")
 PYOIDC_CLIENT_SECRET = app.config.get("PYOIDC_CLIENT_SECRET", "test-secret")
 PYOIDC_IDP_URL = app.config.get("PYOIDC_IDP_URL", "https://test-idp.example.com")
@@ -38,9 +38,48 @@ PYOIDC_IDP_URL = app.config.get("PYOIDC_IDP_URL", "https://test-idp.example.com"
 class TestPyOIDCAuthentication(BaseTest):
     def setUp(self):
         super().setUp()
-        self.pyauth = PyOIDCAuthentication(
-            BASE_URL, PYOIDC_CLIENT_ID, PYOIDC_CLIENT_SECRET, PYOIDC_IDP_URL
-        )
+        self.pyauth = self._create_mocked_pyoidc_auth()
+
+    def _create_mocked_pyoidc_auth(self):
+        """Create a PyOIDC authentication instance with all network calls mocked"""
+        with (
+            patch(
+                "datacatalog.authentication.pyoidc_authentication.Client"
+            ) as mock_client_class,
+            patch("datacatalog.authentication.pyoidc_authentication.app") as mock_app,
+            patch("datacatalog.authentication.pyoidc_views") as mock_views_module,
+        ):
+            mock_oidc_client = MagicMock()
+            mock_client_class.return_value = mock_oidc_client
+            mock_provider_config = {
+                "issuer": "https://test-idp.example.com",
+                "authorization_endpoint": "https://test-idp.example.com/auth",
+                "token_endpoint": "https://test-idp.example.com/token",
+                "userinfo_endpoint": "https://test-idp.example.com/userinfo",
+                "end_session_endpoint": "https://test-idp.example.com/logout",
+            }
+            mock_oidc_client.provider_config.return_value = mock_provider_config
+            mock_oidc_client.store_registration_info = MagicMock()
+            mock_oidc_client.client_id = PYOIDC_CLIENT_ID
+            mock_oidc_client.post_logout_redirect_uris = []
+            mock_oidc_client.redirect_uris = []
+
+            mock_app.blueprints = {}
+            mock_app.register_blueprint = MagicMock()
+            mock_blueprint = MagicMock()
+            mock_blueprint.name = "pyoidc_views"
+            mock_views_module.pyoidc_views = mock_blueprint
+
+            return PyOIDCAuthentication(
+                BASE_URL, PYOIDC_CLIENT_ID, PYOIDC_CLIENT_SECRET, PYOIDC_IDP_URL
+            )
+
+    def tearDown(self):
+        self.mock_oidc_client_patcher.stop()
+        self.mock_requests_patcher.stop()
+        self.mock_pyoidc_views_module_patcher.stop()
+        self.mock_app_patcher.stop()
+        super().tearDown()
 
     @patch.object(PyOIDCAuthentication, "authenticate_user")
     def test_authenticate_user_redirect(self, mock_auth):

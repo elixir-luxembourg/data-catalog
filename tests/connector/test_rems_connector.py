@@ -36,13 +36,16 @@ from tests.base_test import BaseTest
 
 __author__ = "Nirmeen Sallam"
 
-REMS_API_USER = "test-api-user"
-REMS_API_KEY = "test-api-key"
-REMS_URL = "http://rems-mock-host"
-REMS_WORKFLOW_ID = 5
+
+REMS_URL = app.config.get("REMS_URL", "http://rems-mock-host")
+REMS_API_USER = app.config.get("REMS_API_USER", "test-api-user")
+REMS_API_KEY = app.config.get("REMS_API_KEY", "test-api-key")
+REMS_WORKFLOW_ID = app.config.get("REMS_WORKFLOW_ID", 5)
+REMS_ORGANIZATION_ID = app.config.get(
+    "REMS_ORGANIZATION_ID", "89fca267-693e-41e1-830b-b4e6326c1dd0"
+)
+REMS_LICENSES = app.config.get("REMS_LICENSES", [1, 2])
 REMS_VERIFY_SSL = False
-REMS_ORGANIZATION_ID = "89fca267-693e-41e1-830b-b4e6326c1dd0"
-REMS_LICENSES = [1, 2]
 
 
 @requests_mock.Mocker()

@@ -44,6 +44,8 @@ from tests.base_test import BaseTest, get_resource_path
 
 __author__ = "Nirmeen Sallam"
 
+REMS_URL = app.config.get("REMS_URL", "http://rems-mock-host")
+
 
 class FakeStorageHandler(DownloadHandler):
     @staticmethod
@@ -144,20 +146,21 @@ class TestApiEntities(BaseTest):
             )
             self.assertIn("message", response.json)
 
+    @patch(
+        "datacatalog.authentication.pyoidc_authentication.PyOIDCAuthentication.refresh_user"
+    )
     @patch("flask_login.utils._get_user")
     @requests_mock.Mocker()
-    def test_download_link_no_access(self, current_user, m):
-        # Configure requests_mock to only mock REMS requests, allow real requests for others
+    def test_download_link_no_access(self, current_user, mock_refresh_user, m):
         m.real_http = True
-        # Mock REMS API responses
         m.post(
-            "http://rems-mock-host/api/users/create",
+            f"{REMS_URL}/api/users/create",
             json={"success": True},
             status_code=200,
             real_http=False,
         )
         m.get(
-            "http://rems-mock-host/api/applications",
+            f"{REMS_URL}/api/applications",
             json=[],
             status_code=200,
             real_http=False,
@@ -177,7 +180,7 @@ class TestApiEntities(BaseTest):
             "wfid": 1,
         }
         m.get(
-            "http://rems-mock-host/api/catalogue-items",
+            f"{REMS_URL}/api/catalogue-items",
             json=catalogue_item_data,
             status_code=200,
             real_http=False,
@@ -189,6 +192,7 @@ class TestApiEntities(BaseTest):
             app.config["ACCESS_HANDLERS"] = {"dataset": "RemsOidc"}
             user = User("test", "test", "test")
             current_user.return_value = user
+            mock_refresh_user.return_value = None
             response = client.post(
                 url_for("download_link"),
                 data=json.dumps({"entityId": random_dataset.id}),
@@ -208,18 +212,16 @@ class TestApiEntities(BaseTest):
     @patch("flask_login.utils._get_user")
     @requests_mock.Mocker()
     def test_download_link_access(self, current_user, get_handler, refresh_user, m):
-        # Configure requests_mock to only mock REMS requests, allow real requests for others
         m.real_http = True
-        # Mock REMS API responses
         m.post(
-            "http://rems-mock-host/api/users/create",
+            f"{REMS_URL}/api/users/create",
             json={"success": True},
             status_code=200,
             real_http=False,
         )
         random_dataset = random.choice(list(Dataset.query.all()))
         m.get(
-            "http://rems-mock-host/api/applications",
+            f"{REMS_URL}/api/applications",
             json=[
                 {
                     "application/id": 1,
@@ -247,7 +249,7 @@ class TestApiEntities(BaseTest):
             "wfid": 1,
         }
         m.get(
-            "http://rems-mock-host/api/catalogue-items",
+            f"{REMS_URL}/api/catalogue-items",
             json=catalogue_item_data,
             status_code=200,
             real_http=False,

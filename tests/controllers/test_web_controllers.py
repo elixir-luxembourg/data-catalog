@@ -50,6 +50,8 @@ from tests.base_test import BaseTest, get_resource_path, get_clean_html_body
 
 __author__ = "Nirmeen Sallam"
 
+REMS_URL = app.config.get("REMS_URL", "http://rems-mock-host")
+
 
 class TestWebControllers(BaseTest):
     connector = [
@@ -206,11 +208,9 @@ class TestWebControllers(BaseTest):
     @patch("flask_login.utils._get_user")
     @requests_mock.Mocker()
     def test_entity_details_authenticated_user(self, current_user, m):
-        # Configure requests_mock to only mock REMS requests, allow real requests for others
         m.real_http = True
-        # Mock REMS API responses
         m.post(
-            "http://rems-mock-host/api/users/create",
+            f"{REMS_URL}/api/users/create",
             json={"success": True},
             status_code=200,
             real_http=False,
@@ -232,17 +232,15 @@ class TestWebControllers(BaseTest):
     def test_entity_details_authenticated_user_access_no_storages(
         self, current_user, m
     ):
-        # Configure requests_mock to only mock REMS requests, allow real requests for others
         m.real_http = True
-        # Mock REMS API responses
         m.post(
-            "http://rems-mock-host/api/users/create",
+            f"{REMS_URL}/api/users/create",
             json={"success": True},
             status_code=200,
             real_http=False,
         )
         m.get(
-            "http://rems-mock-host/api/applications",
+            f"{REMS_URL}/api/applications",
             json=[],
             status_code=200,
             real_http=False,
@@ -267,17 +265,15 @@ class TestWebControllers(BaseTest):
     @patch("flask_login.utils._get_user")
     @requests_mock.Mocker()
     def test_entity_details_authenticated_user_access_storages(self, current_user, m):
-        # Configure requests_mock to only mock REMS requests, allow real requests for others
         m.real_http = True
-        # Mock REMS API responses
         m.post(
-            "http://rems-mock-host/api/users/create",
+            f"{REMS_URL}/api/users/create",
             json={"success": True},
             status_code=200,
             real_http=False,
         )
         m.get(
-            "http://rems-mock-host/api/applications",
+            f"{REMS_URL}/api/applications",
             json=[],
             status_code=200,
             real_http=False,
@@ -305,17 +301,15 @@ class TestWebControllers(BaseTest):
     def test_entity_details_authenticated_user_access_no_known_storage(
         self, current_user, m
     ):
-        # Configure requests_mock to only mock REMS requests, allow real requests for others
         m.real_http = True
-        # Mock REMS API responses
         m.post(
-            "http://rems-mock-host/api/users/create",
+            f"{REMS_URL}/api/users/create",
             json={"success": True},
             status_code=200,
             real_http=False,
         )
         m.get(
-            "http://rems-mock-host/api/applications",
+            f"{REMS_URL}/api/applications",
             json=[],
             status_code=200,
             real_http=False,
@@ -513,17 +507,15 @@ class TestWebControllers(BaseTest):
     @patch("flask_login.utils._get_user")
     @requests_mock.Mocker()
     def test_my_applications(self, current_user, m):
-        # Configure requests_mock to only mock REMS requests, allow real requests for others
         m.real_http = True
-        # Mock REMS API responses
         m.post(
-            "http://rems-mock-host/api/users/create",
+            f"{REMS_URL}/api/users/create",
             json={"success": True},
             status_code=200,
             real_http=False,
         )
         m.get(
-            "http://rems-mock-host/api/my-applications",
+            f"{REMS_URL}/api/my-applications",
             json=[
                 {
                     "application/id": 123,
@@ -609,11 +601,9 @@ class TestWebControllers(BaseTest):
         """
         Tests that unknown application states are handled gracefully by the `my-applications` web controller
         """
-        # Configure requests_mock to only mock REMS requests, allow real requests for others
         m.real_http = True
-        # Mock REMS API responses
         m.post(
-            "http://rems-mock-host/api/users/create",
+            f"{REMS_URL}/api/users/create",
             json={"success": True},
             status_code=200,
             real_http=False,

@@ -59,8 +59,6 @@ class TestLoginControllers(BaseTest):
             "datacatalog.authentication.ldap_authentication.ldap"
         )
         self.mock_ldap = self.mock_ldap_patcher.start()
-
-        # Configure LDAP constants and exceptions
         for attr in [
             "SCOPE_SUBTREE",
             "SCOPE_BASE",
@@ -70,14 +68,11 @@ class TestLoginControllers(BaseTest):
             "OPT_X_TLS_NEWCTX",
         ]:
             setattr(self.mock_ldap, attr, getattr(ldap, attr))
-
         self.mock_ldap.SERVER_DOWN = type("SERVER_DOWN", (Exception,), {})
         self.mock_ldap.INVALID_CREDENTIALS = type(
             "INVALID_CREDENTIALS", (Exception,), {}
         )
         self.mock_ldap.initialize.return_value = self.mock_conn
-
-        # Mock successful authentication by default
         self.mock_conn.search_s.return_value = [
             (self.member_dn, {"member": [self.member_dn.encode()]})
         ]

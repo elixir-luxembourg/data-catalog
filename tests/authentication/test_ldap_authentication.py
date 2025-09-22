@@ -49,8 +49,6 @@ class TestLDAPUserPasswordAuthentication(BaseTest):
             "datacatalog.authentication.ldap_authentication.ldap"
         )
         self.mock_ldap = self.mock_ldap_patcher.start()
-
-        # Configure LDAP constants and exceptions
         for attr in [
             "SCOPE_SUBTREE",
             "SCOPE_BASE",
@@ -60,7 +58,6 @@ class TestLDAPUserPasswordAuthentication(BaseTest):
             "OPT_X_TLS_NEWCTX",
         ]:
             setattr(self.mock_ldap, attr, getattr(ldap, attr))
-
         self.mock_ldap.SERVER_DOWN = type("SERVER_DOWN", (Exception,), {})
         self.mock_ldap.INVALID_CREDENTIALS = type(
             "INVALID_CREDENTIALS", (Exception,), {}
