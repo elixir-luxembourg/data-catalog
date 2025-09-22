@@ -17,7 +17,7 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from time import time
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from flask import url_for, session, current_app
 from flask_login import current_user
@@ -32,12 +32,19 @@ from oic.oic.message import (
 )
 
 import datacatalog
+from datacatalog import app
 from datacatalog.authentication.pyoidc_authentication import PyOIDCAuthentication
 from datacatalog.authentication.pyoidc_views import pyoidc_logged_out, authz
 from datacatalog.exceptions import AuthenticationException
 from tests.base_test import BaseTest
 
 __author__ = "Nirmeen Sallam"
+
+
+BASE_URL = app.config.get("BASE_URL", "http://test-oidc-url:5000")
+PYOIDC_CLIENT_ID = app.config.get("PYOIDC_CLIENT_ID", "test-client")
+PYOIDC_CLIENT_SECRET = app.config.get("PYOIDC_CLIENT_SECRET", "test-secret")
+PYOIDC_IDP_URL = app.config.get("PYOIDC_IDP_URL", "https://test-idp.example.com")
 
 
 def _create_id_token(issuer, client_id, nonce):
@@ -93,15 +100,25 @@ class TestPyOIDCviews(BaseTest):
     def setUp(self):
         super().setUp()
         with self.app.app_context():
-            authentication = PyOIDCAuthentication(
-                current_app.config.get("BASE_URL", "http://localhost:5000"),
-                current_app.config.get("PYOIDC_CLIENT_ID", "test-client"),
-                current_app.config.get("PYOIDC_CLIENT_SECRET", "test-secret"),
-                current_app.config.get(
-                    "PYOIDC_IDP_URL", "https://test-idp.example.com"
-                ),
-            )
-            current_app.config["authentication"] = authentication
+            with patch(
+                "datacatalog.authentication.pyoidc_authentication.Client.provider_config"
+            ) as mock_provider_config:
+                mock_provider_config.return_value = {
+                    "issuer": self.ISSUER,
+                    "authorization_endpoint": f"{self.ISSUER}/auth",
+                    "token_endpoint": f"{self.ISSUER}/token",
+                    "userinfo_endpoint": f"{self.ISSUER}/userinfo",
+                    "end_session_endpoint": f"{self.ISSUER}/logout",
+                    "jwks_uri": f"{self.ISSUER}/jwks",
+                }
+
+                authentication = PyOIDCAuthentication(
+                    BASE_URL,
+                    PYOIDC_CLIENT_ID,
+                    PYOIDC_CLIENT_SECRET,
+                    PYOIDC_IDP_URL,
+                )
+                current_app.config["authentication"] = authentication
 
     def test_authz_should_handle_error_response(self):
         datacatalog.authentication.pyoidc_views.AuthorizationResponse = MagicMock()
@@ -123,7 +140,8 @@ class TestPyOIDCviews(BaseTest):
         with self.assertRaises(AuthenticationException):
             authz()
 
-    def test_authz_should_handle_token_error_response(self):
+    @patch("datacatalog.authentication.pyoidc_authentication.requests.post")
+    def test_authz_should_handle_token_error_response(self, mock_requests_post):
         session["state"] = "testsessionkey"
 
         self.AUTH_RESPONSE["state"] = session.get("state")
