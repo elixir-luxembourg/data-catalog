@@ -74,13 +74,6 @@ class TestPyOIDCAuthentication(BaseTest):
                 BASE_URL, PYOIDC_CLIENT_ID, PYOIDC_CLIENT_SECRET, PYOIDC_IDP_URL
             )
 
-    def tearDown(self):
-        self.mock_oidc_client_patcher.stop()
-        self.mock_requests_patcher.stop()
-        self.mock_pyoidc_views_module_patcher.stop()
-        self.mock_app_patcher.stop()
-        super().tearDown()
-
     @patch.object(PyOIDCAuthentication, "authenticate_user")
     def test_authenticate_user_redirect(self, mock_auth):
         mock_response = MagicMock()
