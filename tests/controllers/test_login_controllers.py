@@ -45,11 +45,7 @@ class TestLoginControllers(BaseTest):
         self.username = "testuser"
         self.password = "testpass"
         self.member_dn = f"uid={self.username},cn=users,cn=accounts,dc=uni,dc=lu"
-
-        # Set up LDAP mocking
         self._setup_ldap_mocks()
-
-        # Initialize LDAP authentication with mocked components
         self.ldapauth = LDAPUserPasswordAuthentication("ldaps://mock-ldap-host")
 
     def _setup_ldap_mocks(self):
@@ -108,7 +104,6 @@ class TestLoginControllers(BaseTest):
 
     def test_login_LDAP_error(self):
         current_app.config["authentication"] = self.ldapauth
-        # Mock invalid credentials exception
         self.mock_conn.simple_bind_s.side_effect = self.mock_ldap.INVALID_CREDENTIALS()
 
         with self.client:
@@ -120,13 +115,10 @@ class TestLoginControllers(BaseTest):
 
     def test_login_LDAP_success(self):
         current_app.config["authentication"] = self.ldapauth
-        # Mock successful bind and user details
         self.mock_conn.simple_bind_s.return_value = None
         self.mock_conn.search_s.side_effect = [
-            [
-                (self.member_dn, {"member": [self.member_dn.encode()]})
-            ],  # Group membership
-            self._mock_user_attributes(),  # User details
+            [(self.member_dn, {"member": [self.member_dn.encode()]})],
+            self._mock_user_attributes(),
         ]
 
         with self.client:
@@ -157,13 +149,10 @@ class TestLoginControllers(BaseTest):
 
     def test_logout(self):
         current_app.config["authentication"] = self.ldapauth
-        # Mock successful bind and user details for login
         self.mock_conn.simple_bind_s.return_value = None
         self.mock_conn.search_s.side_effect = [
-            [
-                (self.member_dn, {"member": [self.member_dn.encode()]})
-            ],  # Group membership
-            self._mock_user_attributes(),  # User details
+            [(self.member_dn, {"member": [self.member_dn.encode()]})],
+            self._mock_user_attributes(),
         ]
 
         with self.client:

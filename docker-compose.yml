@@ -36,7 +36,7 @@ services:
             retries: 3
             start_period: 30s # Allow time for app and reload server to start
     solr:
-        image: solr:9.7.0
+        image: solr:9.9-slim
         container_name: datacatalog_solr_dev
         expose:
             - "${SOLR_PORT:-8983}"

@@ -35,11 +35,7 @@ class TestLDAPUserPasswordAuthentication(BaseTest):
         self.username = "testuser"
         self.password = "testpass"
         self.member_dn = f"uid={self.username},cn=users,cn=accounts,dc=uni,dc=lu"
-
-        # Set up LDAP mocking
         self._setup_ldap_mocks()
-
-        # Initialize LDAP authentication
         self.ldapauth = LDAPUserPasswordAuthentication("ldaps://mock-ldap-host")
 
     def _setup_ldap_mocks(self):
@@ -93,10 +89,8 @@ class TestLDAPUserPasswordAuthentication(BaseTest):
     def test_authenticate_user(self):
         self.mock_conn.simple_bind_s.return_value = None
         self.mock_conn.search_s.side_effect = [
-            [
-                (self.member_dn, {"member": [self.member_dn.encode()]})
-            ],  # Group membership
-            self._mock_user_attributes(),  # User details
+            [(self.member_dn, {"member": [self.member_dn.encode()]})],
+            self._mock_user_attributes(),
         ]
 
         success, user_details = self.ldapauth.authenticate_user(
@@ -113,7 +107,6 @@ class TestLDAPUserPasswordAuthentication(BaseTest):
         self.assertEqual("Invalid Credentials", str(cm.exception))
 
     def test_get_attributes_by_dn(self):
-        # Test successful attribute retrieval
         self.mock_conn.search_s.return_value = self._mock_user_attributes()
         attributes = self.ldapauth.get_attributes_by_dn(
             self.member_dn, self.mock_conn, self.username, ["displayName", "mail"]
@@ -121,7 +114,6 @@ class TestLDAPUserPasswordAuthentication(BaseTest):
         self.assertEqual(attributes["displayName"], "test user")
         self.assertEqual(attributes["mail"], "test@example.com")
 
-        # Test with invalid user
         self.mock_conn.search_s.return_value = []
         attributes = self.ldapauth.get_attributes_by_dn(
             self.member_dn, self.mock_conn, "invaliduser", ["displayName", "mail"]
@@ -129,7 +121,6 @@ class TestLDAPUserPasswordAuthentication(BaseTest):
         self.assertIsNone(attributes)
 
     def test_get_email_by_dn(self):
-        # Test successful email retrieval
         self.mock_conn.search_s.return_value = [
             (self.member_dn, {"mail": [b"test@example.com"]})
         ]
@@ -138,7 +129,6 @@ class TestLDAPUserPasswordAuthentication(BaseTest):
         )
         self.assertEqual(email, "test@example.com")
 
-        # Test with no results
         self.mock_conn.search_s.return_value = []
         email = self.ldapauth.get_email_by_dn(
             self.member_dn, self.mock_conn, "invaliduser"
@@ -146,7 +136,6 @@ class TestLDAPUserPasswordAuthentication(BaseTest):
         self.assertEqual(email, "")
 
     def test_get_displayname_by_dn(self):
-        # Test successful displayname retrieval
         self.mock_conn.search_s.return_value = [
             (self.member_dn, {"displayName": [b"Test User"]})
         ]
@@ -155,7 +144,6 @@ class TestLDAPUserPasswordAuthentication(BaseTest):
         )
         self.assertEqual(display_name, "Test User")
 
-        # Test with empty displayname
         self.mock_conn.search_s.return_value = [
             (self.member_dn, {"displayName": [b""]})
         ]

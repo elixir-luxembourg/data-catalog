@@ -62,7 +62,7 @@ jobs:
 
     services:
       solr:
-        image: solr:9.7.0
+        image: solr:9.9-slim
         ports:
           - 8983:8983
         env:
@@ -145,7 +145,7 @@ jobs:
           echo "Solr is ready, now creating test core..."
           
           # Get the Solr container ID
-          SOLR_CONTAINER=$(docker ps --filter "ancestor=solr:9.7.0" --format "{{.ID}}")
+          SOLR_CONTAINER=$(docker ps --filter "ancestor=solr:9.9-slim" --format "{{.ID}}")
           echo "Solr container: $SOLR_CONTAINER"
           
           if [ -z "$SOLR_CONTAINER" ]; then
