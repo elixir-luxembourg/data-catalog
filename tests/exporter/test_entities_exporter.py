@@ -30,7 +30,7 @@ __author__ = "Nirmeen Sallam"
 REMS_URL = app.config.get("REMS_URL", "http://rems-mock-host")
 REMS_API_USER = app.config.get("REMS_API_USER", "test-api-user")
 REMS_API_KEY = app.config.get("REMS_API_KEY", "test-api-key")
-REMS_WORKFLOW_ID = app.config.get("REMS_WORKFLOW_ID", 5)
+REMS_WORKFLOW_ID = app.config.get("REMS_WORKFLOW_ID", 3)
 REMS_ORGANIZATION_ID = app.config.get(
     "REMS_ORGANIZATION_ID", "89fca267-693e-41e1-830b-b4e6326c1dd0"
 )
@@ -82,7 +82,7 @@ class TestEntitiesExporter(BaseTest):
             "end": None,
             "enabled": True,
         }
-        # Use simple string pattern for catalogue-items endpoint
+        # Mock catalogue-items endpoint
         m.get(
             f"{REMS_URL}/api/catalogue-items",
             json=[catalogue_item_data],
