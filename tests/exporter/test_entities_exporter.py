@@ -72,7 +72,7 @@ class TestEntitiesExporter(BaseTest):
             "id": 1,
             "resid": dataset.id,
             "formid": 3,
-            "wfid": 5,
+            "wfid": REMS_WORKFLOW_ID,
             "resource-id": 1,
             "archived": False,
             "localizations": {"en": {"title": "Test Dataset"}},
