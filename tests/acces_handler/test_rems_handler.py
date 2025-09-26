@@ -17,12 +17,14 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import datetime
+from io import BytesIO
 from unittest.mock import MagicMock
 
 from flask_login import current_user
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileAllowed
 import requests_mock
-from werkzeug.datastructures import ImmutableMultiDict
+from werkzeug.datastructures import FileStorage, ImmutableMultiDict
 from wtforms import (
     StringField,
     TextAreaField,
@@ -31,11 +33,15 @@ from wtforms import (
     SelectField,
     SelectMultipleField,
 )
+from wtforms.validators import DataRequired, Optional
 from wtforms.fields.html5 import EmailField
 
 from datacatalog import app
 from datacatalog.acces_handler.access_handler import ApplicationState
-from datacatalog.acces_handler.rems_handler import RemsAccessHandler
+from datacatalog.acces_handler.rems_handler import (
+    AttachmentFieldBuilder,
+    RemsAccessHandler,
+)
 from datacatalog.models.dataset import Dataset
 from datacatalog.connector.rems_client import (
     Form,
@@ -600,3 +606,138 @@ class TestRemsAccessHandler(BaseTest):
 
         built_application = RemsAccessHandler.build_application(application)
         self.assertIsNone(built_application.state)
+
+    def test_attachment_field_builder_get_validators(self):
+        """Test that AttachmentFieldBuilder.get_validators returns correct validators"""
+        mock_field = dotdict(
+            {
+                "fieldtype": "attachment",
+                "fieldtitle": {"en": "Test Attachment"},
+                "fieldoptional": False,
+                "fieldmax_length": None,
+                "fieldplaceholder": None,
+            }
+        )
+
+        builder = AttachmentFieldBuilder(mock_field)
+        validators = builder.get_validators()
+        self.assertEqual(len(validators), 2)
+
+        data_required = [v for v in validators if isinstance(v, DataRequired)]
+        file_allowed = [v for v in validators if isinstance(v, FileAllowed)]
+        self.assertEqual(len(data_required), 1)
+        self.assertEqual(len(file_allowed), 1)
+        self.assertEqual(
+            set(file_allowed[0].upload_set), {"jpg", "png", "pdf", "docx", "doc"}
+        )
+        self.assertIn("File extension not in jpg, png, pdf", file_allowed[0].message)
+
+        mock_field.fieldoptional = True
+        builder_optional = AttachmentFieldBuilder(mock_field)
+        validators_optional = builder_optional.get_validators()
+
+        optional = [v for v in validators_optional if isinstance(v, Optional)]
+        data_required = [v for v in validators_optional if isinstance(v, DataRequired)]
+        file_allowed = [v for v in validators_optional if isinstance(v, FileAllowed)]
+        self.assertEqual(len(optional), 1)
+        self.assertEqual(len(data_required), 0)
+        self.assertEqual(len(file_allowed), 1)
+
+    @requests_mock.Mocker()
+    def test_attachment_field_validation_in_form(self, m):
+        """Test that attachment field validation works correctly in form.validate()"""
+        self._setup_rems_mocks(m)
+        form = self.rems_access_handler.create_form(self.dataset, None)
+
+        with app.test_request_context("/test", method="POST"):
+            form.attachment.data = FileStorage(
+                stream=BytesIO(b"test content"),
+                filename="test.txt",
+                content_type="text/plain",
+            )
+            self.assertFalse(form.validate())
+            self.assertIn("attachment", form.errors)
+            self.assertIn(
+                "File extension not in jpg, png, pdf", str(form.errors["attachment"])
+            )
+
+        with app.test_request_context("/test", method="POST"):
+            form.attachment.data = FileStorage(
+                stream=BytesIO(b"test content"),
+                filename="test.pdf",
+                content_type="application/pdf",
+            )
+            form.validate()
+            if "attachment" in form.errors:
+                self.assertNotIn(
+                    "File extension not in jpg, png, pdf",
+                    str(form.errors["attachment"]),
+                )
+
+    def _setup_rems_mocks(self, m):
+        org_data = {
+            "organization/id": "test-org",
+            "organization/short-name": {"en": "Test Org"},
+            "organization/name": {"en": "Test Organization"},
+        }
+
+        catalogue_item = CatalogueItem(
+            id=1,
+            resid=self.dataset_id,
+            formid=3,
+            wfid=REMS_WORKFLOW_ID,
+            **{"resource-id": 1},
+            archived=False,
+            localizations={"en": {"title": "Test Dataset"}},
+            start="2023-01-01T00:00:00Z",
+            organization={"organization/id": "test-org"},
+            expired=False,
+            end=None,
+            enabled=True,
+        )
+        m.get(
+            f"{REMS_URL}/api/catalogue-items",
+            json=[catalogue_item.model_dump(by_alias=True)],
+        )
+
+        resource_license = ResourceLicense(
+            id=2,
+            licensetype="license",
+            organization=org_data,
+            enabled=True,
+            archived=False,
+            localizations={
+                "en": {"title": "Test License", "textcontent": "License content"}
+            },
+        )
+        resource = Resource(
+            id=1,
+            resid=self.dataset_id,
+            enabled=True,
+            archived=False,
+            organization=org_data,
+            licenses=[resource_license],
+            **{"resource/duo": {}},
+        )
+        m.get(f"{REMS_URL}/api/resources/1", json=resource.model_dump(by_alias=True))
+
+        form = Form(
+            **{"form/id": 3},
+            **{"form/internal-name": "test-form"},
+            **{"form/title": "Test Form"},
+            **{"form/external-title": {"en": "Test Form Title"}},
+            archived=False,
+            enabled=True,
+            organization=org_data,
+            **{
+                "form/fields": [
+                    {
+                        "field/id": "attachment",
+                        "field/type": "attachment",
+                        "field/title": {"en": "Test Attachment"},
+                        "field/optional": False,
+                    }
+                ]
+            },
+        )
+        m.get(f"{REMS_URL}/api/forms/3", json=form.model_dump(by_alias=True))

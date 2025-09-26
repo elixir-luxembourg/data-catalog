@@ -615,7 +615,8 @@ def request_access(entity_name: str, entity_id: str) -> Response:
         redirect_url = url_for("login") + f"?next={here}"
         return redirect(redirect_url), 302
 
-    form = handler.create_form(entity, request.form)
+    # FlaskForm automatically handles request.form and request.files
+    form = handler.create_form(entity, None)
     if form is None:
         logger.error(
             "could not build a form for this request: %s, %s", entity_name, entity_id
