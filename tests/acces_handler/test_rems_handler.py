@@ -21,6 +21,7 @@ from unittest.mock import MagicMock
 
 from flask_login import current_user
 from flask_wtf import FlaskForm
+import requests_mock
 from werkzeug.datastructures import ImmutableMultiDict
 from wtforms import (
     StringField,
@@ -38,13 +39,23 @@ from datacatalog.acces_handler.rems_handler import RemsAccessHandler
 from datacatalog.models.dataset import Dataset
 from datacatalog.connector.rems_client import (
     Form,
-    FormField,
-    FormTemplateFieldsOptions,
-    OrganizationOverview,
+    CatalogueItem,
+    Resource,
+    ResourceLicense,
 )
 from tests.base_test import BaseTest
 
 __author__ = "Nirmeen Sallam"
+
+REMS_URL = app.config.get("REMS_URL", "http://rems-mock-host")
+REMS_API_USER = app.config.get("REMS_API_USER", "test-api-user")
+REMS_API_KEY = app.config.get("REMS_API_KEY", "test-api-key")
+REMS_WORKFLOW_ID = app.config.get("REMS_WORKFLOW_ID", 3)
+REMS_ORGANIZATION_ID = app.config.get(
+    "REMS_ORGANIZATION_ID", "89fca267-693e-41e1-830b-b4e6326c1dd0"
+)
+REMS_LICENSES = app.config.get("REMS_LICENSES", [1, 2])
+REMS_VERIFY_SSL = False
 
 
 class dotdict(dict):
@@ -66,18 +77,14 @@ class TestRemsAccessHandler(BaseTest):
 
         self.rems_access_handler = RemsAccessHandler(
             current_user,
-            app.config.get("REMS_API_USER"),
-            app.config.get("REMS_API_KEY"),
-            app.config.get("REMS_URL"),
-            app.config.get("REMS_WORKFLOW_ID"),
-            app.config.get("REMS_VERIFY_SSL"),
+            REMS_API_USER,
+            REMS_API_KEY,
+            REMS_URL,
+            REMS_WORKFLOW_ID,
+            REMS_VERIFY_SSL,
         )
-        self.rems_access_handler.rems_connector.organization_id = app.config.get(
-            "REMS_ORGANIZATION_ID"
-        )
-        self.rems_access_handler.rems_connector.licenses = app.config.get(
-            "REMS_LICENSES"
-        )
+        self.rems_access_handler.rems_connector.organization_id = REMS_ORGANIZATION_ID
+        self.rems_access_handler.rems_connector.licenses = REMS_LICENSES
 
     def test_requires_logged_in_user(self):
         self.assertTrue(self.rems_access_handler.requires_logged_in_user(self.dataset))
@@ -122,7 +129,7 @@ class TestRemsAccessHandler(BaseTest):
                     "name": "test",
                     "notification_email": None,
                     "organization": None,
-                    "user_id": app.config.get("REMS_API_USER"),
+                    "user_id": REMS_API_USER,
                 },
                 "first_submitted": None,
                 "state": "application.state/approved",
@@ -145,7 +152,7 @@ class TestRemsAccessHandler(BaseTest):
                     "name": "test",
                     "notification_email": None,
                     "organization": None,
-                    "user_id": app.config.get("REMS_API_USER"),
+                    "user_id": REMS_API_USER,
                 },
                 "first_submitted": None,
                 "state": "application.state/draft",
@@ -160,11 +167,227 @@ class TestRemsAccessHandler(BaseTest):
         result = self.rems_access_handler.has_access(self.dataset)
         self.assertFalse(result)
 
-    def test_my_applications(self):
+    @requests_mock.Mocker()
+    def test_my_applications(self, m):
+        # Mock get_my_applications call
+        m.get(
+            f"{REMS_URL}/api/my-applications",
+            json=[
+                {
+                    "application/id": 123,
+                    "application/state": "application.state/submitted",
+                    "application/accepted-licenses": {"test-user": [1]},
+                    "application/first-submitted": "2023-01-01T12:00:00Z",
+                    "application/applicant": {
+                        "userid": "test-user",
+                        "name": "Test User",
+                        "email": "test@example.com",
+                    },
+                    "application/resources": [
+                        {
+                            "catalogue-item/id": 1,
+                            "resource/ext-id": self.dataset_id,
+                            "catalogue-item/title": {"en": "Test Dataset"},
+                            "catalogue-item/infourl": {"en": "http://example.com"},
+                            "catalogue-item/start": "2023-01-01T00:00:00Z",
+                            "catalogue-item/end": None,
+                            "catalogue-item/expired": False,
+                            "catalogue-item/enabled": True,
+                            "catalogue-item/archived": False,
+                            "resource/id": 1,
+                        }
+                    ],
+                    "application/forms": [],
+                    "application/workflow": {"workflow/id": REMS_WORKFLOW_ID},
+                    "application/created": "2023-01-01T00:00:00Z",
+                    "application/modified": "2023-01-01T12:00:00Z",
+                    "application/last-activity": "2023-01-01T12:00:00Z",
+                },
+                {
+                    "application/id": 124,
+                    "application/state": "application.state/approved",
+                    "application/accepted-licenses": {"test-user": [1, 2]},
+                    "application/first-submitted": "2023-01-02T10:00:00Z",
+                    "application/applicant": {
+                        "userid": "test-user",
+                        "name": "Test User",
+                        "email": "test@example.com",
+                    },
+                    "application/resources": [
+                        {
+                            "catalogue-item/id": 2,
+                            "resource/ext-id": "another-dataset",
+                            "catalogue-item/title": {"en": "Another Dataset"},
+                            "catalogue-item/infourl": {"en": "http://example.com"},
+                            "catalogue-item/start": "2023-01-02T00:00:00Z",
+                            "catalogue-item/end": None,
+                            "catalogue-item/expired": False,
+                            "catalogue-item/enabled": True,
+                            "catalogue-item/archived": False,
+                            "resource/id": 2,
+                        }
+                    ],
+                    "application/forms": [],
+                    "application/workflow": {"workflow/id": REMS_WORKFLOW_ID},
+                    "application/created": "2023-01-02T00:00:00Z",
+                    "application/modified": "2023-01-02T15:00:00Z",
+                    "application/last-activity": "2023-01-02T15:00:00Z",
+                },
+            ],
+        )
         result = self.rems_access_handler.my_applications()
         self.assertIsNotNone(result)
 
-    def test_apply_and_has_access_submitted_application(self):
+    @requests_mock.Mocker()
+    def test_apply_and_has_access_submitted_application(self, m):
+        # Mock export_entities calls
+        m.get(f"{REMS_URL}/api/resources", json=[])
+        m.post(f"{REMS_URL}/api/resources/create", json={"success": True, "id": 1})
+        m.post(
+            f"{REMS_URL}/api/catalogue-items/create",
+            json={"success": True, "id": 1},
+        )
+        # Mock edit_catalogue_items call
+        m.put(
+            f"{REMS_URL}/api/catalogue-items/edit",
+            json={"success": True},
+        )
+        # Mock get_catalogue_item calls
+        catalogue_item = CatalogueItem(
+            id=1,
+            resid=self.dataset_id,
+            **{"formid": 3},
+            wfid=REMS_WORKFLOW_ID,
+            **{"resource-id": 1},
+            archived=False,
+            localizations={"en": {"title": "Test Dataset"}},
+            start="2023-01-01T00:00:00Z",
+            organization={"organization/id": "test-org"},
+            expired=False,
+            end=None,
+            enabled=True,
+        )
+        m.get(
+            f"{REMS_URL}/api/catalogue-items",
+            json=[catalogue_item.model_dump(by_alias=True)],
+        )
+        # Mock get_form call
+        form_field_data = {
+            "field/id": "fld1",
+            "field/type": "text",
+            "field/title": {"en": "Test Field"},
+            "field/optional": False,
+        }
+        form = Form(
+            **{"form/id": 3},
+            **{"form/internal-name": "test-form"},
+            **{"form/title": "Test Form"},
+            **{"form/external-title": {"en": "Test Form Title"}},
+            archived=False,
+            enabled=True,
+            organization={
+                "organization/id": "test-org",
+                "organization/short-name": {"en": "Test Org"},
+                "organization/name": {"en": "Test Organization"},
+            },
+            **{"form/fields": [form_field_data]},
+        )
+        m.get(
+            f"{REMS_URL}/api/forms/3",
+            json=form.model_dump(by_alias=True),
+        )
+        # Mock create_application call
+        m.post(
+            f"{REMS_URL}/api/applications/create",
+            json={"success": True, "application-id": 123},
+        )
+        # Mock save_application_draft call
+        m.post(
+            f"{REMS_URL}/api/applications/save-draft",
+            json={"success": True},
+        )
+        # Mock get_resource call
+        resource_license = ResourceLicense(
+            id=2,
+            licensetype="license",
+            organization={
+                "organization/id": "test-org",
+                "organization/short-name": {"en": "Test Org"},
+                "organization/name": {"en": "Test Organization"},
+            },
+            enabled=True,
+            archived=False,
+            localizations={
+                "en": {
+                    "title": "Test License",
+                    "textcontent": "This is the license text content",
+                }
+            },
+        )
+        resource = Resource(
+            id=1,
+            resid=self.dataset_id,
+            enabled=True,
+            archived=False,
+            organization={
+                "organization/id": "test-org",
+                "organization/short-name": {"en": "Test Org"},
+                "organization/name": {"en": "Test Organization"},
+            },
+            licenses=[resource_license],
+            **{"resource/duo": {}},
+        )
+        m.get(
+            f"{REMS_URL}/api/resources/1",
+            json=resource.model_dump(by_alias=True),
+        )
+        # Mock accept_license call
+        m.post(
+            f"{REMS_URL}/api/applications/accept-licenses",
+            json={"success": True},
+        )
+        # Mock submit_application call
+        m.post(
+            f"{REMS_URL}/api/applications/submit",
+            json={"success": True},
+        )
+        # Mock applications call (for has_access check)
+        m.get(
+            f"{REMS_URL}/api/applications",
+            json=[
+                {
+                    "application/id": 123,
+                    "application/state": "application.state/submitted",
+                    "application/accepted-licenses": {"test-user": [2]},
+                    "application/first-submitted": "2023-01-01T12:00:00Z",
+                    "application/applicant": {
+                        "userid": REMS_API_USER,
+                        "name": "Test User",
+                        "email": "test@example.com",
+                    },
+                    "application/resources": [
+                        {
+                            "catalogue-item/id": 1,
+                            "resource/ext-id": self.dataset_id,
+                            "catalogue-item/title": {"en": "Test Dataset"},
+                            "catalogue-item/infourl": {"en": "http://example.com"},
+                            "catalogue-item/start": "2023-01-01T00:00:00Z",
+                            "catalogue-item/end": None,
+                            "catalogue-item/expired": False,
+                            "catalogue-item/enabled": True,
+                            "catalogue-item/archived": False,
+                            "resource/id": 1,
+                        }
+                    ],
+                    "application/forms": [],
+                    "application/workflow": {"workflow/id": REMS_WORKFLOW_ID},
+                    "application/created": "2023-01-01T00:00:00Z",
+                    "application/modified": "2023-01-01T12:00:00Z",
+                    "application/last-activity": "2023-01-01T12:00:00Z",
+                }
+            ],
+        )
+
         self.rems_access_handler.rems_connector.export_entities([self.dataset])
         form_data = ImmutableMultiDict(
             [
@@ -180,11 +403,144 @@ class TestRemsAccessHandler(BaseTest):
         result = self.rems_access_handler.has_access(self.dataset)
         self.assertEqual(result.value, ApplicationState.submitted.value)
 
-    def test_get_datasets(self):
-        pass
+    @requests_mock.Mocker()
+    def test_create_form(self, m):
+        # Mock get_catalogue_item calls
+        catalogue_item = CatalogueItem(
+            id=1,
+            resid=self.dataset_id,
+            **{"formid": 3},
+            wfid=REMS_WORKFLOW_ID,
+            **{"resource-id": 1},
+            archived=False,
+            localizations={"en": {"title": "Test Dataset"}},
+            start="2023-01-01T00:00:00Z",
+            organization={"organization/id": "test-org"},
+            expired=False,
+            end=None,
+            enabled=True,
+        )
+        m.get(
+            f"{REMS_URL}/api/catalogue-items",
+            json=[catalogue_item.model_dump(by_alias=True)],
+        )
+        # Mock get_resource call
+        resource_license = ResourceLicense(
+            id=2,
+            licensetype="license",
+            organization={
+                "organization/id": "test-org",
+                "organization/short-name": {"en": "Test Org"},
+                "organization/name": {"en": "Test Organization"},
+            },
+            enabled=True,
+            archived=False,
+            localizations={
+                "en": {
+                    "title": "Test License",
+                    "textcontent": "This is the license text content",
+                }
+            },
+        )
+        resource = Resource(
+            id=1,
+            resid=self.dataset_id,
+            enabled=True,
+            archived=False,
+            organization={
+                "organization/id": "test-org",
+                "organization/short-name": {"en": "Test Org"},
+                "organization/name": {"en": "Test Organization"},
+            },
+            licenses=[resource_license],
+            **{"resource/duo": {}},
+        )
+        m.get(
+            f"{REMS_URL}/api/resources/1",
+            json=resource.model_dump(by_alias=True),
+        )
+        # Mock get_form call
+        form_fields_data = [
+            {
+                "field/id": "text",
+                "field/type": "text",
+                "field/title": {"en": "field1"},
+                "field/optional": False,
+                "field/max-length": 10,
+                "field/placeholder": {"en": "placeholder1"},
+            },
+            {
+                "field/id": "label",
+                "field/type": "label",
+                "field/title": {"en": "field2"},
+                "field/optional": True,
+                "field/max-length": 10,
+                "field/placeholder": {"en": "placeholder2"},
+            },
+            {
+                "field/id": "header",
+                "field/type": "header",
+                "field/title": {"en": "field3"},
+                "field/optional": False,
+            },
+            {
+                "field/id": "texta",
+                "field/type": "texta",
+                "field/title": {"en": "field4"},
+                "field/optional": False,
+            },
+            {
+                "field/id": "attachment",
+                "field/type": "attachment",
+                "field/title": {"en": "field5"},
+                "field/optional": False,
+            },
+            {
+                "field/id": "date",
+                "field/type": "date",
+                "field/title": {"en": "field6"},
+                "field/optional": False,
+            },
+            {
+                "field/id": "option",
+                "field/type": "option",
+                "field/title": {"en": "field7"},
+                "field/optional": False,
+                "field/options": [{"key": "1", "label": {"en": "test"}}],
+            },
+            {
+                "field/id": "multiselect",
+                "field/type": "multiselect",
+                "field/title": {"en": "field8"},
+                "field/optional": False,
+                "field/options": [{"key": "2", "label": {"en": "test2"}}],
+            },
+            {
+                "field/id": "email",
+                "field/type": "email",
+                "field/title": {"en": "field9"},
+                "field/optional": False,
+            },
+        ]
+        form = Form(
+            **{"form/id": 3},
+            **{"form/internal-name": "test-form"},
+            **{"form/title": "Test Form"},
+            **{"form/external-title": {"en": "Test Form Title"}},
+            archived=False,
+            enabled=True,
+            organization={
+                "organization/id": "test-org",
+                "organization/short-name": {"en": "Test Org"},
+                "organization/name": {"en": "Test Organization"},
+            },
+            **{"form/fields": form_fields_data},
+        )
+        m.get(
+            f"{REMS_URL}/api/forms/3",
+            json=form.model_dump(by_alias=True),
+        )
 
-    def test_create_form(self):
-        self.rems_access_handler.rems_connector.export_entities([self.dataset])
         form_data = ImmutableMultiDict(
             [
                 ("fld1", "test"),
@@ -193,124 +549,7 @@ class TestRemsAccessHandler(BaseTest):
                 ("csrf_token", "test"),
             ]
         )
-        self.rems_access_handler.rems_connector.get_form_for_catalogue_item = (
-            MagicMock()
-        )
-        fields = [
-            # string
-            FormField(
-                **{
-                    "field/id": "text",
-                    "field/type": "text",
-                    "field/title": {"en": "field1"},
-                    "field/optional": False,
-                    "field/max_length": 10,
-                    "field/placeholder": {"en": "placeholder1"},
-                }
-            ),
-            # label
-            FormField(
-                **{
-                    "field/id": "label",
-                    "field/type": "label",
-                    "field/title": {"en": "field2"},
-                    "field/optional": True,
-                    "field/max_length": 10,
-                    "field/placeholder": {"en": "placeholder2"},
-                }
-            ),
-            # header
-            FormField(
-                **{
-                    "field/id": "header",
-                    "field/type": "header",
-                    "field/title": {"en": "field3"},
-                    "field/optional": False,
-                }
-            ),
-            # textarea
-            FormField(
-                **{
-                    "field/id": "texta",
-                    "field/type": "texta",
-                    "field/title": {"en": "field4"},
-                    "field/optional": False,
-                }
-            ),
-            # attachment
-            FormField(
-                **{
-                    "field/id": "attachment",
-                    "field/type": "attachment",
-                    "field/title": {"en": "field5"},
-                    "field/optional": False,
-                }
-            ),
-            # date
-            FormField(
-                **{
-                    "field/id": "date",
-                    "field/type": "date",
-                    "field/title": {"en": "field6"},
-                    "field/optional": False,
-                }
-            ),
-            # select
-            FormField.model_validate(
-                {
-                    "field/id": "option",
-                    "field/type": "option",
-                    "field/title": {"en": "field7"},
-                    "field/optional": False,
-                    "field/options": [
-                        FormTemplateFieldsOptions(key="1", label={"en": "test"})
-                    ],
-                }
-            ),
-            # multiselect
-            FormField.model_validate(
-                {
-                    "field/id": "multiselect",
-                    "field/type": "multiselect",
-                    "field/title": {"en": "field8"},
-                    "field/optional": False,
-                    "field/options": [
-                        FormTemplateFieldsOptions(key="2", label={"en": "test2"})
-                    ],
-                }
-            ),
-            # email
-            FormField(
-                **{
-                    "field/id": "email",
-                    "field/type": "email",
-                    "field/title": {"en": "field6"},
-                    "field/optional": False,
-                }
-            ),
-        ]
-        organization = OrganizationOverview.model_validate(
-            {
-                "organization/id": self.rems_access_handler.rems_connector.organization_id,
-                "organization/short_name": {"en": "text in English"},
-                "organization/name": {"en": "text in English"},
-            }
-        )
-        form = Form.model_validate(
-            {
-                "form/id": 6,
-                "organization": organization,
-                "form/internal-name": "test",
-                "form/title": "form",
-                "form/fields": fields,
-                "enabled": True,
-                "form/external-title": {"en": "text in English"},
-                "archived": False,
-            }
-        )
-        self.rems_access_handler.rems_connector.get_form_for_catalogue_item.return_value = (
-            form
-        )
+
         result = self.rems_access_handler.create_form(self.dataset, form_data)
         self.assertEqual("FormClass", type(result).__name__)
         self.assertIsInstance(result, FlaskForm)

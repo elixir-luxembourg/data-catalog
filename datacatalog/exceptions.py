@@ -15,10 +15,10 @@
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-    datacatalog.exceptions
-    -------------------
+ datacatalog.exceptions
+ -------------------
 
-   Module to configure DataCatalog exceptions
+Module to configure DataCatalog exceptions
 
 """
 __author__ = "Valentin Grouès"

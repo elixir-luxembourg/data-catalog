@@ -18,7 +18,6 @@
 
 import json
 import os
-import pytest
 import tempfile
 
 from datacatalog import app
@@ -34,7 +33,6 @@ from tests.dats import dats_model
 __author__ = "Nirmeen Sallam"
 
 
-@pytest.mark.skip(reason="DATS export tests skipped - requires DATS schema files")
 class TestDATSExporter(BaseTest):
     @classmethod
     def setUpClass(cls):

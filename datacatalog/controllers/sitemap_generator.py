@@ -15,10 +15,10 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-    datacatalog.sitemap_generator
-    -------------------
+datacatalog.sitemap_generator
+-------------------
 
-    Generate Sitemap
+Generate Sitemap
 """
 import logging
 import os

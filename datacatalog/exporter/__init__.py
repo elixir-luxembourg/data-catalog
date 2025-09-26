@@ -15,9 +15,9 @@
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-    datacatalog.exporter
-    -------------------
+datacatalog.exporter
+-------------------
 
-    Package for all the entity exporters
+Package for all the entity exporters
 
 """

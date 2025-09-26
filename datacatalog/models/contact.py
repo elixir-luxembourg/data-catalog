@@ -14,10 +14,10 @@
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-    datacatalog.models.contact
-    -------------------
+ datacatalog.models.contact
+ -------------------
 
-   Module containing the Contact class used for storing entity contact details information
+Module containing the Contact class used for storing entity contact details information
 
 
 """

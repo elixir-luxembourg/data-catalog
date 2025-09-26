@@ -15,11 +15,11 @@
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-    datacatalog.connector
-    -------------------
+datacatalog.connector
+-------------------
 
-    Package for all the entity connectors
-    The connectors build list of entities instances from different sources (JSON file, CKAN, geostudies, etc)
+Package for all the entity connectors
+The connectors build list of entities instances from different sources (JSON file, CKAN, geostudies, etc)
 
 
 """

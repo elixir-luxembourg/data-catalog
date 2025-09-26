@@ -17,10 +17,10 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-    datacatalog.forms
-    -------------------
+datacatalog.forms
+-------------------
 
-    Package for forms classes
+Package for forms classes
 
 """
 from urllib.parse import urlparse, urljoin

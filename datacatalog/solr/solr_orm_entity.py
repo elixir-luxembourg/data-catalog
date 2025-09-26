@@ -14,10 +14,10 @@
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-    datacatalog.solr.solr_orm_entity
-    -------------------
+ datacatalog.solr.solr_orm_entity
+ -------------------
 
-   Module containing the SolrEntity class
+Module containing the SolrEntity class
 
 """
 import json

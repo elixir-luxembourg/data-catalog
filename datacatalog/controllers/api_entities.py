@@ -17,12 +17,12 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-    datacatalog.api_controllers
-    -------------------
+datacatalog.api_controllers
+-------------------
 
-    REST endpoints:
-        - api_entity
-        - api_entities
+REST endpoints:
+    - api_entity
+    - api_entities
 """
 import logging
 

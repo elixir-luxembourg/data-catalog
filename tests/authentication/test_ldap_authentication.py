@@ -16,11 +16,11 @@
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import pytest
+from unittest.mock import MagicMock, patch
 
 from datacatalog.exceptions import AuthenticationException
 from tests.base_test import BaseTest
-from datacatalog import app
+from datacatalog import ldap
 from datacatalog.authentication.ldap_authentication import (
     LDAPUserPasswordAuthentication,
 )
@@ -28,62 +28,126 @@ from datacatalog.authentication.ldap_authentication import (
 __author__ = "Nirmeen Sallam"
 
 
-@pytest.mark.skip(reason="LDAP tests skipped - requires LDAP server configuration")
 class TestLDAPUserPasswordAuthentication(BaseTest):
-    ldapauth = LDAPUserPasswordAuthentication(app.config.get("LDAP_HOST"))
-    app.config["AUTHENTICATION_METHOD"] = "LDAP"
-    username = app.config.get("LDAP_USERNAME")
-    password = app.config.get("LDAP_PASSWORD")
+    def setUp(self):
+        super().setUp()
+        self.app.config["AUTHENTICATION_METHOD"] = "LDAP"
+        self.username = "testuser"
+        self.password = "testpass"
+        self.member_dn = f"uid={self.username},cn=users,cn=accounts,dc=uni,dc=lu"
+        self._setup_ldap_mocks()
+        self.ldapauth = LDAPUserPasswordAuthentication("ldaps://mock-ldap-host")
 
-    conn = ldapauth.get_ldap_connection()
-    member = "uid={},cn=users,cn=accounts,dc=uni,dc=lu".format(username)
-    conn.simple_bind_s(member, password)
+    def _setup_ldap_mocks(self):
+        """Set up comprehensive LDAP mocking"""
+        self.mock_conn = MagicMock()
+        self.mock_ldap_patcher = patch(
+            "datacatalog.authentication.ldap_authentication.ldap"
+        )
+        self.mock_ldap = self.mock_ldap_patcher.start()
+        for attr in [
+            "SCOPE_SUBTREE",
+            "SCOPE_BASE",
+            "VERSION3",
+            "OPT_X_TLS_REQUIRE_CERT",
+            "OPT_X_TLS_NEVER",
+            "OPT_X_TLS_NEWCTX",
+        ]:
+            setattr(self.mock_ldap, attr, getattr(ldap, attr))
+        self.mock_ldap.SERVER_DOWN = type("SERVER_DOWN", (Exception,), {})
+        self.mock_ldap.INVALID_CREDENTIALS = type(
+            "INVALID_CREDENTIALS", (Exception,), {}
+        )
+        self.mock_ldap.initialize.return_value = self.mock_conn
+
+    def _mock_user_attributes(self, email="test@example.com", display_name="Test User"):
+        """Helper to mock user attribute search results"""
+        return [
+            (
+                self.member_dn,
+                {"mail": [email.encode()], "displayName": [display_name.encode()]},
+            )
+        ]
+
+    def tearDown(self):
+        self.mock_ldap_patcher.stop()
+        super().tearDown()
 
     def test_get_user_details(self):
-        response = self.ldapauth.get_user_details(self.conn, self.username)
-        self.assertIn(self.username.replace(".", " "), response)
+        self.mock_conn.search_s.return_value = self._mock_user_attributes()
+
+        response = self.ldapauth.get_user_details(self.mock_conn, self.username)
+        self.assertEqual(response, ["test@example.com", "test user"])
 
     def test_get_user_details_invalid_user(self):
+        self.mock_conn.search_s.return_value = []
+
         with self.assertRaises(AuthenticationException) as cm:
-            self.ldapauth.get_user_details(self.conn, self.username + "test")
+            self.ldapauth.get_user_details(self.mock_conn, "invaliduser")
         self.assertEqual("Invalid user", str(cm.exception))
 
     def test_authenticate_user(self):
+        self.mock_conn.simple_bind_s.return_value = None
+        self.mock_conn.search_s.side_effect = [
+            [(self.member_dn, {"member": [self.member_dn.encode()]})],
+            self._mock_user_attributes(),
+        ]
+
         success, user_details = self.ldapauth.authenticate_user(
             self.username, self.password
         )
         self.assertTrue(success)
-        self.assertIsNotNone(user_details)
+        self.assertEqual(user_details, ["test@example.com", "test user"])
 
     def test_authenticate_user_invalid_credentials(self):
+        self.mock_conn.simple_bind_s.side_effect = self.mock_ldap.INVALID_CREDENTIALS()
+
         with self.assertRaises(AuthenticationException) as cm:
-            self.ldapauth.authenticate_user(self.username + "test", self.password)
+            self.ldapauth.authenticate_user("invaliduser", self.password)
         self.assertEqual("Invalid Credentials", str(cm.exception))
 
     def test_get_attributes_by_dn(self):
+        self.mock_conn.search_s.return_value = self._mock_user_attributes()
         attributes = self.ldapauth.get_attributes_by_dn(
-            self.member, self.conn, self.username, ["displayName", "mail"]
+            self.member_dn, self.mock_conn, self.username, ["displayName", "mail"]
         )
-        self.assertTrue(len(attributes) == 2)
+        self.assertEqual(attributes["displayName"], "test user")
+        self.assertEqual(attributes["mail"], "test@example.com")
+
+        self.mock_conn.search_s.return_value = []
         attributes = self.ldapauth.get_attributes_by_dn(
-            self.member, self.conn, self.username + "test", ["displayName", "mail"]
+            self.member_dn, self.mock_conn, "invaliduser", ["displayName", "mail"]
         )
         self.assertIsNone(attributes)
 
     def test_get_email_by_dn(self):
-        email = self.ldapauth.get_email_by_dn(self.member, self.conn, self.username)
-        self.assertTrue(email)
+        self.mock_conn.search_s.return_value = [
+            (self.member_dn, {"mail": [b"test@example.com"]})
+        ]
         email = self.ldapauth.get_email_by_dn(
-            self.member, self.conn, self.username + "test"
+            self.member_dn, self.mock_conn, self.username
         )
-        self.assertFalse(email)
+        self.assertEqual(email, "test@example.com")
+
+        self.mock_conn.search_s.return_value = []
+        email = self.ldapauth.get_email_by_dn(
+            self.member_dn, self.mock_conn, "invaliduser"
+        )
+        self.assertEqual(email, "")
 
     def test_get_displayname_by_dn(self):
+        self.mock_conn.search_s.return_value = [
+            (self.member_dn, {"displayName": [b"Test User"]})
+        ]
         display_name = self.ldapauth.get_displayname_by_dn(
-            self.member, self.conn, self.username
+            self.member_dn, self.mock_conn, self.username
         )
-        self.assertTrue(display_name)
-        display_name = self.ldapauth.get_email_by_dn(
-            self.member, self.conn, self.username + "test"
+        self.assertEqual(display_name, "Test User")
+
+        self.mock_conn.search_s.return_value = [
+            (self.member_dn, {"displayName": [b""]})
+        ]
+        display_name = self.ldapauth.get_displayname_by_dn(
+            self.member_dn, self.mock_conn, "invaliduser"
         )
-        self.assertFalse(display_name)
+        self.assertEqual(display_name, "")

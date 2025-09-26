@@ -25,9 +25,9 @@ from os import path
 from unittest.mock import MagicMock, patch
 
 from flask import url_for
+import requests_mock
 
 import datacatalog
-import datacatalog.controllers.login_controllers
 from datacatalog import app
 from datacatalog.connector.dats_connector import DATSConnector
 from datacatalog.connector.geostudies_connector import GEOStudiesConnector
@@ -49,6 +49,8 @@ from datacatalog.acces_handler.access_handler import Application
 from tests.base_test import BaseTest, get_resource_path, get_clean_html_body
 
 __author__ = "Nirmeen Sallam"
+
+REMS_URL = app.config.get("REMS_URL", "http://rems-mock-host")
 
 
 class TestWebControllers(BaseTest):
@@ -204,7 +206,16 @@ class TestWebControllers(BaseTest):
         self.assertEqual(404, response.status_code)
 
     @patch("flask_login.utils._get_user")
-    def test_entity_details_authenticated_user(self, current_user):
+    @requests_mock.Mocker()
+    def test_entity_details_authenticated_user(self, current_user, m):
+        m.real_http = True
+        m.post(
+            f"{REMS_URL}/api/users/create",
+            json={"success": True},
+            status_code=200,
+            real_http=False,
+        )
+
         user = User("test", "test", "test")
         datasets = list(Dataset.query.all())
         first_dataset = datasets[0]
@@ -217,7 +228,24 @@ class TestWebControllers(BaseTest):
         self.assertNotIn("contact our data stewards", entity_clean_text)
 
     @patch("flask_login.utils._get_user")
-    def test_entity_details_authenticated_user_access_no_storages(self, current_user):
+    @requests_mock.Mocker()
+    def test_entity_details_authenticated_user_access_no_storages(
+        self, current_user, m
+    ):
+        m.real_http = True
+        m.post(
+            f"{REMS_URL}/api/users/create",
+            json={"success": True},
+            status_code=200,
+            real_http=False,
+        )
+        m.get(
+            f"{REMS_URL}/api/applications",
+            json=[],
+            status_code=200,
+            real_http=False,
+        )
+
         app.config["ACCESS_HANDLERS"] = {"dataset": "RemsOidc"}
         user = User("test", "test", "test")
         datasets = list(Dataset.query.all())
@@ -235,7 +263,22 @@ class TestWebControllers(BaseTest):
         self.assertIn("contact our data stewards", entity_clean_text)
 
     @patch("flask_login.utils._get_user")
-    def test_entity_details_authenticated_user_access_storages(self, current_user):
+    @requests_mock.Mocker()
+    def test_entity_details_authenticated_user_access_storages(self, current_user, m):
+        m.real_http = True
+        m.post(
+            f"{REMS_URL}/api/users/create",
+            json={"success": True},
+            status_code=200,
+            real_http=False,
+        )
+        m.get(
+            f"{REMS_URL}/api/applications",
+            json=[],
+            status_code=200,
+            real_http=False,
+        )
+
         app.config["ACCESS_HANDLERS"] = {"dataset": "RemsOidc"}
         user = User("test", "test", "test")
         datasets = list(Dataset.query.all())
@@ -254,9 +297,24 @@ class TestWebControllers(BaseTest):
         self.assertNotIn("contact our data stewards", entity_clean_text)
 
     @patch("flask_login.utils._get_user")
+    @requests_mock.Mocker()
     def test_entity_details_authenticated_user_access_no_known_storage(
-        self, current_user
+        self, current_user, m
     ):
+        m.real_http = True
+        m.post(
+            f"{REMS_URL}/api/users/create",
+            json={"success": True},
+            status_code=200,
+            real_http=False,
+        )
+        m.get(
+            f"{REMS_URL}/api/applications",
+            json=[],
+            status_code=200,
+            real_http=False,
+        )
+
         app.config["ACCESS_HANDLERS"] = {"dataset": "RemsOidc"}
         user = User("test", "test", "test")
         datasets = list(Dataset.query.all())
@@ -447,7 +505,83 @@ class TestWebControllers(BaseTest):
         shutil.rmtree(self.test_dir)
 
     @patch("flask_login.utils._get_user")
-    def test_my_applications(self, current_user):
+    @requests_mock.Mocker()
+    def test_my_applications(self, current_user, m):
+        m.real_http = True
+        m.post(
+            f"{REMS_URL}/api/users/create",
+            json={"success": True},
+            status_code=200,
+            real_http=False,
+        )
+        m.get(
+            f"{REMS_URL}/api/my-applications",
+            json=[
+                {
+                    "application/id": 123,
+                    "application/state": "application.state/submitted",
+                    "application/accepted-licenses": {"test-user": [1]},
+                    "application/first-submitted": "2023-01-01T12:00:00Z",
+                    "application/applicant": {
+                        "userid": "test-user",
+                        "name": "Test User",
+                        "email": "test@example.com",
+                    },
+                    "application/resources": [
+                        {
+                            "catalogue-item/id": 1,
+                            "resource/ext-id": "test-dataset-id",
+                            "catalogue-item/title": {"en": "Test Dataset"},
+                            "catalogue-item/infourl": {"en": "http://example.com"},
+                            "catalogue-item/start": "2023-01-01T00:00:00Z",
+                            "catalogue-item/end": None,
+                            "catalogue-item/expired": False,
+                            "catalogue-item/enabled": True,
+                            "catalogue-item/archived": False,
+                            "resource/id": 1,
+                        }
+                    ],
+                    "application/forms": [],
+                    "application/workflow": {"workflow/id": 3},
+                    "application/created": "2023-01-01T00:00:00Z",
+                    "application/modified": "2023-01-01T12:00:00Z",
+                    "application/last-activity": "2023-01-01T12:00:00Z",
+                },
+                {
+                    "application/id": 124,
+                    "application/state": "application.state/approved",
+                    "application/accepted-licenses": {"test-user": [1, 2]},
+                    "application/first-submitted": "2023-01-02T10:00:00Z",
+                    "application/applicant": {
+                        "userid": "test-user",
+                        "name": "Test User",
+                        "email": "test@example.com",
+                    },
+                    "application/resources": [
+                        {
+                            "catalogue-item/id": 2,
+                            "resource/ext-id": "another-dataset",
+                            "catalogue-item/title": {"en": "Another Dataset"},
+                            "catalogue-item/infourl": {"en": "http://example.com"},
+                            "catalogue-item/start": "2023-01-02T00:00:00Z",
+                            "catalogue-item/end": None,
+                            "catalogue-item/expired": False,
+                            "catalogue-item/enabled": True,
+                            "catalogue-item/archived": False,
+                            "resource/id": 2,
+                        }
+                    ],
+                    "application/forms": [],
+                    "application/workflow": {"workflow/id": 3},
+                    "application/created": "2023-01-02T00:00:00Z",
+                    "application/modified": "2023-01-02T15:00:00Z",
+                    "application/last-activity": "2023-01-02T15:00:00Z",
+                },
+            ],
+            status_code=200,
+            real_http=False,
+        )
+
         app.config["ACCESS_HANDLERS"] = {"dataset": "Rems"}
         user = User("test", "test", "test")
         current_user.return_value = user
@@ -462,10 +596,19 @@ class TestWebControllers(BaseTest):
 
     @patch("datacatalog.acces_handler.rems_handler.RemsAccessHandler.my_applications")
     @patch("flask_login.utils._get_user")
-    def test_my_applications_none_state(self, current_user, my_applications):
+    @requests_mock.Mocker()
+    def test_my_applications_none_state(self, current_user, my_applications, m):
         """
         Tests that unknown application states are handled gracefully by the `my-applications` web controller
         """
+        m.real_http = True
+        m.post(
+            f"{REMS_URL}/api/users/create",
+            json={"success": True},
+            status_code=200,
+            real_http=False,
+        )
+
         app.config["ACCESS_HANDLERS"] = {"dataset": "Rems"}
         # Mocking the current user
         user = User("test", "test", "test")

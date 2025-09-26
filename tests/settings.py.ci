@@ -119,26 +119,26 @@ class TestConfig(Config):
     TESTING = True
     CACHE_CONFIG = {'CACHE_TYPE': 'null'}
     WTF_CSRF_ENABLED = False
-    SOLR_ENDPOINT = 'http://solr:8983/solr'
+    SOLR_ENDPOINT = os.environ.get('SOLR_ENDPOINT', 'http://localhost:8983/solr')
     SOLR_COLLECTION = 'test'
-    BASE_URL = os.environ.get('BASE_URL')
-    PYOIDC_IDP_URL = os.environ.get('PYOIDC_IDP_URL')
-    PYOIDC_CLIENT_ID = os.environ.get('PYOIDC_CLIENT_ID')
-    PYOIDC_CLIENT_SECRET = os.environ.get('PYOIDC_CLIENT_SECRET')
-    REMS_URL = os.environ.get('REMS_URL')
-    REMS_API_USER = os.environ.get('REMS_API_USER')
-    REMS_API_KEY = os.environ.get('REMS_API_KEY')
+    BASE_URL = os.environ.get('BASE_URL', 'http://localhost:5000')
+    PYOIDC_IDP_URL = os.environ.get('PYOIDC_IDP_URL', 'https://test-idp.example.com')
+    PYOIDC_CLIENT_ID = os.environ.get('PYOIDC_CLIENT_ID', 'test-client')
+    PYOIDC_CLIENT_SECRET = os.environ.get('PYOIDC_CLIENT_SECRET', 'test-secret')
+    REMS_URL = os.environ.get('REMS_URL', "http://rems-mock-host")
+    REMS_API_USER = os.environ.get('REMS_API_USER', "test-api-user")
+    REMS_API_KEY = os.environ.get('REMS_API_KEY', "test-api-key")
     REMS_WORKFLOW_ID = 3
     REMS_ORGANIZATION_ID = "89fca267-693e-41e1-830b-b4e6326c1dd0"
     REMS_LICENSES = [1]
     REMS_VERIFY_SSL = False
     EMAIL_RECIPIENT = ['data-catalog@elixir-luxembourg.org']
     # LDAP configuration
-    LDAP_HOST = os.environ.get('LDAP_HOST')
-    LDAP_USERNAME = os.environ.get('LDAP_USERNAME')
-    LDAP_PASSWORD = os.environ.get('LDAP_PASSWORD')
-    LDAP_BASE_DN = os.environ.get('LDAP_BASE_DN')
-    LDAP_USER_GROUPS_FIELD = os.environ.get('LDAP_USER_GROUPS_FIELD')
+    LDAP_HOST = os.environ.get('LDAP_HOST', "ldaps://mock-ldap-host")
+    LDAP_USERNAME = os.environ.get('LDAP_USERNAME', "testuser")
+    LDAP_PASSWORD = os.environ.get('LDAP_PASSWORD', "testpass")
+    LDAP_BASE_DN = os.environ.get('LDAP_BASE_DN', "dc=test,dc=local")
+    LDAP_USER_GROUPS_FIELD = os.environ.get('LDAP_USER_GROUPS_FIELD', "memberOf")
     AUTHENTICATION_DICT = {LDAP_USERNAME: LDAP_PASSWORD}
     FACETS_ORDER = {
         'dataset': [

@@ -15,12 +15,12 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-    datacatalog.login_controllers
-    -------------------
+datacatalog.login_controllers
+-------------------
 
-    HTML endpoints:
-        - login
-        - logout
+HTML endpoints:
+    - login
+    - logout
 """
 import logging
 from typing import Optional
