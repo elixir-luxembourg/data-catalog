@@ -87,9 +87,7 @@ jobs:
           node-version: "18"
 
       - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libsasl2-dev python3-dev libssl-dev openjdk-17-jdk libldap2-dev
+        run: sudo apt-get update && sudo apt-get install -y libsasl2-dev python3-dev libssl-dev openjdk-17-jdk libldap2-dev
 
       - name: Cache pip dependencies
         uses: actions/cache@v4
@@ -100,14 +98,7 @@ jobs:
             ${{ runner.os }}-pip-
 
       - name: Install Python dependencies
-        run: |
-          pip install .[testing] --default-timeout=180
-
-      # cp as tests/dats/dats_validator.py
-      # - name: Install DATS validator
-      #   run: |
-      #     pip install git+https://${{ secrets.CI_DV_ACCESS_USER }}:${{ secrets.CI_DV_ACCESS_TOKEN }}@gitlab.lcsb.uni.lu/core-services/datacatalog/dats-validator.git
-      #   continue-on-error: true
+        run: pip install .[testing] --default-timeout=180
 
       - name: Clone DATS schema
         run: |
@@ -125,62 +116,21 @@ jobs:
       - name: Install Node.js dependencies and build
         run: |
           npm install -g lessc less
-          cd datacatalog/static/vendor
-          npm ci
-          npm run build
-          cd ../../../
+          cd datacatalog/static/vendor && npm ci && npm run build
 
       - name: Set up test configuration
-        run: |
-          cp tests/settings.py.ci datacatalog/settings.py
+        run: cp tests/settings.py.ci datacatalog/settings.py
         env:
           DATACATALOG_ENV: test
           DATS_SCHEMAS_FOLDER: ${{ github.workspace }}/dats-schema
           DATS_CONTEXTS_FOLDER: ${{ github.workspace }}/dats-context
 
-      - name: Create Solr test core (replicate GitLab CI behavior)
+      - name: Create Solr test core
         run: |
-          echo "Waiting for Solr to be ready..."
           timeout 120 bash -c 'until curl -f http://localhost:8983/solr/admin/cores?action=STATUS; do sleep 2; done'
-          echo "Solr is ready, now creating test core..."
-          
-          # Get the Solr container ID
           SOLR_CONTAINER=$(docker ps --filter "ancestor=solr:9.9-slim" --format "{{.ID}}")
-          echo "Solr container: $SOLR_CONTAINER"
-          
-          if [ -z "$SOLR_CONTAINER" ]; then
-            echo "❌ Could not find Solr container"
-            exit 1
-          fi
-          
-          # Create test core using the standard Solr command (as shown in README.md)
-          echo "Creating test core using: solr create_core -c test"
           docker exec $SOLR_CONTAINER solr create_core -c test
-          
-          # Wait a moment for core creation to complete
-          echo "Waiting for core creation to complete..."
           sleep 5
-          
-          # Verify the test core was created
-          if curl -s "http://localhost:8983/solr/admin/cores?action=STATUS" | grep -q '"name":"test"'; then
-            echo "✅ Test core created successfully!"
-            
-            # Test schema API access
-            if curl -s "http://localhost:8983/solr/test/schema/fields" | grep -q "fields"; then
-              echo "✅ Schema API is working"
-            else
-              echo "⚠️ Schema API test failed, but continuing..."
-            fi
-            
-            echo "✅ Solr is ready for tests!"
-          else
-            echo "❌ Test core creation failed"
-            echo "Available cores:"
-            curl -s "http://localhost:8983/solr/admin/cores?action=STATUS"
-            echo "Checking container logs..."
-            docker logs $SOLR_CONTAINER | tail -20
-            exit 1
-          fi
 
       - name: Run tests
         run: |

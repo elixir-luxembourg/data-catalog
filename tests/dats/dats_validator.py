@@ -1,3 +1,10 @@
+"""
+DATS JSON Schema Validator
+
+Validates DATS (Data Tag Suite) metadata files against their JSON schemas.
+Copied from: https://gitlab.lcsb.uni.lu/core-services/datacatalog/dats-validator/-/blob/master/datsvalidator/datsvalidator.py
+"""
+
 import os
 import json
 import logging

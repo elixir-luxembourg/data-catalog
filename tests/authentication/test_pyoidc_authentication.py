@@ -17,9 +17,6 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from unittest.mock import MagicMock, patch
-import urllib
-
-from flask_login import current_user
 
 from datacatalog.authentication.pyoidc_authentication import PyOIDCAuthentication
 from datacatalog import app
@@ -74,21 +71,62 @@ class TestPyOIDCAuthentication(BaseTest):
                 BASE_URL, PYOIDC_CLIENT_ID, PYOIDC_CLIENT_SECRET, PYOIDC_IDP_URL
             )
 
-    @patch.object(PyOIDCAuthentication, "authenticate_user")
-    def test_authenticate_user_redirect(self, mock_auth):
-        mock_response = MagicMock()
-        mock_response.status_code = 303
-        mock_response.location = f"{PYOIDC_IDP_URL}/auth?client_id={PYOIDC_CLIENT_ID}"
-        mock_auth.return_value = mock_response
+    @patch("datacatalog.authentication.pyoidc_authentication.session")
+    @patch("datacatalog.authentication.pyoidc_authentication.redirect")
+    def test_authenticate_user_redirect(self, mock_redirect, mock_session):
+        session_data = {}
+        mock_session.__setitem__ = lambda self, k, v: session_data.update({k: v})
+        mock_session.__getitem__ = lambda self, k: session_data[k]
+        mock_redirect.return_value.status_code = 303
 
-        response = self.pyauth.authenticate_user()
+        mock_auth_req = MagicMock()
+        self.pyauth.oidc_client.construct_AuthorizationRequest.return_value = (
+            mock_auth_req
+        )
+
+        with patch.object(
+            self.pyauth, "get_redirect_uri", return_value=f"{BASE_URL}/pyoidc/authz"
+        ):
+            response = self.pyauth.authenticate_user()
+
+        self.assertIn("state", session_data)
+        self.assertIn("nonce", session_data)
+
+        args = self.pyauth.oidc_client.construct_AuthorizationRequest.call_args[1][
+            "request_args"
+        ]
+        self.assertEqual(args["client_id"], PYOIDC_CLIENT_ID)
+        self.assertEqual(args["response_type"], "code")
+        self.assertEqual(args["scope"], ["openid"])
+        self.assertEqual(args["state"], session_data["state"])
+        self.assertEqual(args["nonce"], session_data["nonce"])
         self.assertEqual(response.status_code, 303)
-        self.assertTrue(response.location.startswith(PYOIDC_IDP_URL))
 
-    @patch.object(PyOIDCAuthentication, "get_logout_url")
-    def test_get_logout_url_redirect(self, mock_logout):
-        mock_logout.return_value = f"{PYOIDC_IDP_URL}/logout?redirect_uri={BASE_URL}"
+    def test_get_logout_url_unauthenticated_user(self):
+        self.pyauth.oidc_client.end_session_endpoint = f"{PYOIDC_IDP_URL}/logout"
+        self.pyauth.oidc_client.registration_response = {
+            "post_logout_redirect_uris": [f"{BASE_URL}/pyoidc/logged_out"]
+        }
 
-        logout_url = urllib.parse.unquote(self.pyauth.get_logout_url(current_user))
-        self.assertTrue(logout_url.startswith(PYOIDC_IDP_URL))
-        self.assertIn("redirect_uri=" + BASE_URL, logout_url)
+        mock_user = MagicMock()
+        mock_user.is_authenticated = False
+
+        logout_url = self.pyauth.get_logout_url(mock_user)
+
+        self.assertTrue(logout_url.startswith(f"{PYOIDC_IDP_URL}/logout?"))
+        self.assertNotIn("id_token_hint=", logout_url)
+
+    def test_get_logout_url_authenticated_user(self):
+        self.pyauth.oidc_client.end_session_endpoint = f"{PYOIDC_IDP_URL}/logout"
+        self.pyauth.oidc_client.registration_response = {
+            "post_logout_redirect_uris": [f"{BASE_URL}/pyoidc/logged_out"]
+        }
+
+        mock_user = MagicMock()
+        mock_user.is_authenticated = True
+        mock_user.extra = {"id_token": "test_token_123"}
+
+        logout_url = self.pyauth.get_logout_url(mock_user)
+
+        self.assertTrue(logout_url.startswith(f"{PYOIDC_IDP_URL}/logout?"))
+        self.assertIn("id_token_hint=test_token_123", logout_url)
