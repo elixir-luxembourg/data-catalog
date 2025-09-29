@@ -202,7 +202,7 @@
                 {{ macros.show_field_text(study.samples_type, "Type of Samples Collected", list=True) }}
             {% endif %}
             {{ macros.show_field_text(dataset.samples_number, "Number of Samples Collected", facet_url=facets_url.samples_number) }}
-            {{ macros.show_field_list(dataset.disease, "Diseases in samples", facet_url=facets_url.disease) }}
+            {{ macros.show_field_list(dataset.disease, "Diseases", facet_url=facets_url.disease) }}
             {{ macros.show_field_list(dataset.treatment_category, "Treatment or experiment categories", facet_url=facets_url.treatment_category) }}
             {{ macros.show_field_list(dataset.treatment_name, "Treatment or experiment names", facet_url=facets_url.treatment_name) }}
 
