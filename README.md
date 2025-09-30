@@ -1,4 +1,4 @@
-# Data Catalog
+# Data Catalogue
 
 A tool for advertising bio-medical **projects** and their associated **datasets**
 
