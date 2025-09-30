@@ -50,6 +50,7 @@ Homepage = "https://git-r3lab.uni.lu/core-services/data-catalog"
 "flask.commands" = { assets = "flask_assets:assets" }
 
 [project.optional-dependencies]
+dev = ["flake8", "black"]
 testing = [
     "coverage==5.5",
     "pytest==8.3.3",

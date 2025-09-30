@@ -20,7 +20,7 @@ import os
 import re
 import shutil
 import tempfile
-import unittest
+from io import BytesIO
 from os import path
 from unittest.mock import MagicMock, patch
 
@@ -51,6 +51,14 @@ from tests.base_test import BaseTest, get_resource_path, get_clean_html_body
 __author__ = "Nirmeen Sallam"
 
 REMS_URL = app.config.get("REMS_URL", "http://rems-mock-host")
+REMS_API_USER = app.config.get("REMS_API_USER", "test-api-user")
+REMS_API_KEY = app.config.get("REMS_API_KEY", "test-api-key")
+REMS_WORKFLOW_ID = app.config.get("REMS_WORKFLOW_ID", 3)
+REMS_ORGANIZATION_ID = app.config.get(
+    "REMS_ORGANIZATION_ID", "89fca267-693e-41e1-830b-b4e6326c1dd0"
+)
+REMS_LICENSES = app.config.get("REMS_LICENSES", [1, 2])
+REMS_VERIFY_SSL = False
 
 
 class TestWebControllers(BaseTest):
@@ -404,9 +412,24 @@ class TestWebControllers(BaseTest):
                 )
                 self.assertIn(url_for("login"), request_access_response.location)
 
-    @unittest.skip("rems request access not used in production")
     @patch("flask_login.utils._get_user")
-    def test_request_access_get(self, current_user):
+    @requests_mock.Mocker()
+    def test_request_access_get(self, current_user, m):
+        m.real_http = True
+        m.post(
+            f"{REMS_URL}/api/users/create",
+            json={"success": True},
+            status_code=200,
+            real_http=False,
+        )
+        m.get(
+            f"{REMS_URL}/api/catalogue-items",
+            json=[],
+            status_code=200,
+            real_http=False,
+        )
+        app.config["ACCESS_HANDLERS"] = {"dataset": "Rems"}
+
         user = User("test", "test", "test")
         current_user.return_value = user
         client = app.test_client()
@@ -447,46 +470,196 @@ class TestWebControllers(BaseTest):
                     request_access_response.data.decode("utf-8"),
                 )
 
-    @unittest.skip("rems request access not used in production")
-    @patch("flask_login.utils._get_user")
-    def test_request_access_invalid_form(self, current_user):
-        user = User("test", "test", "test")
-        current_user.return_value = user
-        client = app.test_client()
+    def _mock_rems_requests(self, m, field_type="text", license_id=2):
+        """Common setup for REMS request access tests"""
+        m.real_http = True
+        m.post(f"{REMS_URL}/api/users/create", json={"success": True})
 
         datasets = list(Dataset.query.all())
-        if len(datasets) > 0:
-            request_access_response = client.post(
-                url_for(
-                    "request_access", entity_name="dataset", entity_id=datasets[0].id
-                )
-            )
-            cleanregex = re.compile("<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});")
-            request_access_response = re.sub(
-                cleanregex, " ", request_access_response.data.decode("utf-8")
-            )
-            request_access_response = re.sub(r"\s+", " ", request_access_response)
-            self.assertIn(
-                f"Request access to {datasets[0].title}", request_access_response
-            )
+        dataset = datasets[0] if datasets else None
+        self.assertIsNotNone(dataset, "No datasets available for testing")
+        dataset.e2e = True
+        dataset.form_id = 1
+        dataset.save(commit=True)
 
-    @unittest.skip("rems request access not used in production")
-    @patch("flask_login.utils._get_user")
-    def test_request_access_success(self, current_user):
+        if field_type == "attachment":
+            form_field = {
+                "field/id": "attachment_field",
+                "field/title": {"en": "Upload Document"},
+                "field/type": "attachment",
+                "field/optional": False,
+            }
+        else:
+            form_field = {
+                "field/id": "fld1",
+                "field/title": {"en": "Test Field"},
+                "field/type": "text",
+                "field/optional": False,
+            }
+
+        catalogue_item_data = {
+            "id": 1,
+            "resid": dataset.id,
+            "formid": 1,
+            "wfid": REMS_WORKFLOW_ID,
+            "resource-id": 1,
+            "archived": False,
+            "localizations": {"en": {"title": "Test Dataset"}},
+            "start": "2023-01-01T00:00:00Z",
+            "organization": {"organization/id": REMS_ORGANIZATION_ID},
+            "expired": False,
+            "end": None,
+            "enabled": True,
+        }
+        m.get(f"{REMS_URL}/api/catalogue-items", json=[catalogue_item_data])
+        m.get(
+            f"{REMS_URL}/api/forms/1",
+            json={
+                "form/id": 1,
+                "archived": False,
+                "enabled": True,
+                "organization": {
+                    "organization/id": REMS_ORGANIZATION_ID,
+                    "organization/short-name": {"en": "Test Org"},
+                    "organization/name": {"en": "Test Organization"},
+                },
+                "form/fields": [form_field],
+            },
+        )
+        m.get(
+            f"{REMS_URL}/api/resources/1",
+            json={
+                "id": 1,
+                "resid": dataset.id,
+                "enabled": True,
+                "archived": False,
+                "organization": {
+                    "organization/id": REMS_ORGANIZATION_ID,
+                    "organization/short-name": {"en": "Test Org"},
+                    "organization/name": {"en": "Test Organization"},
+                },
+                "licenses": [
+                    {
+                        "id": license_id,
+                        "licensetype": "license",
+                        "organization": {
+                            "organization/id": REMS_ORGANIZATION_ID,
+                            "organization/short-name": {"en": "Test Org"},
+                            "organization/name": {"en": "Test Organization"},
+                        },
+                        "enabled": True,
+                        "archived": False,
+                        "localizations": {
+                            "en": {
+                                "title": "Test License",
+                                "textcontent": "http://example.com/license",
+                            }
+                        },
+                    }
+                ],
+                "resource/duo": {},
+            },
+        )
+        m.post(
+            f"{REMS_URL}/api/applications/create",
+            json={"success": True, "application-id": 123},
+        )
+        m.post(f"{REMS_URL}/api/applications/save-draft", json={"success": True})
+        m.post(f"{REMS_URL}/api/applications/accept-licenses", json={"success": True})
+        if field_type == "attachment":
+            m.post(
+                f"{REMS_URL}/api/applications/add-attachment",
+                json={"success": True, "id": 456},
+            )
+        m.post(f"{REMS_URL}/api/applications/submit", json={"success": True})
+
         app.config["ACCESS_HANDLERS"] = {"dataset": "Rems"}
-        user = User("test", "test", "test")
-        current_user.return_value = user
+        app.config["WTF_CSRF_ENABLED"] = False
+
+        return dataset
+
+    @patch("flask_login.utils._get_user")
+    @requests_mock.Mocker()
+    def test_request_access_invalid_form(self, current_user, m):
+        """Test invalid form submission returns form with validation errors"""
+        dataset = self._mock_rems_requests(m, field_type="text", license_id=1)
+        current_user.return_value = User("test", "test", "test")
         client = app.test_client()
 
-        datasets = list(Dataset.query.all())
-        if len(datasets) > 0:
-            request_access_response = client.post(
-                url_for(
-                    "request_access", entity_name="dataset", entity_id=datasets[0].id
-                ),
-                data={"fld1": "test", "license_2": "on"},
+        request_access_response = client.post(
+            url_for("request_access", entity_name="dataset", entity_id=dataset.id)
+        )
+        cleanregex = re.compile("<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});")
+        response_text = re.sub(
+            cleanregex, " ", request_access_response.data.decode("utf-8")
+        )
+        response_text = re.sub(r"\s+", " ", response_text)
+        self.assertIn(f"Request access to {dataset.title}", response_text)
+
+    @patch("flask_login.utils._get_user")
+    @requests_mock.Mocker()
+    def test_request_access_success(self, current_user, m):
+        """Test successful request access with text field"""
+        dataset = self._mock_rems_requests(m, field_type="text", license_id=2)
+        current_user.return_value = User("test", "test", "test")
+        client = app.test_client()
+        response = client.post(
+            url_for("request_access", entity_name="dataset", entity_id=dataset.id),
+            data={"fld1": "test", "license_2": "on", "submit": "Send"},
+        )
+
+        self.assertIn(response.status_code, [200, 302])
+        if response.status_code == 200:
+            response_text = response.data.decode("utf-8")
+            self.assertNotIn("error", response_text.lower())
+        elif response.status_code == 302:
+            expected_location = url_for(
+                "entity_details", entity_name="dataset", entity_id=dataset.id
             )
-            self.assertRedirects(request_access_response, url_for("search"))
+            self.assertEqual(response.location, expected_location)
+
+    @patch("flask_login.utils._get_user")
+    @requests_mock.Mocker()
+    def test_request_access_attachment_field_validators(self, current_user, m):
+        """Test attachment field validators work during form validation"""
+        dataset = self._mock_rems_requests(
+            m, field_type="attachment", license_id=REMS_LICENSES[0]
+        )
+        current_user.return_value = User("test", "test", "test")
+        client = app.test_client()
+
+        form_response = client.get(
+            url_for("request_access", entity_name="dataset", entity_id=dataset.id)
+        )
+        self.assertEqual(200, form_response.status_code)
+        self.assertIn("attachment_field", form_response.data.decode("utf-8"))
+
+        invalid_response = client.post(
+            url_for("request_access", entity_name="dataset", entity_id=dataset.id),
+            data={
+                "attachment_field": (BytesIO(b"test"), "test.txt", "text/plain"),
+                f"license_{REMS_LICENSES[0]}": "on",
+                "submit": "Send",
+            },
+            content_type="multipart/form-data",
+        )
+        self.assertEqual(200, invalid_response.status_code)
+        self.assertNotIn(
+            "Access request sent successfully", invalid_response.data.decode("utf-8")
+        )
+
+        valid_response = client.post(
+            url_for("request_access", entity_name="dataset", entity_id=dataset.id),
+            data={
+                "attachment_field": (BytesIO(b"test"), "test.pdf", "application/pdf"),
+                f"license_{REMS_LICENSES[0]}": "on",
+                "submit": "Send",
+            },
+            content_type="multipart/form-data",
+        )
+        self.assertNotIn(
+            "File extension not in jpg, png, pdf", valid_response.data.decode("utf-8")
+        )
 
     def test_custom_static(self):
         # Create a temporary directory

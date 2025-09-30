@@ -187,7 +187,7 @@ class RemsAccessHandler(AccessHandler):
     def get_datasets(self):
         pass
 
-    def create_form(self, dataset, form_data):
+    def create_form(self, dataset, form_data: dict | None):
         class FormClass(FlaskForm):
             pass
 
@@ -268,7 +268,7 @@ class RemsAccessHandler(AccessHandler):
                 ),
             )
         setattr(FormClass, "submit", SubmitField("Send"))
-        return FormClass(form_data)
+        return FormClass() if form_data is None else FormClass(formdata=form_data)
 
     @staticmethod
     def build_application(application):
@@ -411,13 +411,14 @@ class AttachmentFieldBuilder(FieldBuilder):
 
     def get_validators(self):
         validators = super().get_validators()
-        supported_suffixes = ["jpg", "png", "pdf"]
-        supported_suffixes_string = ", ".join(["jpg", "png", "pdf"])
+        supported_suffixes = ["jpg", "png", "pdf", "docx", "doc"]
         validators.append(
             FileAllowed(
-                supported_suffixes, f"File extension not in {supported_suffixes_string}"
+                supported_suffixes,
+                f"File extension not in {', '.join(supported_suffixes)}",
             )
         )
+        return validators
 
     def build(self):
         return FileField(
