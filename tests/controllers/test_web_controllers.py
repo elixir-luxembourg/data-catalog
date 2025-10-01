@@ -111,7 +111,7 @@ class TestWebControllers(BaseTest):
             landing_page = client.get("/")
             self.assertEqual(landing_page.status_code, 200)
             landing_cleantext = get_clean_html_body(landing_page)
-            self.assertIn("Data Catalog - Home", landing_cleantext)
+            self.assertIn("Data Catalogue - Home", landing_cleantext)
             self.assertIn(f"Datasets {self.dataset_length}", landing_cleantext)
             self.assertIn(f"Projects {self.project_length}", landing_cleantext)
             self.assertIn(f"Studies {self.study_length}", landing_cleantext)
@@ -122,7 +122,7 @@ class TestWebControllers(BaseTest):
         with self.client as client:
             landing_page = client.get("/")
         landing_cleantext = get_clean_html_body(landing_page)
-        self.assertIn("Data Catalog - Home", landing_page.data.decode("utf-8"))
+        self.assertIn("Data Catalogue - Home", landing_page.data.decode("utf-8"))
         self.assertIn(
             f"{self.dataset_length} datasets found",
             landing_cleantext,
@@ -132,7 +132,7 @@ class TestWebControllers(BaseTest):
         with self.client as client:
             search_result = client.get("/search")
             search_result_clean_text = get_clean_html_body(search_result)
-            self.assertIn("Data Catalog - Home", search_result.data.decode("utf-8"))
+            self.assertIn("Data Catalogue - Home", search_result.data.decode("utf-8"))
             self.assertIn(
                 f"{self.dataset_length} datasets found",
                 search_result_clean_text,
@@ -143,7 +143,7 @@ class TestWebControllers(BaseTest):
             search_result_desc = client.get("/search?query=med&sort_by=&order=desc")
             search_result_asc = client.get("/search?query=med&sort_by=&order=asc")
             self.assertIn(
-                "Data Catalog - Home", search_result_desc.data.decode("utf-8")
+                "Data Catalogue - Home", search_result_desc.data.decode("utf-8")
             )
             self.assertIn("search-results", search_result_desc.data.decode("utf-8"))
             self.assertIn("search-results", search_result_asc.data.decode("utf-8"))
@@ -380,12 +380,12 @@ class TestWebControllers(BaseTest):
     def test_about(self):
         with self.client as client:
             about_page = client.get("/about")
-            self.assertIn("Data Catalog - About", about_page.data.decode("utf-8"))
+            self.assertIn("Data Catalogue - About", about_page.data.decode("utf-8"))
 
     def test_help(self):
         with self.client as client:
             help_page = client.get("/help")
-            self.assertIn("Data Catalog - Help", help_page.data.decode("utf-8"))
+            self.assertIn("Data Catalogue - Help", help_page.data.decode("utf-8"))
 
     def test_export_dats_entity(self):
         datasets = list(Dataset.query.all())

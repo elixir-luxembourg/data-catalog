@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "datacatalog"
 version = "0.0.1"
 authors = [{ name = "Valentin Grouès", email = "valentin.groues@uni.lu" }]
-description = "Data catalog"
+description = "A tool for advertising bio-medical projects and their associated datasets."
 keywords = ["data catalog", "lcsb"]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",

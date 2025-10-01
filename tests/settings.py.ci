@@ -2,7 +2,7 @@ import os
 
 class Config(object):
     SECRET_KEY = 'fdsaf87s@#$d98g7fsd89g7w89e$#@%#@$7f9s8dv7sd9frw%R#@$%98e7fwefds7897ws98wf7ew8'
-    TITLE = 'Data Catalog'
+    TITLE = 'Data Catalogue'
     CKAN_URL = '###########'
 
     CKAN_DIRECT_MAPPING = {
