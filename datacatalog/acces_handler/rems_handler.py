@@ -30,6 +30,8 @@ from wtforms import (
     SelectField,
     DateField,
     FileField,
+    FieldList,
+    FormField,
 )
 from wtforms.fields.html5 import EmailField
 from wtforms.validators import DataRequired, Length, Email, AnyOf, Optional
@@ -427,6 +429,8 @@ class AttachmentFieldBuilder(FieldBuilder):
 
     def transform_value(self, value, rems_connector=None, application_id=None):
         file = request.files[self.rems_field.fieldid]
+        if not file.content_length:
+            return ""
         temp_dir = tempfile.mkdtemp()
         tmp_file_path = os.path.join(temp_dir, file.filename)
         file.save(tmp_file_path)
@@ -446,6 +450,11 @@ class DateFieldBuilder(FieldBuilder):
         return DateField(
             self.label, validators=self.validators, render_kw=self.render_kw
         )
+
+    def transform_value(self, value, rems_connector=None, application_id=None):
+        if value is None:
+            return ""
+        return value.isoformat()
 
 
 class SelectFieldBuilder(FieldBuilder):
@@ -493,3 +502,57 @@ class EmailFieldBuilder(FieldBuilder):
         return EmailField(
             self.label, validators=self.validators, render_kw=self.render_kw
         )
+
+
+class TableFieldBuilder(FieldBuilder):
+    SUPPORTED_FIELD_TYPE = ["table"]
+
+    def build(self):
+        if not self.rems_field.fieldcolumns:
+            return TextAreaField(
+                self.label, validators=self.validators, render_kw={"rows": 8}
+            )
+
+        class TableWtfForm(FlaskForm):
+            pass
+
+        for column in self.rems_field.fieldcolumns:
+            column_key = column.get("key", "")
+            field = StringField(
+                column.get("label", {}).get("en", column_key),
+                validators=(
+                    [Optional()] if self.rems_field.fieldoptional else [DataRequired()]
+                ),
+                render_kw={
+                    "class": "form-control",
+                    "style": "padding: 8px 12px !important;",
+                },
+            )
+            setattr(TableWtfForm, column_key, field)
+
+        return FieldList(
+            FormField(TableWtfForm, label=""),
+            min_entries=1,
+            label="",
+            render_kw={
+                "class": "table-field-container",
+                "style": "list-style: none; padding: 10px;",
+            },
+        )
+
+    def transform_value(self, value, rems_connector=None, application_id=None):
+        if not isinstance(value, list):
+            return ""
+
+        # REMS SaveDraftCommandFieldValues
+        result = []
+        for row in value:
+            if not isinstance(row, dict):
+                continue
+            row_data = [
+                {"column": k, "value": v}
+                for k, v in row.items()
+                if k != "csrf_token" and v
+            ]
+            result.append(row_data)
+        return result
