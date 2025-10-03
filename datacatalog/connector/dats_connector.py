@@ -606,7 +606,11 @@ class DATSConnector(ImportEntitiesConnector):
             if "checksum" in distro:
                 dataset.checksum = distro["checksum"]
             if "checksumAlgorithm" in distro:
-                dataset.checksum_algorithm = distro["checksumAlgorithm"]["value"]
+                check_algo = distro["checksumAlgorithm"]
+                if isinstance(check_algo, str):
+                    dataset.checksum_algorithm = check_algo
+                elif isinstance(check_algo, dict) and "value" in check_algo:
+                    dataset.checksum_algorithm = check_algo["value"]
 
         if "creators" in metadata:
             if (
