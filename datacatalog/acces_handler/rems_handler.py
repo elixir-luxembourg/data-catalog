@@ -429,7 +429,7 @@ class AttachmentFieldBuilder(FieldBuilder):
 
     def transform_value(self, value, rems_connector=None, application_id=None):
         file = request.files[self.rems_field.fieldid]
-        if not file.content_length:
+        if not file.filename:
             return ""
         temp_dir = tempfile.mkdtemp()
         tmp_file_path = os.path.join(temp_dir, file.filename)
