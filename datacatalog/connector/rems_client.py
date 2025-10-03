@@ -112,6 +112,7 @@ class FormField(BaseModel):
     fieldoptions: Optional[List[FormTemplateFieldsOptions]] = Field(
         None, alias="field/options"
     )
+    fieldcolumns: Optional[List[Dict[str, Any]]] = Field(None, alias="field/columns")
 
 
 class Form(BaseModel):
@@ -144,7 +145,9 @@ class CreateApplicationResponse(BaseModel):
 class SaveDraftCommandFieldValues(BaseModel):
     form: int
     field: str
-    value: str
+    value: Union[
+        str, List[List[Dict[str, str]]]
+    ]  # A string for most fields, or [[{"column": string, "value": string}]] for table fields
 
 
 class SaveDraftCommand(BaseModel):
