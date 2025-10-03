@@ -546,9 +546,6 @@ class DATSConnector(ImportEntitiesConnector):
                 elif ep["category"] == "deprecation_notes":
                     if ep["values"][0]["value"]:
                         dataset.deprecation_notes = ep["values"][0]["value"]
-                elif ep["category"] == "number_of_files":
-                    if ep["values"][0]["value"]:
-                        dataset.number_of_files = ep["values"][0]["value"]
                 else:
                     category = re.split("(?=[A-Z])", ep["category"])
                     attribute = "_".join(map(str.lower, category))
@@ -557,6 +554,12 @@ class DATSConnector(ImportEntitiesConnector):
         # TO DO deal with cases where there's more than one distribution object
         if "distributions" in metadata and len(metadata["distributions"]) == 1:
             distro = metadata["distributions"][0]
+
+            if "extraProperties" in distro:
+                for ep in distro["extraProperties"]:
+                    if ep["category"] == "number_of_files":
+                        if ep["values"][0]["value"]:
+                            dataset.number_of_files = ep["values"][0]["value"]
 
             if "access" in distro:
                 if "accessURL" in distro["access"]:
