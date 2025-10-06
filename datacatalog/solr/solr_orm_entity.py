@@ -14,10 +14,10 @@
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-    datacatalog.solr.solr_orm_entity
-    -------------------
+ datacatalog.solr.solr_orm_entity
+ -------------------
 
-   Module containing the SolrEntity class
+Module containing the SolrEntity class
 
 """
 import json
@@ -54,6 +54,7 @@ class SolrEntity:
     reversed_field = {}
     query = None
     _solr_orm = None
+    ADD_PREFIX_ID = True
 
     def __init__(self, entity_id: Optional[str] = None) -> None:
         """
@@ -134,7 +135,8 @@ class SolrEntity:
         """
         entity_dict = self.to_dict()
         entity_type = self.__class__.__name__.lower()
-        entity_dict["id"] = entity_type + "_" + entity_dict["id"]
+        if self.ADD_PREFIX_ID:
+            entity_dict["id"] = entity_type + "_" + entity_dict["id"]
         entity_dict["type"] = entity_type
         logger.info("Indexing entity %s (%s)", self.id, entity_type)
         for field_name, info in self.reversed_field.items():

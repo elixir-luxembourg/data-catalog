@@ -1,0 +1,890 @@
+{
+    "extraProperties": [
+        {
+            "values": [
+                {
+                    "value": "skip",
+                    "@type": "Annotation",
+                    "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld"
+                }
+            ],
+            "@type": "CategoryValuesPair",
+            "category": "skipImport"
+        }
+    ],
+    "title": "ImmUniverse",
+    "@type": "Project",
+    "@context": [
+        "http://w3id.org/dats/context/sdo/dataset_sdo_context.jsonld",
+        "http://w3id.org/dats/context/obo/dataset_obo_context.jsonld"
+    ],
+    "types": [],
+    "identifier": {
+        "identifier": "TEST-1-ED9C37-1",
+        "@type": "Identifier",
+        "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld"
+    },
+    "projectLeads": [],
+    "projectAssets": [
+        {
+            "name": "TREATgermany",
+            "identifier": {
+                "identifier": "bc55c2c8-5f4b-11ed-a1b3-acde48001122",
+                "@type": "Identifier",
+                "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld"
+            },
+            "@type": "Study",
+            "@context": "https://w3id.org/dats/context/sdo/study_sdo_context.jsonld",
+            "description": "",
+            "types": [
+                {
+                    "value": "biosamples",
+                    "@type": "Annotation",
+                    "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld",
+                    "valueIRI": "topic:3277"
+                },
+                {
+                    "value": "transcriptomics",
+                    "@type": "Annotation",
+                    "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld",
+                    "valueIRI": "NCIT:C153189"
+                },
+                {
+                    "value": "microbiome",
+                    "@type": "Annotation",
+                    "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld",
+                    "valueIRI": "NCIT:C68564"
+                }
+            ],
+            "studyGroups": [
+                {
+                    "@type": "StudyGroup",
+                    "@context": "https://w3id.org/dats/context/sdo/studygroup_sdo_context.jsonld",
+                    "name": "TREATgermany - prospective",
+                    "size": "600",
+                    "consentInformation": [
+                        {
+                            "name": {
+                                "value": "informed consent",
+                                "valueIRI": "NCIT:C16735",
+                                "@type": "Annotation",
+                                "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld"
+                            },
+                            "@type": "ConsentInfo",
+                            "@context": "https://w3id.org/dats/context/sdo/consent_info_obo_context.jsonld"
+                        }
+                    ]
+                }
+            ],
+            "input": [
+                {
+                    "@type": "Material",
+                    "@context": "https://w3id.org/dats/context/sdo/material_sdo_context.jsonld",
+                    "name": "input material",
+                    "types": [
+                        {
+                            "value": "tissue sample",
+                            "valueIRI": "NCIT:C19697",
+                            "@type": "Annotation",
+                            "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld"
+                        }
+                    ],
+                    "taxonomy": [
+                        {
+                            "@type": "TaxonomicInformation",
+                            "@context": "https://w3id.org/dats/context/sdo/taxonomic_info_sdo_context.jsonld",
+                            "name": "Homo sapiens",
+                            "identifier": {
+                                "@type": "Identifier",
+                                "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld",
+                                "identifier": "NCBITaxon:9606",
+                                "identifierSource": "NCBI Taxon ID"
+                            }
+                        }
+                    ],
+                    "bearerOfDisease": [
+                        {
+                            "name": "atopic dermatitis",
+                            "@type": "Disease",
+                            "@context": "https://w3id.org/dats/context/sdo/disease_sdo_context.jsonld",
+                            "identifier": {
+                                "@type": "Identifier",
+                                "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld",
+                                "identifier": "MONDO:0011292"
+                            }
+                        }
+                    ],
+                    "derivesFrom": [
+                        {
+                            "name": "blood",
+                            "@type": "AnatomicalPart",
+                            "@context": "https://w3id.org/dats/context/sdo/anatomical_part_sdo_context.jsonld",
+                            "identifier": {
+                                "@type": "Identifier",
+                                "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld",
+                                "identifier": "UBERON:0000178"
+                            }
+                        },
+                        {
+                            "name": "biopsy (non-lesional)",
+                            "@type": "AnatomicalPart",
+                            "@context": "https://w3id.org/dats/context/sdo/anatomical_part_sdo_context.jsonld",
+                            "identifier": {
+                                "@type": "Identifier",
+                                "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld",
+                                "identifier": "NCIT:C15189"
+                            }
+                        },
+                        {
+                            "name": "biopsy (lesional)",
+                            "@type": "AnatomicalPart",
+                            "@context": "https://w3id.org/dats/context/sdo/anatomical_part_sdo_context.jsonld",
+                            "identifier": {
+                                "@type": "Identifier",
+                                "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld",
+                                "identifier": "NCIT:C15189"
+                            }
+                        },
+                        {
+                            "name": "stool",
+                            "@type": "AnatomicalPart",
+                            "@context": "https://w3id.org/dats/context/sdo/anatomical_part_sdo_context.jsonld",
+                            "identifier": {
+                                "@type": "Identifier",
+                                "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld",
+                                "identifier": "UBERON:0001988"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "output": [
+                {
+                    "title": "TREATgermany - Transcriptomics",
+                    "identifier": {
+                        "identifier": "19ac4754-5f50-11ed-a1b3-acde48001122",
+                        "@type": "Identifier",
+                        "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld"
+                    },
+                    "@type": "Dataset",
+                    "@context": "https://w3id.org/dats/context/sdo/dataset_sdo_context.jsonld",
+                    "types": [
+                        {
+                            "@type": "Annotation",
+                            "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld",
+                            "value": "transcriptomics",
+                            "valueIRI": "NCIT:C153189"
+                        },
+                        {
+                            "@type": "Annotation",
+                            "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld",
+                            "value": "RNA sequencing",
+                            "valueIRI": "NCIT:C124261"
+                        },
+                        {
+                            "@type": "Annotation",
+                            "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld",
+                            "value": "preprocessed anonymised data",
+                            "valueIRI": "NCIT:C68759"
+                        }
+                    ],
+                    "isAbout": [
+                        {
+                            "name": "atopic dermatitis",
+                            "@type": "Disease",
+                            "@context": "https://w3id.org/dats/context/sdo/disease_sdo_context.jsonld",
+                            "identifier": {
+                                "@type": "Identifier",
+                                "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld",
+                                "identifier": "MONDO:0011292"
+                            }
+                        },
+                        {
+                            "name": "blood",
+                            "@type": "AnatomicalPart",
+                            "@context": "https://w3id.org/dats/context/sdo/anatomical_part_sdo_context.jsonld",
+                            "identifier": {
+                                "@type": "Identifier",
+                                "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld",
+                                "identifier": "UBERON:0000178"
+                            }
+                        },
+                        {
+                            "name": "biopsy (non-lesional)",
+                            "@type": "AnatomicalPart",
+                            "@context": "https://w3id.org/dats/context/sdo/anatomical_part_sdo_context.jsonld",
+                            "identifier": {
+                                "@type": "Identifier",
+                                "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld",
+                                "identifier": "NCIT:C15189"
+                            }
+                        },
+                        {
+                            "name": "biopsy (lesional)",
+                            "@type": "AnatomicalPart",
+                            "@context": "https://w3id.org/dats/context/sdo/anatomical_part_sdo_context.jsonld",
+                            "identifier": {
+                                "@type": "Identifier",
+                                "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld",
+                                "identifier": "NCIT:C15189"
+                            }
+                        }
+                    ],
+                    "distributions": [
+                        {
+                            "@type": "DatasetDistribution",
+                            "@context": "https://w3id.org/dats/context/sdo/dataset_distribution_sdo_context.jsonld",
+                            "access": {
+                                "landingPage": "",
+                                "@type": "Access",
+                                "@context": "https://w3id.org/dats/context/sdo/access_sdo_context.jsonld",
+                                "types": [
+                                    {
+                                        "@type": "Annotation",
+                                        "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld",
+                                        "value": "hosted at UL"
+                                    }
+                                ]
+                            },
+                            "dates": [
+                                {
+                                    "date": "2022-11-08",
+                                    "@type": "Date",
+                                    "@context": "https://w3id.org/dats/context/sdo/date_info_sdo_context.jsonld",
+                                    "type": {
+                                        "@type": "Annotation",
+                                        "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld",
+                                        "value": "creation date",
+                                        "valueIRI": "SIO:001314"
+                                    }
+                                }
+                            ],
+                            "version": "1.0"
+                        }
+                    ],
+                    "creators": [
+                        {
+                            "@type": "Person",
+                            "@context": "https://w3id.org/dats/context/sdo/person_sdo_context.jsonld",
+                            "firstName": "John",
+                            "lastName": "Doe",
+                            "email": "test@test.de",
+                            "affiliations": [
+                                {
+                                    "@type": "Organization",
+                                    "@context": "https://w3id.org/dats/context/sdo/organization_sdo_context.jsonld",
+                                    "name": "Test University"
+                                }
+                            ],
+                            "fullName": "John Doe"
+                        }
+                    ],
+                    "dimensions": [
+                        {
+                            "name": {
+                                "value": "sample size",
+                                "valueIRI": "NCIT:C53190",
+                                "@type": "Annotation",
+                                "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld"
+                            },
+                            "values": [
+                                {
+                                    "value": "346",
+                                    "@type": "Annotation",
+                                    "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld"
+                                }
+                            ],
+                            "@type": "Dimension",
+                            "@context": "https://w3id.org/dats/context/sdo/dimension_sdo_context.jsonld"
+                        }
+                    ]
+                },
+                {
+                    "title": "TREATgermany - Microbiome",
+                    "identifier": {
+                        "identifier": "2b73a220-5f50-11ed-a1b3-acde48001122",
+                        "@type": "Identifier",
+                        "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld"
+                    },
+                    "@type": "Dataset",
+                    "@context": "https://w3id.org/dats/context/sdo/dataset_sdo_context.jsonld",
+                    "types": [
+                        {
+                            "@type": "Annotation",
+                            "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld",
+                            "value": "microbiome",
+                            "valueIRI": "NCIT:C68564"
+                        },
+                        {
+                            "@type": "Annotation",
+                            "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld",
+                            "value": "RNA sequencing",
+                            "valueIRI": "NCIT:C124261"
+                        },
+                        {
+                            "@type": "Annotation",
+                            "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld",
+                            "value": "raw sequencing data",
+                            "valueIRI": "NCIT:C165232"
+                        }
+                    ],
+                    "isAbout": [
+                        {
+                            "name": "atopic dermatitis",
+                            "@type": "Disease",
+                            "@context": "https://w3id.org/dats/context/sdo/disease_sdo_context.jsonld",
+                            "identifier": {
+                                "@type": "Identifier",
+                                "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld",
+                                "identifier": "MONDO:0011292"
+                            }
+                        },
+                        {
+                            "name": "biopsy (non-lesional)",
+                            "@type": "AnatomicalPart",
+                            "@context": "https://w3id.org/dats/context/sdo/anatomical_part_sdo_context.jsonld",
+                            "identifier": {
+                                "@type": "Identifier",
+                                "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld",
+                                "identifier": "NCIT:C15189"
+                            }
+                        },
+                        {
+                            "name": "stool",
+                            "@type": "AnatomicalPart",
+                            "@context": "https://w3id.org/dats/context/sdo/anatomical_part_sdo_context.jsonld",
+                            "identifier": {
+                                "@type": "Identifier",
+                                "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld",
+                                "identifier": "UBERON:0001988"
+                            }
+                        }
+                    ],
+                    "distributions": [
+                        {
+                            "@type": "DatasetDistribution",
+                            "@context": "https://w3id.org/dats/context/sdo/dataset_distribution_sdo_context.jsonld",
+                            "access": {
+                                "landingPage": "",
+                                "@type": "Access",
+                                "@context": "https://w3id.org/dats/context/sdo/access_sdo_context.jsonld",
+                                "types": [
+                                    {
+                                        "@type": "Annotation",
+                                        "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld",
+                                        "value": "hosted at UL"
+                                    }
+                                ]
+                            },
+                            "dates": [
+                                {
+                                    "date": "2022-11-08",
+                                    "@type": "Date",
+                                    "@context": "https://w3id.org/dats/context/sdo/date_info_sdo_context.jsonld",
+                                    "type": {
+                                        "@type": "Annotation",
+                                        "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld",
+                                        "value": "creation date",
+                                        "valueIRI": "SIO:001314"
+                                    }
+                                }
+                            ],
+                            "version": "1.0"
+                        }
+                    ],
+                    "creators": [
+                        {
+                            "@type": "Person",
+                            "@context": "https://w3id.org/dats/context/sdo/person_sdo_context.jsonld",
+                            "firstName": "John",
+                            "lastName": "Doe",
+                            "email": "test@test.de",
+                            "affiliations": [
+                                {
+                                    "@type": "Organization",
+                                    "@context": "https://w3id.org/dats/context/sdo/organization_sdo_context.jsonld",
+                                    "name": "Test University"
+                                }
+                            ],
+                            "fullName": "John Doe"
+                        }
+                    ],
+                    "dimensions": [
+                        {
+                            "name": {
+                                "value": "sample size",
+                                "valueIRI": "NCIT:C53190",
+                                "@type": "Annotation",
+                                "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld"
+                            },
+                            "values": [
+                                {
+                                    "value": "491",
+                                    "@type": "Annotation",
+                                    "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld"
+                                }
+                            ],
+                            "@type": "Dimension",
+                            "@context": "https://w3id.org/dats/context/sdo/dimension_sdo_context.jsonld"
+                        }
+                    ]
+                }
+            ],
+            "acronym": "TREATgermany",
+            "characteristics": [
+                {
+                    "name": {
+                        "value": "Multi-institution Indicator",
+                        "valueIRI": "NCIT:C93599",
+                        "@type": "Annotation",
+                        "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld"
+                    },
+                    "values": [
+                        {
+                            "value": "false",
+                            "@type": "Annotation",
+                            "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld"
+                        }
+                    ],
+                    "@type": "Dimension",
+                    "@context": "https://w3id.org/dats/context/sdo/dimension_sdo_context.jsonld"
+                }
+            ]
+        },
+        {
+            "name": "P2N ADPSOKO",
+            "identifier": {
+                "identifier": "e03298b0-91c8-11ed-97aa-acde48001122",
+                "@type": "Identifier",
+                "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld"
+            },
+            "@type": "Study",
+            "@context": "https://w3id.org/dats/context/sdo/study_sdo_context.jsonld",
+            "description": "",
+            "types": [
+                {
+                    "value": "biosamples",
+                    "@type": "Annotation",
+                    "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld",
+                    "valueIRI": "topic:3277"
+                },
+                {
+                    "value": "transcriptomics",
+                    "valueIRI": "NCIT:C153189",
+                    "@type": "Annotation",
+                    "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld"
+                },
+                {
+                    "value": "methylome",
+                    "valueIRI": "NCIT:C106057",
+                    "@type": "Annotation",
+                    "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld"
+                }
+            ],
+            "studyGroups": [
+                {
+                    "@type": "StudyGroup",
+                    "@context": "https://w3id.org/dats/context/sdo/studygroup_sdo_context.jsonld",
+                    "name": "P2N ADPSOKO - Retrospective study cohort",
+                    "size": "122",
+                    "consentInformation": [
+                        {
+                            "name": {
+                                "value": "informed consent",
+                                "valueIRI": "NCIT:C16735",
+                                "@type": "Annotation",
+                                "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld"
+                            },
+                            "@type": "ConsentInfo",
+                            "@context": "https://w3id.org/dats/context/sdo/consent_info_obo_context.jsonld"
+                        }
+                    ]
+                }
+            ],
+            "input": [
+                {
+                    "@type": "Material",
+                    "@context": "https://w3id.org/dats/context/sdo/material_sdo_context.jsonld",
+                    "name": "input material",
+                    "types": [
+                        {
+                            "value": "tissue sample",
+                            "valueIRI": "NCIT:C19697",
+                            "@type": "Annotation",
+                            "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld"
+                        }
+                    ],
+                    "taxonomy": [
+                        {
+                            "@type": "TaxonomicInformation",
+                            "@context": "https://w3id.org/dats/context/sdo/taxonomic_info_sdo_context.jsonld",
+                            "name": "Homo sapiens",
+                            "identifier": {
+                                "@type": "Identifier",
+                                "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld",
+                                "identifier": "NCBITaxon:9606",
+                                "identifierSource": "NCBI Taxon ID"
+                            }
+                        }
+                    ],
+                    "bearerOfDisease": [
+                        {
+                            "name": "atopic dermatitis",
+                            "identifier": {
+                                "@type": "Identifier",
+                                "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld",
+                                "identifier": "MONDO:0011292"
+                            },
+                            "@type": "Disease",
+                            "@context": "https://w3id.org/dats/context/sdo/disease_sdo_context.jsonld"
+                        },
+                        {
+                            "name": "psoriasis",
+                            "identifier": {
+                                "@type": "Identifier",
+                                "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld",
+                                "identifier": "MONDO:0005083"
+                            },
+                            "@type": "Disease",
+                            "@context": "https://w3id.org/dats/context/sdo/disease_sdo_context.jsonld"
+                        },
+                        {
+                            "name": "healthy control",
+                            "identifier": {
+                                "@type": "Identifier",
+                                "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld",
+                                "identifier": "NCIT:C94342"
+                            },
+                            "@type": "Disease",
+                            "@context": "https://w3id.org/dats/context/sdo/disease_sdo_context.jsonld"
+                        }
+                    ],
+                    "derivesFrom": [
+                        {
+                            "name": "blood",
+                            "identifier": {
+                                "@type": "Identifier",
+                                "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld",
+                                "identifier": "UBERON:0000178"
+                            },
+                            "@type": "AnatomicalPart",
+                            "@context": "https://w3id.org/dats/context/sdo/anatomical_part_sdo_context.jsonld"
+                        },
+                        {
+                            "name": "biopsy (non-lesional)",
+                            "identifier": {
+                                "@type": "Identifier",
+                                "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld",
+                                "identifier": "NCIT:C15189"
+                            },
+                            "@type": "AnatomicalPart",
+                            "@context": "https://w3id.org/dats/context/sdo/anatomical_part_sdo_context.jsonld"
+                        },
+                        {
+                            "name": "biopsy (lesional)",
+                            "identifier": {
+                                "@type": "Identifier",
+                                "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld",
+                                "identifier": "NCIT:C15189"
+                            },
+                            "@type": "AnatomicalPart",
+                            "@context": "https://w3id.org/dats/context/sdo/anatomical_part_sdo_context.jsonld"
+                        }
+                    ]
+                }
+            ],
+            "output": [
+                {
+                    "title": "P2N ADPSOKO - Methylome",
+                    "identifier": {
+                        "identifier": "e032b278-91c8-11ed-97aa-acde48001122",
+                        "@type": "Identifier",
+                        "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld"
+                    },
+                    "@type": "Dataset",
+                    "@context": "https://w3id.org/dats/context/sdo/dataset_sdo_context.jsonld",
+                    "types": [
+                        {
+                            "@type": "Annotation",
+                            "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld",
+                            "value": "methylome",
+                            "valueIRI": "NCIT:C106057"
+                        },
+                        {
+                            "value": "preprocessed anonymised data",
+                            "@type": "Annotation",
+                            "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld",
+                            "valueIRI": "NCIT:C68759"
+                        }
+                    ],
+                    "isAbout": [
+                        {
+                            "name": "atopic dermatitis",
+                            "identifier": {
+                                "@type": "Identifier",
+                                "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld",
+                                "identifier": "MONDO:0011292"
+                            },
+                            "@type": "Disease",
+                            "@context": "https://w3id.org/dats/context/sdo/disease_sdo_context.jsonld"
+                        },
+                        {
+                            "name": "psoriasis",
+                            "identifier": {
+                                "@type": "Identifier",
+                                "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld",
+                                "identifier": "MONDO:0005083"
+                            },
+                            "@type": "Disease",
+                            "@context": "https://w3id.org/dats/context/sdo/disease_sdo_context.jsonld"
+                        },
+                        {
+                            "name": "healthy control",
+                            "identifier": {
+                                "@type": "Identifier",
+                                "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld",
+                                "identifier": "NCIT:C94342"
+                            },
+                            "@type": "Disease",
+                            "@context": "https://w3id.org/dats/context/sdo/disease_sdo_context.jsonld"
+                        },
+                        {
+                            "name": "biopsy (non-lesional)",
+                            "identifier": {
+                                "@type": "Identifier",
+                                "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld",
+                                "identifier": "NCIT:C15189"
+                            },
+                            "@type": "AnatomicalPart",
+                            "@context": "https://w3id.org/dats/context/sdo/anatomical_part_sdo_context.jsonld"
+                        }
+                    ],
+                    "distributions": [
+                        {
+                            "@type": "DatasetDistribution",
+                            "@context": "https://w3id.org/dats/context/sdo/dataset_distribution_sdo_context.jsonld",
+                            "access": {
+                                "accessURL": "",
+                                "landingPage": "",
+                                "@type": "Access",
+                                "@context": "https://w3id.org/dats/context/sdo/access_sdo_context.jsonld"
+                            },
+                            "dates": [
+                                {
+                                    "date": "2023-01-10",
+                                    "@type": "Date",
+                                    "@context": "https://w3id.org/dats/context/sdo/date_info_sdo_context.jsonld",
+                                    "type": {
+                                        "@type": "Annotation",
+                                        "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld",
+                                        "value": "creation date",
+                                        "valueIRI": "SIO:001314"
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                    "creators": [
+                        {
+                            "@type": "Person",
+                            "@context": "https://w3id.org/dats/context/sdo/person_sdo_context.jsonld",
+                            "firstName": "John",
+                            "lastName": "Doe",
+                            "email": "test@test.de",
+                            "affiliations": [
+                                {
+                                    "@type": "Organization",
+                                    "@context": "https://w3id.org/dats/context/sdo/organization_sdo_context.jsonld",
+                                    "name": "Test University"
+                                }
+                            ],
+                            "fullName": "Stephan Weidinger"
+                        }
+                    ],
+                    "dimensions": [
+                        {
+                            "name": {
+                                "value": "sample size",
+                                "valueIRI": "NCIT:C53190",
+                                "@type": "Annotation",
+                                "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld"
+                            },
+                            "values": [
+                                {
+                                    "value": "189",
+                                    "@type": "Annotation",
+                                    "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld"
+                                }
+                            ],
+                            "@type": "Dimension",
+                            "@context": "https://w3id.org/dats/context/sdo/dimension_sdo_context.jsonld"
+                        }
+                    ]
+                },
+                {
+                    "title": "P2N ADPSOKO - Transcriptome",
+                    "identifier": {
+                        "identifier": "e032b75a-91c8-11ed-97aa-acde48001122",
+                        "@type": "Identifier",
+                        "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld"
+                    },
+                    "@type": "Dataset",
+                    "@context": "https://w3id.org/dats/context/sdo/dataset_sdo_context.jsonld",
+                    "types": [
+                        {
+                            "@type": "Annotation",
+                            "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld",
+                            "value": "transcriptomics",
+                            "valueIRI": "NCIT:C153189"
+                        },
+                        {
+                            "value": "RNA sequencing",
+                            "@type": "Annotation",
+                            "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld",
+                            "valueIRI": "NCIT:C124261"
+                        },
+                        {
+                            "value": "preprocessed anonymised data",
+                            "@type": "Annotation",
+                            "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld",
+                            "valueIRI": "NCIT:C68759"
+                        }
+                    ],
+                    "isAbout": [
+                        {
+                            "name": "atopic dermatitis",
+                            "identifier": {
+                                "@type": "Identifier",
+                                "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld",
+                                "identifier": "MONDO:0011292"
+                            },
+                            "@type": "Disease",
+                            "@context": "https://w3id.org/dats/context/sdo/disease_sdo_context.jsonld"
+                        },
+                        {
+                            "name": "psoriasis",
+                            "identifier": {
+                                "@type": "Identifier",
+                                "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld",
+                                "identifier": "MONDO:0005083"
+                            },
+                            "@type": "Disease",
+                            "@context": "https://w3id.org/dats/context/sdo/disease_sdo_context.jsonld"
+                        },
+                        {
+                            "name": "healthy control",
+                            "identifier": {
+                                "@type": "Identifier",
+                                "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld",
+                                "identifier": "NCIT:C94342"
+                            },
+                            "@type": "Disease",
+                            "@context": "https://w3id.org/dats/context/sdo/disease_sdo_context.jsonld"
+                        },
+                        {
+                            "name": "biopsy (non-lesional)",
+                            "identifier": {
+                                "@type": "Identifier",
+                                "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld",
+                                "identifier": "NCIT:C15189"
+                            },
+                            "@type": "AnatomicalPart",
+                            "@context": "https://w3id.org/dats/context/sdo/anatomical_part_sdo_context.jsonld"
+                        },
+                        {
+                            "name": "blood",
+                            "identifier": {
+                                "@type": "Identifier",
+                                "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld",
+                                "identifier": "UBERON:0000178"
+                            },
+                            "@type": "AnatomicalPart",
+                            "@context": "https://w3id.org/dats/context/sdo/anatomical_part_sdo_context.jsonld"
+                        }
+                    ],
+                    "distributions": [
+                        {
+                            "@type": "DatasetDistribution",
+                            "@context": "https://w3id.org/dats/context/sdo/dataset_distribution_sdo_context.jsonld",
+                            "access": {
+                                "accessURL": "",
+                                "landingPage": "",
+                                "@type": "Access",
+                                "@context": "https://w3id.org/dats/context/sdo/access_sdo_context.jsonld"
+                            },
+                            "dates": [
+                                {
+                                    "date": "2023-01-10",
+                                    "@type": "Date",
+                                    "@context": "https://w3id.org/dats/context/sdo/date_info_sdo_context.jsonld",
+                                    "type": {
+                                        "@type": "Annotation",
+                                        "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld",
+                                        "value": "creation date",
+                                        "valueIRI": "SIO:001314"
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                    "creators": [
+                        {
+                            "@type": "Person",
+                            "@context": "https://w3id.org/dats/context/sdo/person_sdo_context.jsonld",
+                            "firstName": "John",
+                            "lastName": "Doe",
+                            "email": "test@test.de",
+                            "affiliations": [
+                                {
+                                    "@type": "Organization",
+                                    "@context": "https://w3id.org/dats/context/sdo/organization_sdo_context.jsonld",
+                                    "name": "Test University"
+                                }
+                            ],
+                            "fullName": "Stephan Weidinger"
+                        }
+                    ],
+                    "dimensions": [
+                        {
+                            "name": {
+                                "value": "sample size",
+                                "valueIRI": "NCIT:C53190",
+                                "@type": "Annotation",
+                                "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld"
+                            },
+                            "values": [
+                                {
+                                    "value": "289",
+                                    "@type": "Annotation",
+                                    "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld"
+                                }
+                            ],
+                            "@type": "Dimension",
+                            "@context": "https://w3id.org/dats/context/sdo/dimension_sdo_context.jsonld"
+                        }
+                    ]
+                }
+            ],
+            "acronym": "P2N ADPSOKO",
+            "characteristics": [
+                {
+                    "name": {
+                        "value": "Multi-institution Indicator",
+                        "valueIRI": "NCIT:C93599",
+                        "@type": "Annotation",
+                        "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld"
+                    },
+                    "values": [
+                        {
+                            "value": "true",
+                            "@type": "Annotation",
+                            "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld"
+                        }
+                    ],
+                    "@type": "Dimension",
+                    "@context": "https://w3id.org/dats/context/sdo/dimension_sdo_context.jsonld"
+                }
+            ]
+        }
+    ]
+}

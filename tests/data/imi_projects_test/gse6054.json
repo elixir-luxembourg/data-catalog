@@ -131,7 +131,19 @@
                                         "value": "last update date"
                                     }
                                 }
-                            ]
+                            ],
+                             "checksum": "bb3878fc62e846b35e1d34f6097e7fa7",
+                                "checksumAlgorithm": {
+                                    "value": "MD5",
+                                    "@type": "Annotation",
+                                    "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld"
+                                },
+                                "size": 30,
+                                "unit": {
+                                    "value": "GB",
+                                    "@type": "Annotation",
+                                    "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld"
+                                }
                         }
                     ],
                     "extraProperties": [
@@ -146,6 +158,17 @@
                                     "value": "23"
                                 }
                             ]
+                        },
+                        {
+                            "values":[
+                                {
+                                    "value": 1,
+                                    "@type": "Annotation",
+                                    "@context": "https://w3id.org/dats/context/sdo/annotation_sdo_context.jsonld"
+                                }
+                            ],
+                             "@type": "CategoryValuesPair",
+                            "category": "number_of_files"
                         }
                     ],
                     "identifier": {

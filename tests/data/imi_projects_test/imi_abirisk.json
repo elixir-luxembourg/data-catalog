@@ -184,6 +184,7 @@
             },
             "@type": "Dataset",
             "@context": "https://w3id.org/dats/context/sdo/dataset_sdo_context.jsonld",
+            "description": "Anti-Biopharmaceutical Immunization: Prediction and Analysis of Clinical Relevance to Minimize the Risk",
             "types": [
                 {
                     "@type": "Annotation",
@@ -433,6 +434,7 @@
                         "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld"
                     },
                     "@type": "Dataset",
+                    "description": "Anti-Biopharmaceutical Immunization: Prediction and Analysis of Clinical Relevance to Minimize the Risk",
                     "@context": "https://w3id.org/dats/context/sdo/dataset_sdo_context.jsonld",
                     "types": [
                         {
@@ -669,6 +671,7 @@
                         "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld"
                     },
                     "@type": "Dataset",
+                    "description": "Anti-Biopharmaceutical Immunization: Prediction and Analysis of Clinical Relevance to Minimize the Risk",
                     "@context": "https://w3id.org/dats/context/sdo/dataset_sdo_context.jsonld",
                     "types": [
                         {
@@ -902,6 +905,7 @@
                         "@context": "https://w3id.org/dats/context/sdo/identifier_info_sdo_context.jsonld"
                     },
                     "@type": "Dataset",
+                    "description": "Anti-Biopharmaceutical Immunization: Prediction and Analysis of Clinical Relevance to Minimize the Risk",
                     "@context": "https://w3id.org/dats/context/sdo/dataset_sdo_context.jsonld",
                     "types": [
                         {

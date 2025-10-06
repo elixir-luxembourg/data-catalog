@@ -21,6 +21,7 @@ import os
 import random
 from unittest.mock import patch
 
+import requests_mock
 from flask import url_for
 
 from datacatalog import app
@@ -42,6 +43,8 @@ from datacatalog.storage_handler.download_handler import DownloadHandler
 from tests.base_test import BaseTest, get_resource_path
 
 __author__ = "Nirmeen Sallam"
+
+REMS_URL = app.config.get("REMS_URL", "http://rems-mock-host")
 
 
 class FakeStorageHandler(DownloadHandler):
@@ -76,9 +79,9 @@ class TestApiEntities(BaseTest):
         self.entities_importer.import_all()
 
     def test_api_entity(self):
-        dataset = Dataset.query.all()
-        study = Study.query.all()
-        project = Project.query.all()
+        dataset = list(Dataset.query.all())
+        study = list(Study.query.all())
+        project = list(Project.query.all())
         self.assert200(api_entity("dataset", dataset[0].id))
         self.assert200(api_entity("study", study[0].id))
         self.assert200(api_entity("project", project[0].id))
@@ -91,9 +94,9 @@ class TestApiEntities(BaseTest):
 
     @patch("datacatalog.solr.solr_orm_entity.SolrEntity.list_attached_files")
     def test_api_entity_attachment(self, mock_list):
-        dataset = Dataset.query.all()
-        study = Study.query.all()
-        project = Project.query.all()
+        dataset = list(Dataset.query.all())
+        study = list(Study.query.all())
+        project = list(Project.query.all())
         self.assertIsNotNone(api_entity_attachments("dataset", dataset[0].id).data)
         self.assertIsNotNone(api_entity_attachments("study", study[0].id).data)
         self.assertIsNotNone(api_entity_attachments("project", project[0].id).data)
@@ -143,14 +146,53 @@ class TestApiEntities(BaseTest):
             )
             self.assertIn("message", response.json)
 
+    @patch(
+        "datacatalog.authentication.pyoidc_authentication.PyOIDCAuthentication.refresh_user"
+    )
     @patch("flask_login.utils._get_user")
-    def test_download_link_no_access(self, current_user):
-        random_dataset = random.choice(Dataset.query.all())
+    @requests_mock.Mocker()
+    def test_download_link_no_access(self, current_user, mock_refresh_user, m):
+        m.real_http = True
+        m.post(
+            f"{REMS_URL}/api/users/create",
+            json={"success": True},
+            status_code=200,
+            real_http=False,
+        )
+        m.get(
+            f"{REMS_URL}/api/applications",
+            json=[],
+            status_code=200,
+            real_http=False,
+        )
+        catalogue_item_data = {
+            "id": 1,
+            "organization/short-name": "test-org",
+            "resid": "test-resource",
+            "resource-ext-id": "test-ext-id",
+            "title": "Test Resource",
+            "archived": False,
+            "enabled": True,
+            "expired": False,
+            "localizations": {},
+            "start": "2023-01-01T00:00:00.000Z",
+            "end": None,
+            "wfid": 1,
+        }
+        m.get(
+            f"{REMS_URL}/api/catalogue-items",
+            json=catalogue_item_data,
+            status_code=200,
+            real_http=False,
+        )
+
+        random_dataset = random.choice(list(Dataset.query.all()))
 
         with self.client as client:
             app.config["ACCESS_HANDLERS"] = {"dataset": "RemsOidc"}
             user = User("test", "test", "test")
             current_user.return_value = user
+            mock_refresh_user.return_value = None
             response = client.post(
                 url_for("download_link"),
                 data=json.dumps({"entityId": random_dataset.id}),
@@ -168,8 +210,51 @@ class TestApiEntities(BaseTest):
     )
     @patch("datacatalog.controllers.api_entities.get_downloads_handler")
     @patch("flask_login.utils._get_user")
-    def test_download_link_access(self, current_user, get_handler, refresh_user):
-        random_dataset = random.choice(Dataset.query.all())
+    @requests_mock.Mocker()
+    def test_download_link_access(self, current_user, get_handler, refresh_user, m):
+        m.real_http = True
+        m.post(
+            f"{REMS_URL}/api/users/create",
+            json={"success": True},
+            status_code=200,
+            real_http=False,
+        )
+        random_dataset = random.choice(list(Dataset.query.all()))
+        m.get(
+            f"{REMS_URL}/api/applications",
+            json=[
+                {
+                    "application/id": 1,
+                    "application/state": "application.state/approved",
+                    "application/resources": [
+                        {"resource/ext-id": str(random_dataset.id)}
+                    ],
+                }
+            ],
+            status_code=200,
+            real_http=False,
+        )
+        catalogue_item_data = {
+            "id": 1,
+            "organization/short-name": "test-org",
+            "resid": "test-resource",
+            "resource-ext-id": str(random_dataset.id),
+            "title": "Test Resource",
+            "archived": False,
+            "enabled": True,
+            "expired": False,
+            "localizations": {},
+            "start": "2023-01-01T00:00:00.000Z",
+            "end": None,
+            "wfid": 1,
+        }
+        m.get(
+            f"{REMS_URL}/api/catalogue-items",
+            json=catalogue_item_data,
+            status_code=200,
+            real_http=False,
+        )
+
         with self.client as client:
             app.config["ACCESS_HANDLERS"] = {"dataset": "RemsOidc"}
             app.config["DOWNLOADS_HANDLER"] = "LFT"

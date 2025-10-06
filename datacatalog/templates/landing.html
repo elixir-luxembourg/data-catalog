@@ -22,6 +22,20 @@
                 information.
             </p>
         </div>
+
+        <div>
+            <a title="Browse Studies" href="{{ url_for('entities_search', entity_name='study') }}">
+                <i class="material-icons text-primary">biotech</i>
+                <h3>
+                    Studies
+                    <span class="badge badge-info">{{ counts_entities['study'] }}</span>
+                </h3>
+            </a>
+            <p>
+                The <strong>Study</strong> view presents a range of metadata describing the data acquisition process
+                such as sample and protocol information.
+            </p>
+        </div>
         <div>
             <a title="Browse Datasets"
                href=" {{ url_for('entities_search', entity_name='dataset') }} ">
@@ -38,24 +52,10 @@
             </p>
         </div>
 
-        <div>
-            <a title="Browse Studies" href="{{ url_for('entities_search', entity_name='study') }}">
-                <i class="material-icons text-primary">biotech</i>
-                <h3>
-                    Studies
-                    <span class="badge badge-info">{{ counts_entities['study'] }}</span>
-                </h3>
-            </a>
-            <p>
-                The <strong>Study</strong> view presents a range of metadata describing the data acquisition process
-                such as sample and protocol information.
-            </p>
-        </div>
-
     </div>
     <div class="row landing-quote">
         <blockquote class="blockquote">
-            The IMI <strong>Data Catalog</strong> is a unique collection of project-level metadata from large research
+            The ELIXIR Luxembourg <strong>Data Catalogue</strong> is a unique collection of project-level metadata from large research
             initiatives in a diverse range of fields, including clinical, molecular and observational studies. Its aim
             is to improve the findability of these projects following FAIR data principles.
         </blockquote>

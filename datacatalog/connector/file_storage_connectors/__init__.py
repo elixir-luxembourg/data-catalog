@@ -15,11 +15,11 @@
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-    datacatalog.connector.file_storage_connectors
-    ----------------------------------------------
+datacatalog.connector.file_storage_connectors
+----------------------------------------------
 
-    Package for all the file storage connectors
-    These connectors are used to list files from a given repository (app folder, webdav-r3lab, owncloud, ...)
+Package for all the file storage connectors
+These connectors are used to list files from a given repository (app folder, webdav-r3lab, owncloud, ...)
 
 
 """

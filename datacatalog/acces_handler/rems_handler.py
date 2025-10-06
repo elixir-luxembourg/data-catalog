@@ -16,6 +16,7 @@ import logging
 import os
 import tempfile
 from abc import ABCMeta, abstractmethod
+from datetime import datetime as dt
 
 from flask import request
 from flask_login import current_user
@@ -29,6 +30,8 @@ from wtforms import (
     SelectField,
     DateField,
     FileField,
+    FieldList,
+    FormField,
 )
 from wtforms.fields.html5 import EmailField
 from wtforms.validators import DataRequired, Length, Email, AnyOf, Optional
@@ -100,14 +103,14 @@ class RemsAccessHandler(AccessHandler):
         if not applications:
             return False
         for application in applications:
-            if application.applicationapplicant["userid"] != self.api_username:
+            if application.applicant.user_id != self.api_username:
                 continue
-            if application.applicationstate[18:] == ApplicationState.approved.value:
+            if application.state[18:] == ApplicationState.approved.value:
                 logger.info(
                     "application found for user %s, approved state", self.api_username
                 )
                 return ApplicationState.approved
-            if application.applicationstate[18:] == ApplicationState.submitted.value:
+            if application.state[18:] == ApplicationState.submitted.value:
                 has_submitted = True
         if has_submitted:
             logger.info(
@@ -133,9 +136,8 @@ class RemsAccessHandler(AccessHandler):
         applications = self.rems_connector.my_applications()
         results = []
         for a in applications:
-            if a.applicationstate[18:] != ApplicationState.draft.value and (
-                a.applicationresources[0].resourceext_id in self.all_ids
-                or not self.all_ids
+            if a.state[18:] != ApplicationState.draft.value and (
+                a.resources[0].ext_id in self.all_ids or not self.all_ids
             ):
                 application = self.build_application(a)
                 results.append(application)
@@ -158,12 +160,12 @@ class RemsAccessHandler(AccessHandler):
             return self.fallback_handler.apply(dataset, form)
 
         rems_form = self.rems_connector.get_form_for_catalogue_item(
-            catalogue_item.formid
+            catalogue_item.form_id
         )
         field_values = {}
         # create application
         application_id = self.rems_connector.create_application([catalogue_item.id])
-        for field in rems_form.formfields:
+        for field in rems_form.fields:
             rems_field_id = field.fieldid
             wtf_field = FieldBuilder.build_field_builder(field)
             flask_form_value = getattr(form, rems_field_id).data
@@ -172,7 +174,7 @@ class RemsAccessHandler(AccessHandler):
             )
         # save draftFormTemplate
         self.rems_connector.save_application_draft(
-            application_id, rems_form.formid, field_values
+            application_id, rems_form.id, field_values
         )
         resource_id = catalogue_item.resource_id
         resource = self.rems_connector.get_resource(resource_id)
@@ -187,7 +189,7 @@ class RemsAccessHandler(AccessHandler):
     def get_datasets(self):
         pass
 
-    def create_form(self, dataset, form_data):
+    def create_form(self, dataset, form_data: dict | None):
         class FormClass(FlaskForm):
             pass
 
@@ -204,8 +206,8 @@ class RemsAccessHandler(AccessHandler):
         resource_id = catalogue_item.resource_id
         resource = self.rems_connector.get_resource(resource_id)
 
-        form = self.rems_connector.get_form_for_catalogue_item(catalogue_item.formid)
-        fields = form.formfields
+        form = self.rems_connector.get_form_for_catalogue_item(catalogue_item.form_id)
+        fields = form.fields
         for field in fields:
             try:
                 wtf_field = FieldBuilder.build_field(field)
@@ -229,27 +231,25 @@ class RemsAccessHandler(AccessHandler):
             )
             field_id = f"license_{license_id}"
             setattr(FormClass, field_id, license_field)
-        use_restrictions = dataset.use_restrictions or []
-        logger.debug(
-            "processing use restrictions, %d restrictions", len(use_restrictions)
-        )
-        for index, use_restriction in enumerate(use_restrictions):
-            field_id = f"use_restriction_{index}"
+        use_conditions = dataset.use_conditions or []
+        logger.debug("processing use conditions, %d conditions", len(use_conditions))
+        for index, use_condition in enumerate(use_conditions):
+            field_id = f"use_condition_{index}"
             values = []
-            use_restriction_note = use_restriction.get("use_restriction_note")
-            use_class = use_restriction.get("use_class") or ""
-            use_class_label = use_restriction.get("use_class_label", "")
-            use_restriction_rule = use_restriction.get("use_restriction_rule", "")
-            use_class_note = use_restriction.get("use_class_note", "")
+            use_condition_note = use_condition.get("use_condition_note")
+            use_class = use_condition.get("use_class") or ""
+            use_class_label = use_condition.get("use_class_label", "")
+            use_condition_rule = use_condition.get("use_condition_rule", "")
+            use_class_note = use_condition.get("use_class_note", "")
             tooltip_values = []
-            if use_restriction_note:
-                values.append(use_restriction_note)
+            if use_condition_note:
+                values.append(use_condition_note)
             if use_class_label:
                 values.append(f"({use_class_label})")
-            if use_restriction_rule:
-                tooltip_values.append(use_restriction_rule)
+            if use_condition_rule:
+                tooltip_values.append(use_condition_rule)
             if use_class:
-                tooltip_values.append(f"GA4GH use restriction code: {use_class}")
+                tooltip_values.append(f"GA4GH use condition code: {use_class}")
             if use_class_note:
                 tooltip_values.append(f"{use_class_note}")
             tooltip = ", ".join(tooltip_values)
@@ -260,41 +260,33 @@ class RemsAccessHandler(AccessHandler):
                     " ".join(values),
                     validators=[
                         DataRequired(),
-                        AnyOf(
-                            [True], message="You must accept all the use restrictions"
-                        ),
+                        AnyOf([True], message="You must accept all the use conditions"),
                     ],
                     render_kw={
                         "compact": True,
                         "tooltip": tooltip,
-                        "use_restriction_rule": use_restriction["use_restriction_rule"],
+                        "use_condition_rule": use_condition["use_condition_rule"],
                     },
                 ),
             )
         setattr(FormClass, "submit", SubmitField("Send"))
-        return FormClass(form_data)
+        return FormClass() if form_data is None else FormClass(formdata=form_data)
 
     @staticmethod
     def build_application(application):
-        resource_id = application.applicationresources[0].resourceext_id
-        resource_title = application.applicationresources[0].catalogue_itemtitle["en"]
-        creation_date = application.applicationcreated
-        external_id = application.applicationexternal_id
-        application_id = application.applicationid
-        applicant_id = application.applicationapplicant["userid"]
         try:
-            state = ApplicationState(application.applicationstate[18:])
+            state = ApplicationState(application.state[18:])
         except ValueError as e:
             logger.error(e)
             state = None
         return Application(
-            application_id,
-            state,
-            resource_id,
-            resource_title,
-            creation_date,
-            applicant_id,
-            external_id,
+            application_id=application.id,
+            state=state,  # could be None if state is not recognized
+            entity_id=application.resources[0].ext_id,
+            entity_title=application.resources[0].title["en"],
+            creation_date=dt.fromisoformat(application.created),
+            applicant_id=application.applicant.user_id,
+            external_id=application.external_id,
         )
 
 
@@ -421,13 +413,14 @@ class AttachmentFieldBuilder(FieldBuilder):
 
     def get_validators(self):
         validators = super().get_validators()
-        supported_suffixes = ["jpg", "png", "pdf"]
-        supported_suffixes_string = ", ".join(["jpg", "png", "pdf"])
+        supported_suffixes = ["jpg", "png", "pdf", "docx", "doc"]
         validators.append(
             FileAllowed(
-                supported_suffixes, f"File extension not in {supported_suffixes_string}"
+                supported_suffixes,
+                f"File extension not in {', '.join(supported_suffixes)}",
             )
         )
+        return validators
 
     def build(self):
         return FileField(
@@ -436,6 +429,8 @@ class AttachmentFieldBuilder(FieldBuilder):
 
     def transform_value(self, value, rems_connector=None, application_id=None):
         file = request.files[self.rems_field.fieldid]
+        if not file.filename:
+            return ""
         temp_dir = tempfile.mkdtemp()
         tmp_file_path = os.path.join(temp_dir, file.filename)
         file.save(tmp_file_path)
@@ -455,6 +450,11 @@ class DateFieldBuilder(FieldBuilder):
         return DateField(
             self.label, validators=self.validators, render_kw=self.render_kw
         )
+
+    def transform_value(self, value, rems_connector=None, application_id=None):
+        if value is None:
+            return ""
+        return value.isoformat()
 
 
 class SelectFieldBuilder(FieldBuilder):
@@ -502,3 +502,57 @@ class EmailFieldBuilder(FieldBuilder):
         return EmailField(
             self.label, validators=self.validators, render_kw=self.render_kw
         )
+
+
+class TableFieldBuilder(FieldBuilder):
+    SUPPORTED_FIELD_TYPE = ["table"]
+
+    def build(self):
+        if not self.rems_field.fieldcolumns:
+            return TextAreaField(
+                self.label, validators=self.validators, render_kw={"rows": 8}
+            )
+
+        class TableWtfForm(FlaskForm):
+            pass
+
+        for column in self.rems_field.fieldcolumns:
+            column_key = column.get("key", "")
+            field = StringField(
+                column.get("label", {}).get("en", column_key),
+                validators=(
+                    [Optional()] if self.rems_field.fieldoptional else [DataRequired()]
+                ),
+                render_kw={
+                    "class": "form-control",
+                    "style": "padding: 8px 12px !important;",
+                },
+            )
+            setattr(TableWtfForm, column_key, field)
+
+        return FieldList(
+            FormField(TableWtfForm, label=""),
+            min_entries=1,
+            label="",
+            render_kw={
+                "class": "table-field-container",
+                "style": "list-style: none; padding: 10px;",
+            },
+        )
+
+    def transform_value(self, value, rems_connector=None, application_id=None):
+        if not isinstance(value, list):
+            return ""
+
+        # REMS SaveDraftCommandFieldValues
+        result = []
+        for row in value:
+            if not isinstance(row, dict):
+                continue
+            row_data = [
+                {"column": k, "value": v}
+                for k, v in row.items()
+                if k != "csrf_token" and v
+            ]
+            result.append(row_data)
+        return result

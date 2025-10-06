@@ -15,12 +15,12 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-    datacatalog.login_controllers
-    -------------------
+datacatalog.login_controllers
+-------------------
 
-    HTML endpoints:
-        - login
-        - logout
+HTML endpoints:
+    - login
+    - logout
 """
 import logging
 from typing import Optional
@@ -112,7 +112,7 @@ def load_user(user_id: str) -> Optional[User]:
         if email and display_name:
             user = User(user_id, email, display_name, accesses=accesses, extra=extra)
             auth = app.config["authentication"]
-            if auth.validate_user(user):
+            if auth is not None and auth.validate_user(user):
                 user = auth.check_and_refresh(user)
             return user
     else:

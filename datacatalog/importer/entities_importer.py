@@ -16,10 +16,10 @@
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-    datacatalog.importer.entities_importer
-    -------------------
+ datacatalog.importer.entities_importer
+ -------------------
 
-   Module containing the EntitiesImporter class
+Module containing the EntitiesImporter class
 
 
 """

@@ -5,7 +5,7 @@ from flask import Blueprint, flash, redirect, url_for, current_app, request, ses
 from flask_login import logout_user, login_user, current_user
 from oic.exception import MessageException
 from oic.oauth2 import ErrorResponse, ResponseError
-from oic.oic.message import AuthorizationResponse
+from oic.oic.message import AuthorizationResponse, JasonWebToken
 
 from ..exceptions import AuthenticationException
 from ..models.user import User
@@ -19,7 +19,7 @@ FIELDS_TO_KEEP = ["access_token", "refresh_token", "expires_in", "refresh_expire
 
 @pyoidc_views.route("/pyoidc/authz")
 def authz():
-    now = datetime.datetime.now()
+    now = datetime.datetime.now(datetime.timezone.utc)
     auth = current_app.config["authentication"]
     try:
         auth_response = auth.oidc_client.parse_response(
@@ -68,7 +68,7 @@ def authz():
 def extract_user(now, token_response):
     logger.debug("extracting user info from id_token")
     id_token = token_response["id_token"]
-    accesses = extract_accesses(id_token)
+    accesses = extract_accesses(token_response["access_token"])
     extra = {
         "access_token": token_response["access_token"],
         "id_token": id_token.jwt,
@@ -113,9 +113,10 @@ def parse_role(role):
     return role[len(PREFIX_ROLE) :]
 
 
-def extract_accesses(id_token):
-    logger.debug("extracting accesses from id_token")
-    realm_accesses = id_token.get("realm_access")
+def extract_accesses(access_token):
+    logger.debug("extracting accesses from access_token")
+    decoded_access_token = JasonWebToken().from_jwt(access_token, verify=False)
+    realm_accesses = decoded_access_token.get("realm_access")
     accesses = []
     if realm_accesses:
         roles = realm_accesses.get("roles")

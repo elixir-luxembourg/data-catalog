@@ -29,7 +29,7 @@ from os.path import isfile, join
 from jsonschema import Draft7Validator
 
 from datacatalog import app
-from datsvalidator import datsvalidator
+from tests.dats.dats_validator import validate_instance
 
 logging.basicConfig(filename="json_validation.log", level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -54,7 +54,7 @@ def get_schemas_store(path):
 
 
 def validate_dataset(path, filename, instance, error_printing):
-    return datsvalidator.validate_instance(
+    return validate_instance(
         path,
         filename,
         f"{app.config.get('DATS_SCHEMAS_FOLDER')}/dataset_schema.json",
@@ -64,7 +64,7 @@ def validate_dataset(path, filename, instance, error_printing):
 
 
 def validate_study(path, filename, instance, error_printing):
-    return datsvalidator.validate_instance(
+    return validate_instance(
         path,
         filename,
         f"{app.config.get('DATS_SCHEMAS_FOLDER')}/study_schema.json",
@@ -74,7 +74,7 @@ def validate_study(path, filename, instance, error_printing):
 
 
 def validate_project(path, filename, instance, error_printing):
-    return datsvalidator.validate_instance(
+    return validate_instance(
         path,
         filename,
         f"{app.config.get('DATS_SCHEMAS_FOLDER')}/project_schema.json",

@@ -52,7 +52,7 @@ class TestDaisyConnector(BaseTest):
                     "project": "MDEG2",
                     "name": "MDEG2 data",
                     "external_id": "d1",
-                    "description": "....",
+                    "description": "Metabolomics test data",
                     "elu_uuid": "3d3eddf8-1488-4b98-b46e-701d4e5e986b",
                     "other_external_id": None,
                     "project_external_id": "TESTID",
@@ -75,18 +75,18 @@ class TestDaisyConnector(BaseTest):
                             "embargo_date": None,
                             "storage_end_date": None,
                             "storage_duration_criteria": None,
-                            "use_restrictions": [
+                            "use_conditions": [
                                 {
                                     "use_class": "PS",
                                     "use_class_label": None,
-                                    "use_restriction_note": "Use is restricted to projects: MDEG2",
-                                    "use_restriction_rule": "CONSTRAINED_PERMISSION",
+                                    "use_condition_note": "Use is restricted to projects: MDEG2",
+                                    "use_condition_rule": "CONSTRAINED_PERMISSION",
                                 },
                                 {
                                     "use_class": "PUB",
                                     "use_class_label": None,
-                                    "use_restriction_note": "Acknowledgement required.",
-                                    "use_restriction_rule": "CONSTRAINED_PERMISSION",
+                                    "use_condition_note": "Acknowledgement required.",
+                                    "use_condition_rule": "CONSTRAINED_PERMISSION",
                                 },
                             ],
                         }
@@ -130,7 +130,7 @@ class TestDaisyConnector(BaseTest):
                     "project": "MDEG2",
                     "name": "MDEG2 data test",
                     "external_id": "d2",
-                    "description": "fdsf",
+                    "description": "Metabolomics test data",
                     "elu_uuid": "2d3eddf8-1488-4b98-b46e-701d4e5e486b",
                     "other_external_id": None,
                     "project_external_id": "TESTID",
@@ -153,18 +153,18 @@ class TestDaisyConnector(BaseTest):
                             "embargo_date": None,
                             "storage_end_date": None,
                             "storage_duration_criteria": None,
-                            "use_restrictions": [
+                            "use_conditions": [
                                 {
                                     "use_class": "PS",
                                     "use_class_label": None,
-                                    "use_restriction_note": "Use is restricted to projects: MDEG2",
-                                    "use_restriction_rule": "CONSTRAINED_PERMISSION",
+                                    "use_condition_note": "Use is restricted to projects: MDEG2",
+                                    "use_condition_rule": "CONSTRAINED_PERMISSION",
                                 },
                                 {
                                     "use_class": "PUB",
                                     "use_class_label": None,
-                                    "use_restriction_note": "Acknowledgement required.",
-                                    "use_restriction_rule": "CONSTRAINED_PERMISSION",
+                                    "use_condition_note": "Acknowledgement required.",
+                                    "use_condition_rule": "CONSTRAINED_PERMISSION",
                                 },
                             ],
                         }
@@ -217,7 +217,7 @@ class TestDaisyConnector(BaseTest):
         first_dataset.save(soft_commit=True)
         retrieved_dataset = Dataset.query.get(first_dataset.id)
         self.assertEqual("MDEG2 data", retrieved_dataset.title)
-        self.assertEqual(2, len(retrieved_dataset.use_restrictions))
+        self.assertEqual(2, len(retrieved_dataset.use_conditions))
         self.assertEqual(
             {"Metabolomics", "Methylation_array", "Clinical_data"},
             set(retrieved_dataset.data_types),
@@ -777,4 +777,4 @@ class TestDaisyConnector(BaseTest):
         self.assertEqual(1, len(datasets_first_study))
         datasets_second_study = studies[1].datasets_entities
         self.assertEqual(1, len(datasets_second_study))
-        self.assertNotEquals(datasets_first_study[0].id, datasets_second_study[0].id)
+        self.assertNotEqual(datasets_first_study[0].id, datasets_second_study[0].id)

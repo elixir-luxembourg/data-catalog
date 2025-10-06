@@ -16,14 +16,14 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-    datacatalog.solr
-    -------------------
+ datacatalog.solr
+ -------------------
 
-   Package containing all the modules related to:
-    - solr abstraction layer
-    - facets
-    - solr fields definitions
-    - solr search feature
+Package containing all the modules related to:
+ - solr abstraction layer
+ - facets
+ - solr fields definitions
+ - solr search feature
 
 
 """

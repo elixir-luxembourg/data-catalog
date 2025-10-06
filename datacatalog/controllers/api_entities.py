@@ -17,17 +17,18 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-    datacatalog.api_controllers
-    -------------------
+datacatalog.api_controllers
+-------------------
 
-    REST endpoints:
-        - api_entity
-        - api_entities
+REST endpoints:
+    - api_entity
+    - api_entities
 """
 import logging
 
 from flask import jsonify, request, Response
 from flask_login import current_user, login_required
+from werkzeug.exceptions import BadRequest
 
 from .. import app, csrf, get_access_handler, get_downloads_handler
 from ..exceptions import DownloadsHandlerLinksException, AuthenticationException
@@ -38,6 +39,7 @@ logger = logging.getLogger(__name__)
 
 
 @app.route("/api/<entity_name>/<entity_id>", methods=["GET"])
+@app.cache.cached()
 def api_entity(entity_name: str, entity_id: str) -> Response:
     """
     Returns a json representation of an entity
@@ -51,6 +53,7 @@ def api_entity(entity_name: str, entity_id: str) -> Response:
 
 
 @app.route("/api/<entity_name>/<entity_id>/attachments", methods=["GET"])
+@app.cache.cached()
 def api_entity_attachments(entity_name: str, entity_id: str) -> Response:
     """
     Returns a json representation of an entity attachment files
@@ -68,6 +71,7 @@ def api_entity_attachments(entity_name: str, entity_id: str) -> Response:
 
 @app.route("/api/<entity_name>s", methods=["GET"])
 @csrf.exempt
+@app.cache.cached()
 def api_entities(entity_name: str) -> Response:
     """
     Returns a json representation of all instances for a specific entity class
@@ -82,8 +86,9 @@ def api_entities(entity_name: str) -> Response:
 @app.route("/api/downloadLink", methods=["POST"])
 @login_required
 def download_link() -> Response:
-    request_data = request.get_json()
-    if not request_data:
+    try:
+        request_data = request.get_json()
+    except BadRequest:
         return jsonify({"message": "wrong parameters"}), 400
     entity_id = request_data.get("entityId")
     logger.info(
@@ -130,6 +135,7 @@ def download_link() -> Response:
 
 @app.route("/api/autocomplete/<entity_name>/<query>", methods=["GET"])
 @csrf.exempt
+@app.cache.cached()
 def api_search_autocomplete_entities(entity_name: str, query: str) -> Response:
     """
     Returns a json representation of all instances for a specific entity class
@@ -138,13 +144,19 @@ def api_search_autocomplete_entities(entity_name: str, query: str) -> Response:
     @return: suggested terms as json
     """
 
+    results = suggest_terms_for_entity(entity_name, query)
+    return jsonify(**{"data": results.__dict__})
+
+
+def suggest_terms_for_entity(entity_name, query, build=True):
     params = {
         "suggest": "true",
-        "suggest.build": "true",
         "suggest.dictionary": "suggest_" + entity_name,
         "suggest.q": query,
     }
+    if build:
+        params["suggest.build"] = "true"
     results = app.config["_solr_orm"].indexer.search(
         "*:*", search_handler="suggest", **params
     )
-    return jsonify(**{"data": results.__dict__})
+    return results

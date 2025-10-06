@@ -14,10 +14,10 @@
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-    datacatalog.solr.solr_orm_fields
-    -------------------
+ datacatalog.solr.solr_orm_fields
+ -------------------
 
-   Module containing the SolrField class and subclasses for different fields type
+Module containing the SolrField class and subclasses for different fields type
 
 """
 import logging

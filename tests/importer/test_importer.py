@@ -49,12 +49,12 @@ class TestSolrORM(BaseTest):
         ]
         entities_importer = EntitiesImporter(connector)
         entities_importer.import_all()
-        dataset = Dataset.query.all()
+        dataset = list(Dataset.query.all())
         self.assertEqual(78, len(dataset))
-        study = Study.query.all()
+        study = list(Study.query.all())
         self.assertEqual(2, len(study))
-        project = Project.query.all()
-        self.assertEqual(7, len(project))
+        project = list(Project.query.all())
+        self.assertEqual(8, len(project))
 
     def test_check_schema(self):
         self.assertTrue(self.solr_orm.check_schema("study"))

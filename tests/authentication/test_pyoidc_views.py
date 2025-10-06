@@ -17,9 +17,10 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from time import time
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from flask import url_for, session, current_app
+from flask_login import current_user
 from oic.oauth2 import ErrorResponse
 from oic.oic import OpenIDSchema, IdToken
 from oic.oic.message import (
@@ -27,6 +28,7 @@ from oic.oic.message import (
     AuthorizationErrorResponse,
     AuthorizationRequest,
     AccessTokenResponse,
+    JasonWebToken,
 )
 
 import datacatalog
@@ -37,6 +39,12 @@ from datacatalog.exceptions import AuthenticationException
 from tests.base_test import BaseTest
 
 __author__ = "Nirmeen Sallam"
+
+
+BASE_URL = app.config.get("BASE_URL", "http://test-oidc-url:5000")
+PYOIDC_CLIENT_ID = app.config.get("PYOIDC_CLIENT_ID", "test-client")
+PYOIDC_CLIENT_SECRET = app.config.get("PYOIDC_CLIENT_SECRET", "test-secret")
+PYOIDC_IDP_URL = app.config.get("PYOIDC_IDP_URL", "https://test-idp.example.com")
 
 
 def _create_id_token(issuer, client_id, nonce):
@@ -55,7 +63,14 @@ def _create_id_token(issuer, client_id, nonce):
     return id_token
 
 
+def _create_access_token_with_roles(roles):
+    jwt = JasonWebToken()
+    jwt["realm_access"] = {"roles": [f"ACCESS::{role}" for role in roles]}
+    return jwt.to_jwt()
+
+
 class TestPyOIDCviews(BaseTest):
+    TEST_ROLES = {"TEST-2-836C5D-1", "TEST-2-FDED22-1"}
     AUTH_RESPONSE = AuthorizationResponse(
         **{"code": "test_auth_code", "state": "test_state"}
     )
@@ -69,7 +84,7 @@ class TestPyOIDCviews(BaseTest):
     )
     TOKEN_RESPONSE = AccessTokenResponse(
         **{
-            "access_token": "test_token",
+            "access_token": _create_access_token_with_roles(TEST_ROLES),
             "expires_in": 3600,
             "id_token": _create_id_token(ISSUER, CLIENT_ID, AUTH_REQUEST["nonce"]),
             "id_token_jwt": "test_id_token_jwt",
@@ -82,14 +97,28 @@ class TestPyOIDCviews(BaseTest):
         **{"sub": "test_sub", "email": "test_user@uni.lu", "name": "Test User"}
     )
 
-    with app.app_context():
-        authentication = PyOIDCAuthentication(
-            current_app.config.get("BASE_URL"),
-            current_app.config.get("PYOIDC_CLIENT_ID"),
-            current_app.config.get("PYOIDC_CLIENT_SECRET"),
-            current_app.config.get("PYOIDC_IDP_URL"),
-        )
-        app.config["authentication"] = authentication
+    def setUp(self):
+        super().setUp()
+        with self.app.app_context():
+            with patch(
+                "datacatalog.authentication.pyoidc_authentication.Client.provider_config"
+            ) as mock_provider_config:
+                mock_provider_config.return_value = {
+                    "issuer": self.ISSUER,
+                    "authorization_endpoint": f"{self.ISSUER}/auth",
+                    "token_endpoint": f"{self.ISSUER}/token",
+                    "userinfo_endpoint": f"{self.ISSUER}/userinfo",
+                    "end_session_endpoint": f"{self.ISSUER}/logout",
+                    "jwks_uri": f"{self.ISSUER}/jwks",
+                }
+
+                authentication = PyOIDCAuthentication(
+                    BASE_URL,
+                    PYOIDC_CLIENT_ID,
+                    PYOIDC_CLIENT_SECRET,
+                    PYOIDC_IDP_URL,
+                )
+                current_app.config["authentication"] = authentication
 
     def test_authz_should_handle_error_response(self):
         datacatalog.authentication.pyoidc_views.AuthorizationResponse = MagicMock()
@@ -111,7 +140,8 @@ class TestPyOIDCviews(BaseTest):
         with self.assertRaises(AuthenticationException):
             authz()
 
-    def test_authz_should_handle_token_error_response(self):
+    @patch("datacatalog.authentication.pyoidc_authentication.requests.post")
+    def test_authz_should_handle_token_error_response(self, mock_requests_post):
         session["state"] = "testsessionkey"
 
         self.AUTH_RESPONSE["state"] = session.get("state")
@@ -127,13 +157,13 @@ class TestPyOIDCviews(BaseTest):
         session["state"] = "testsessionkey"
         self.AUTH_RESPONSE["state"] = session.get("state")
         current_app.config["authentication"].get_token = MagicMock()
-        current_app.config[
-            "authentication"
-        ].get_token.return_value = self.TOKEN_RESPONSE
+        current_app.config["authentication"].get_token.return_value = (
+            self.TOKEN_RESPONSE
+        )
 
-        current_app.config[
-            "authentication"
-        ].oidc_client.do_user_info_request = MagicMock()
+        current_app.config["authentication"].oidc_client.do_user_info_request = (
+            MagicMock()
+        )
         current_app.config[
             "authentication"
         ].oidc_client.do_user_info_request.return_value = self.USERINFO_RESPONSE
@@ -152,6 +182,7 @@ class TestPyOIDCviews(BaseTest):
         # Assert
         self.assertIsNotNone(flash_message, session["_flashes"])
         self.assertEqual(flash_message, "Logged in successfully")
+        self.assertEqual(set(current_user.accesses), self.TEST_ROLES)
 
     def test_pyoidc_logged_out(self):
         self.assertEqual(url_for("home"), pyoidc_logged_out().location)

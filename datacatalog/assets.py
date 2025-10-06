@@ -14,10 +14,10 @@
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-    datacatalog.assets
-    -------------------
+ datacatalog.assets
+ -------------------
 
-   Module to configure Flask-Assets
+Module to configure Flask-Assets
 
 """
 from flask_assets import Bundle

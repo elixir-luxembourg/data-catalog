@@ -1,0 +1,226 @@
+import os
+
+class Config(object):
+    SECRET_KEY = 'fdsaf87s@#$d98g7fsd89g7w89e$#@%#@$7f9s8dv7sd9frw%R#@$%98e7fwefds7897ws98wf7ew8'
+    TITLE = 'Data Catalogue'
+    CKAN_URL = '###########'
+
+    CKAN_DIRECT_MAPPING = {
+	"Affiliation": "affiliation",
+	"Therapeutic Area Standards  Disease Area  if applicable": "therapeutic_area_standards_disease",
+	"Organism": "organism",
+	"PubMed": "pubmed_link",
+	"Type of Samples": "samples_type",
+	"Number of Samples": "samples_number",
+	"Disease": "disease",
+	"Contact Address": "business_address",
+	"Platform": "platform",
+	"Indication": "indication",
+	"Type of Data": "data_type",
+	"Description of Cohorts  if multi cohorts": "cohorts_description",
+	'Dataset Title': "title",
+	'Email': "contact_email",
+	'Study Type': "study_type",
+	'Funding': "funding",
+	'Version': "version",
+	'Primary Purpose': "primary_purpose",
+	'Secondary Analysis': "secondary_analysis",
+	'Informed Consent': "informed_consent",
+	'Standardized Treatment Name': "treatment_name_standardized",
+	'Study Classification': "study_classification",
+	'First Name': "contact_first_name",
+	'Multi center Study': "multi_center_study",
+	'Type of Samples Collected': "samples_type",
+	"Name of Treatment": "treatment_name",
+	"Dose Description": "dose_description",
+	"Study Phase": "study_phase",
+	"Business Phone Number": "business_phone_number",
+	"Study Protocol Description": "study_protocol_description",
+	"BMI Range": "bmi_range",
+	"Project Website": "project_website",
+	"Last Name": "contact_last_name",
+	"Intervention Model": "intervention_model",
+	"Business Address": "business_address",
+	"Detail Subject Composition": "subjects_composition_details",
+	"Data Standards Implemented": "data_standards",
+	"Body System or Organ Class": "body_system_or_organ_class",
+	"Age Unit  of the above range": "age_unit",
+	"Total Number of  Human  Subjects": "total_number_subjects",
+	"Number of Samples Collected": "samples_number",
+	"Age Range  Upper Llimit  of Study Participants": "age_range_upper_limit",
+	"Age Range  Low Limit  of Study Participants": "age_range_lower_limit",
+	"Number of Subjects in Each Cohorts  if multi cohorts": "subjects_number_per_cohort",
+	"Reference Publications": "reference_publications",
+	"Total Number of Subjects": "total_number_subjects",
+	"Category": "category",
+	"Planned Arm  Description of Sub cohorts": "planned_arm",
+	"Date of Creation of the dataset": "dataset_created",
+	"Date of the Last Update of the dataset": "dataset_modified"
+
+    }
+    CKAN_TO_SKIP = ["Email Address", "Project Name"]
+    RESULTS_PER_PAGE = 8
+    SURVEY_LINK = "/limesurvey/?r=survey/index&sid=779596"
+    # Flask-Mail Configuration
+    MAIL_SERVER = 'localhost'
+    MAIL_PORT = 25
+    MAIL_USE_TLS = False
+    MAIL_USE_SSL = False
+
+    RECAPTCHA_PUBLIC_KEY = '${RECAPTCHA_PUBLIC_KEY}'
+    RECAPTCHA_PRIVATE_KEY = "${RECAPTCHA_PRIVATE_KEY}"
+    TEST_GEO_STUDY_LIST_PATH = "tests/geo_studies_test/test.txt"
+    #LDAP Configuration
+    LDAP_HOST = os.environ.get('LDAP_HOST')
+    LDAP_USERNAME = os.environ.get('LDAP_USERNAME')
+    LDAP_PASSWORD = os.environ.get('LDAP_PASSWORD')
+    LDAP_BASE_DN = os.environ.get('LDAP_BASE_DN')
+    LDAP_USER_GROUPS_FIELD = os.environ.get('LDAP_USER_GROUPS_FIELD')
+    AUTHENTICATION_DICT = {LDAP_USERNAME: LDAP_PASSWORD}
+    LOGGING_CONFIG = {
+            "version": 1,
+            "disable_existing_loggers": True,
+            "formatters": {
+                "standard": {"format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s"},
+            },
+            "handlers": {
+                "default": {
+                    "level": "DEBUG",
+                    "formatter": "standard",
+                    "class": "logging.StreamHandler",
+                    "stream": "ext://sys.stdout",
+                },
+                "file": {
+                    "level": "DEBUG",
+                    "formatter": "standard",
+                    "class": "logging.FileHandler",
+                    "filename": "datacatalog.log",
+                },
+            },
+            "loggers": {
+                "root": {"handlers": ["default", "file"], "level": "WARNING", "propagate": True},
+                "datacatalog": {
+                    "level": "DEBUG",
+                },
+                "datacatalog.solr": {
+                    "level": "ERROR",
+                },
+                "datacatalog.connector.extend_entity_index": {
+                    "level": "INFO",
+                },
+                "werkzeug": {"level": "INFO"},
+            },
+        }
+
+class TestConfig(Config):
+    DEBUG = True
+    SQLALCHEMY_ECHO = True
+    ASSETS_DEBUG = True
+    TESTING = True
+    CACHE_CONFIG = {'CACHE_TYPE': 'null'}
+    WTF_CSRF_ENABLED = False
+    SOLR_ENDPOINT = os.environ.get('SOLR_ENDPOINT', 'http://localhost:8983/solr')
+    SOLR_COLLECTION = 'test'
+    BASE_URL = os.environ.get('BASE_URL', 'http://localhost:5000')
+    PYOIDC_IDP_URL = os.environ.get('PYOIDC_IDP_URL', 'https://test-idp.example.com')
+    PYOIDC_CLIENT_ID = os.environ.get('PYOIDC_CLIENT_ID', 'test-client')
+    PYOIDC_CLIENT_SECRET = os.environ.get('PYOIDC_CLIENT_SECRET', 'test-secret')
+    REMS_URL = os.environ.get('REMS_URL', "http://rems-mock-host")
+    REMS_API_USER = os.environ.get('REMS_API_USER', "test-api-user")
+    REMS_API_KEY = os.environ.get('REMS_API_KEY', "test-api-key")
+    REMS_WORKFLOW_ID = 3
+    REMS_ORGANIZATION_ID = "89fca267-693e-41e1-830b-b4e6326c1dd0"
+    REMS_LICENSES = [1]
+    REMS_VERIFY_SSL = False
+    EMAIL_RECIPIENT = ['data-catalog@elixir-luxembourg.org']
+    # LDAP configuration
+    LDAP_HOST = os.environ.get('LDAP_HOST', "ldaps://mock-ldap-host")
+    LDAP_USERNAME = os.environ.get('LDAP_USERNAME', "testuser")
+    LDAP_PASSWORD = os.environ.get('LDAP_PASSWORD', "testpass")
+    LDAP_BASE_DN = os.environ.get('LDAP_BASE_DN', "dc=test,dc=local")
+    LDAP_USER_GROUPS_FIELD = os.environ.get('LDAP_USER_GROUPS_FIELD', "memberOf")
+    AUTHENTICATION_DICT = {LDAP_USERNAME: LDAP_PASSWORD}
+    FACETS_ORDER = {
+        'dataset': [
+            ("data_types", "Data types"),
+            ("disease", "Disease"),
+            ("data_standards", "Data standards"),
+        ],
+        'project': [
+            ("types", "Types"),
+            ("keywords", "Keywords"),
+        ],
+        'study': [
+            ("types", "Study types"),
+            ("organisms", "Organisms"),
+            ("disease", "Disease"),
+            ("samples_types", "Samples types"),
+        ]
+
+    }
+
+    # WHICH FIELDS ARE USED FOR DEFAULT SEARCH
+    SOLR_QUERY_TEXT_FIELD = {
+        'dataset': [
+            "title",
+            "disease",
+            "data_types",
+            "data_standards"
+        ],
+        'project': [
+            'keywords',
+            'title',
+            'types'
+        ],
+        'study': [
+            'title',
+            'organisms',
+            'disease',
+            'samples_type',
+            'types'
+        ]
+
+    }
+    # ENABLE/DISABLE EXTENDED SEARCH
+    SOLR_QUERY_SEARCH_EXTENDED = True
+    # ENABLE/DISABLE EXTENDED SEARCH 2 WAY INDEXING
+    SOLR_QUERY_SEARCH_EXTENDED_2_WAY_INDEX = True
+    # FIELDS WHICH ARE USED FOR EXTENDED SEARCH
+    SOLR_QUERY_TEXT_FIELD_EXTENDED = {
+        'dataset': [
+            "title",
+            "disease",
+            "data_types",
+            "data_standards",
+        ],
+        'project': [
+            'keywords',
+            'title',
+            'types'
+        ],
+        'study': [
+            'title',
+            'organisms',
+            'disease',
+            'samples_type',
+            'types'
+        ]
+    }
+
+    # Export entity as dats
+    ALLOW_ENTITY_EXPORT = True
+    
+    DAISY_API_URLS = {'dataset': 'notused', 'project': 'notused'}
+    DAISY_VERIFY_SSL = False
+
+    JSON_FILE_PATH = {'dataset': 'tests/data/imi_projects_test',
+                      'project': 'tests/data/imi_projects_test',
+                      'study': 'tests/data/imi_projects_test'}
+
+    #Dats
+    DATS_SCHEMAS_FOLDER = os.environ.get('DATS_SCHEMAS_FOLDER')
+    DATS_CONTEXTS_FOLDER = os.environ.get('DATS_CONTEXTS_FOLDER')
+
+    # For entities attached files
+    PUBLIC_FILE_STORAGE_ROOT = "https://webdav.lcsb.uni.lu/public/datacatalog_documents"
+

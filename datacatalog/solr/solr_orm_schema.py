@@ -15,10 +15,10 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-    datacatalog.solr.solr_orm_schema
-    -------------------
+ datacatalog.solr.solr_orm_schema
+ -------------------
 
-   Module containing the SolrSchemaAdmin class
+Module containing the SolrSchemaAdmin class
 
 """
 import logging

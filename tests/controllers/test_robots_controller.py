@@ -29,7 +29,7 @@ class TestRobotsController(BaseTest):
             response = self.client.get(url_for("generate_robots"))
 
             # check if robots.txt was generated
-            self.assertEquals(response.status_code, 200)
+            self.assertEqual(response.status_code, 200)
 
             # check if data is empty
             data = response.data.decode("utf-8").replace("\n", "")

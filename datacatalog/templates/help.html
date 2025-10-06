@@ -6,26 +6,26 @@
 {% block content %}
 
     <div class="wrapper wrapper-text"><h1 id="helpHeader">Frequently Asked Questions</h1>
-        <p>Here are some of the most frequently asked questions about the IMI Data Catalog and how to use it. If you
+        <p>Here are some of the most frequently asked questions about the {{ config.get('TITLE', 'Data Catalogue') }} and how to use it. If you
             have a question that isn't answered here, please don't hesitate to <strong><a
                     href="mailto:data-catalog@elixir-luxembourg.org">contact us.</a></strong></p>
-        <h2>What is the IMI Data Catalog?</h2>
-        <p>For more information on the IMI Data Catalog, see our <strong><a href="{{ url_for('about') }}">About page</a></strong>.
+        <h2>What is the {{ config.get('TITLE', 'Data Catalogue') }}?</h2>
+        <p>For more information on the catalogue, see our <strong><a href="{{ url_for('about') }}">About page</a></strong>.
         </p>
 
-        <h2>Why does the Data Catalog look different to the last time I visited?</h2>
-        <p>We recently did some major redevelopment work on the IMI Data Catalog, including creating a new user
+        <h2>Why does the catalogue look different to the last time I visited?</h2>
+        <p>We recently did some major redevelopment work, including creating a new user
             interface, implementing a new data model based on the <strong><a
                     href="https://github.com/datatagsuite/README">DATS model</a></strong> and recurating a lot of the
             content. We are still in the process of adding some of the older projects into the new model. If you
-            urgently need access to any of the old Catalog entries, we have an <a
+            urgently need access to any of the old catalogue entries, we have an <a
                     href="https://datacatalog.elixir-luxembourg.org/old">archived version</a> of the old Data Catalog
             available.</p>
 
         <h2>What is the difference between "Project", "Study" and "Dataset"?</h2>
-        <p>The data model on which the IMI Data Catalog distinguishes between these three categories:</p>
+        <p>The data model on which the catalogue distinguishes between these three categories:</p>
         <p>
-            The <strong>Project</strong> view presents high-level information about Data Catalog entries, such
+            The <strong>Project</strong> view presents high-level information about catalogue entries, such
             as title, general research area, and publications, as well as funding and contributor contact
             information.
         </p>
@@ -37,22 +37,22 @@
             The <strong>Dataset</strong> view presents metadata about collections of data associated with projects,
             including version numbers and creation dates, links to source data and general.
         </p>
-        <p>We currently only hold Project-level information for the majority of IMI projects. Populating Study- and
+        <p>Populating Study- and
             Dataset-level information for all projects is an ongoing process, so you may find empty place-holder pages
-            for many of these.</p>
+            for some of these.</p>
 
-        <h2>How can I search the IMI Data Catalog?</h2>
+        <h2>How can I search the catalogue?</h2>
         <p>You can search each of the three aspects (Project, Study and Dataset) separately, using a number of factors
             including title, disease, species, keywords, data types etc. The search functionality is under active
-            development as we work on providing an integrated experience across the entire Catalog.</p>
+            development as we work on providing an integrated experience across the entire catalogue.</p>
 
         <h2>How can I request access to a dataset?</h2>
         <p>On some Dataset pages, you will find a "Request access" button, which allows you to submit a data access
-            request to the system. These datasets are hosted by <a href="https://elixir-luxembourg.org/services/catalog/data-hosting/">ELIXIR Luxembourg's data hosting service</a> so we are able to process these access requests according to the data reuse conditions specified by the data owner.
+            request to the system. These datasets are hosted by <a href="https://elixir-luxembourg.org/services/data-hosting/">ELIXIR Luxembourg's data hosting service</a> so we are able to process these access requests according to the data reuse conditions specified by the data owner.
             We are not able to provide or facilitate dataset access for projects not hosted at ELIXIR Luxembourg, except where the data is already available through a public data repository, in which case a direct link to the data is provided.</p>
 
-        <h2>What are the reuse conditions for the information displayed in the IMI Data Catalog?</h2>
-        <p>All project-, study- and dataset-related information published in the IMI Data Catalog is freely available for reuse under the <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0 license</a>. The Data Catalog code base is licensed under the <a href="https://www.gnu.org/licenses/agpl-3.0.en.html">GNU Affero General Public License
+        <h2>What are the reuse conditions for the information displayed in the {{ config.get('TITLE', 'Data Catalogue') }}?</h2>
+        <p>All project-, study- and dataset-related information published in the catalogue is freely available for reuse under the <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0 license</a>. The catalogue code base is licensed under the <a href="https://www.gnu.org/licenses/agpl-3.0.en.html">GNU Affero General Public License
 </a> (AGPL).</p>
 
         <h2>What does the "FAIRplus Evaluated" badge signify?</h2>
@@ -65,17 +65,15 @@
 
         <h2>How do I report a bug or request a new feature?</h2>
         <p>Please submit any bug reports and feature requests to the <strong><a
-                href="https://github.com/FAIRplus/imi-data-catalogue/issues">issue tracker</a></strong> on the FAIRplus
-            Data Catalog Github repo. We'd love to hear from you!</p>
+                href="https://github.com/elixir-luxembourg/data-catalog/issues">issue tracker</a></strong> on catalogue Github repo. We'd love to hear from you!</p>
 
-        <h2>I think my project should be in the Data Catalog but it isn't. How can I get it included?</h2>
-        <p>To talk to us about Data Catalog content, please either create a ticket on our <strong><a
-                href="https://github.com/FAIRplus/imi-data-catalogue/issues">issue tracker</a></strong> or drop us
+        <h2>I think my project should be in the Data Catalogue but it isn't. How can I get it included?</h2>
+        <p>To talk to us about Data Catalogue content, please drop us
             <strong><a href="mailto:data-catalog@elixir-luxembourg.org">an email</a></strong>.</p>
 
-        <h2>I have found a mistake in the metdata for my project. How can I get it fixed?</h2>
-        <p>To correct existing Data Catalog content, please submit a ticket on our <strong><a
-                href="https://github.com/FAIRplus/imi-data-catalogue/issues">issue tracker</a></strong>.</p>
+        <h2>I have found a mistake in the metadata for my project. How can I get it fixed?</h2>
+        <p>To talk to us about Data Catalog content, please drop us
+            <strong><a href="mailto:data-catalog@elixir-luxembourg.org">an email</a></strong>.</p>
     </div>
 
 {% endblock %}

@@ -24,7 +24,7 @@
         {
           "@context": "http://schema.org",
           "@type": "DataCatalog",
-          "name": "{{ "IMI " +  config.get('TITLE', 'Datacatalog') }}",
+          "name": "{{ config.get('TITLE', 'Data Catalogue') }}",
           "url": "{{ config.get('BASE_URL') }}"
         }
       ],
@@ -35,7 +35,7 @@
             {%- endfor %}
             ],
       {% endif %}
-      "keywords": {{ dataset.get_keywords() | render_keywords | safe }},
+      "keywords":"{{ dataset.get_keywords() | render_keywords | safe }}",
       "name": "{{ dataset.title }}",
       "license": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
       {% if dataset.dataset_link_href -%}
@@ -60,79 +60,98 @@
 
 {% block content %}
     <div class="well box datasetDetails">
-        {% if fair_evaluations_show and dataset.fair_evaluation %}
-            <a class="fairResultsStamp" data-expand="fairplus-evaluation-fields"
-               href="#fairplus-evaluation-fields"><img alt='fairplus stamp'
-                                                       title="Dataset processed by FAIRplus. See FAIRplus Evaluation tab for details."
-                                                       src="/static/public/images/fairplus-stamp.png"/></a>
+        {% if dataset.deprecated == "Deprecated" %}
+            <div class="ribbon"><span>Deprecated</span></div>
+       {% else %}
+            {% if fair_evaluations_show and dataset.fair_evaluation %}
+                <a class="fairResultsStamp" data-expand="fairplus-evaluation-fields"
+                   href="#fairplus-evaluation-fields"><img alt='fairplus stamp'
+                                                           title="Dataset processed by FAIRplus. See FAIRplus Evaluation tab for details."
+                                                           src="/static/public/images/fairplus-stamp.png"/></a>
+            {% endif %}
         {% endif %}
-        <h1>{{ dataset.title }}{{macros.small_id_row(dataset)}}</h1>
-        {% if has_access.value == 'approved' %}
-            <div class="accessStatus">
-                <div class="dataset_request_status">
-                        <span title="you were granted access to this dataset"
-                              class="text-success  glyphicon glyphicon-ok-circle"></span>
-                    Data Access Granted
-                </div>
-            </div>
+        {% if dataset.released_on %}
+            <div class="date">Released on  {{ dataset.released_on|date }}</div>
         {% endif %}
-        <div class="form-inline">
-            {% if dataset.dataset_link_href %}
-                <div class="button-link input-group">
-                    <p class="input-group-btn">
-                        <i class="material-icons">download</i>
-                    </p>
-                    <a class="btn button-link-text"
-                       href="{{ dataset.dataset_link_href }}">Access Data</a>
-
-                </div>
-            {% else %}
-                {% if has_access.value == 'approved' %}
-                    <div class="storages">
-                        {% set storages_templates = dataset.storages | storage_templates %}
-                        {% for storage, storage_template in storages_templates %}
-                            {% include "storages/%s.html" % storage_template %}
-                        {% else %}
-                            Please
-                            <a href="mailto:{{ config.get('CONTACT_ACCESS_RECIPIENT') }}?body={{ config.get('CONTACT_ACCESS_BODY') | urlencode }}&subject={{ dataset.title ~ ' - access to data' | urlencode }}">contact
-                                our data
-                                stewards</a> to
-                            get access to the data.
-                        {% endfor %}
-                    </div>
-                {% elif has_access.value == 'submitted' %}
+        <h1>{{ dataset.title }}</h1>
+             {% if dataset.deprecated == "Deprecated" %}
+                        {{ macros.start_entity_info() }}
+                        {{ macros.entity_info_row("Accession number", dataset.id) }}
+                        {{ macros.entity_info_row("Date of Deprecation ", dataset.deprecation_date | date ) }}
+                        {{ macros.entity_info_deprecated("Deprecation Notes", dataset.deprecation_notes) }}
+                         {{ macros.entity_info_row("Description", dataset.description | default("", True)) }}
+                        {{ macros.end_entity_info() }}
+             {% else %}
+             {{ macros.start_entity_info() }}
+             {{ macros.entity_info_row("Accession number", dataset.id) }}
+             {{ macros.entity_info_row("Description", dataset.description | default("", True)) }}
+            {{ macros.end_entity_info() }}
+            {% if has_access.value == 'approved' %}
+                <div class="accessStatus">
                     <div class="dataset_request_status">
-                        <span title="you have already requested access to this dataset"
-                              class="text-muted glyphicon glyphicon-hourglass"></span>
-                        Data Access Requested
+                            <span title="you were granted access to this dataset"
+                                  class="text-success  glyphicon glyphicon-ok-circle"></span>
+                        Data Access Granted
                     </div>
-
-                {% elif dataset.hosted %}
+                </div>
+            {% endif %}
+            <div class="form-inline">
+                {% if dataset.dataset_link_href %}
                     <div class="button-link input-group">
                         <p class="input-group-btn">
-                            <i class="material-icons">fact_check</i>
+                            <i class="material-icons">download</i>
                         </p>
                         <a class="btn button-link-text"
-                           href="{{ url_for('request_access', entity_name='dataset', entity_id=dataset.id) }}">Request
-                            Data
-                            Access</a>
+                           href="{{ dataset.dataset_link_href }}">Access Data</a>
+
+                    </div>
+            {% else %}
+                    {% if has_access.value == 'approved' %}
+                        <div class="storages">
+                            {% set storages_templates = dataset.storages | storage_templates %}
+                            {% for storage, storage_template in storages_templates %}
+                                {% include "storages/%s.html" % storage_template %}
+                            {% else %}
+                                Please
+                                <a href="mailto:{{ config.get('CONTACT_ACCESS_RECIPIENT') }}?body={{ config.get('CONTACT_ACCESS_BODY') | urlencode }}&subject={{ dataset.title ~ ' - access to data' | urlencode }}">contact
+                                    our data
+                                    stewards</a> to
+                                get access to the data.
+                            {% endfor %}
+                        </div>
+                    {% elif has_access.value == 'submitted' %}
+                        <div class="dataset_request_status">
+                            <span title="you have already requested access to this dataset"
+                                  class="text-muted glyphicon glyphicon-hourglass"></span>
+                            Data Access Requested
+                        </div>
+
+                    {% elif dataset.hosted %}
+                        <div class="button-link input-group">
+                            <p class="input-group-btn">
+                                <i class="material-icons">fact_check</i>
+                            </p>
+                            <a class="btn button-link-text"
+                               href="{{ url_for('request_access', entity_name='dataset', entity_id=dataset.id) }}">Request
+                                Data
+                                Access</a>
+                        </div>
+                    {% endif %}
+                {% endif %}
+
+                {% if config.get('ALLOW_ENTITY_EXPORT', False) %}
+                    <div class="button-link input-group right_side_btn">
+                        <p class="input-group-btn">
+                            <i class="material-icons">download</i>
+                        </p>
+                        <a class="btn button-link-text"
+                           href="{{ url_for('export_dats_entity', entity_name='dataset', entity_id=dataset.id) }}">Export
+                            Metadata
+                            as DATS</a>
                     </div>
                 {% endif %}
-            {% endif %}
-
-            {% if config.get('ALLOW_ENTITY_EXPORT', False) %}
-                <div class="button-link input-group right_side_btn">
-                    <p class="input-group-btn">
-                        <i class="material-icons">download</i>
-                    </p>
-                    <a class="btn button-link-text"
-                       href="{{ url_for('export_dats_entity', entity_name='dataset', entity_id=dataset.id) }}">Export
-                        Metadata
-                        as DATS</a>
-
-                </div>
-            {% endif %}
-        </div>
+            </div>
+         {% endif %}
         <p class="clearfix">
             {% if dataset.tags %}
                 tags: {{ macros.split_labels(dataset.tags) }}
@@ -173,10 +192,9 @@
             {{ macros.start_panel("General Dataset Information", "general", True) }}
 
             {{ macros.show_field_text(dataset.version, "Version") }}
-            {{ macros.show_field_text(dataset.dataset_created | date, "Date of creation of the dataset", facet_url=facets_url.dataset_created) }}
-            {{ macros.show_field_text(dataset.dataset_modified | date, "Date of the last update of the dataset", facet_url=facets_url.dataset_modified) }}
+            {{ macros.show_field_text(dataset.dataset_created | date, "Created on", facet_url=facets_url.dataset_created) }}
+            {{ macros.show_field_text(dataset.dataset_modified | date, "Updated on", facet_url=facets_url.dataset_modified) }}
             {{ macros.show_field_list(dataset.data_standards, "Data standards", facet_url=facets_url.data_standards) }}
-            {{ macros.show_field_list(dataset.file_formats, "Dataset file formats", facet_url=facets_url.file_formats) }}
             {{ macros.show_field_list(dataset.data_types, "Experiment types", facet_url=facets_url.data_types) }}
             {% if dataset.samples_type %}
                 {{ macros.show_field_text(dataset.samples_type, "Type of Samples Collected", list=True, facet_url=facets_url.samples_type) }}
@@ -184,15 +202,29 @@
                 {{ macros.show_field_text(study.samples_type, "Type of Samples Collected", list=True) }}
             {% endif %}
             {{ macros.show_field_text(dataset.samples_number, "Number of Samples Collected", facet_url=facets_url.samples_number) }}
-            {{ macros.show_field_list(dataset.disease, "Diseases in samples", facet_url=facets_url.disease) }}
+            {{ macros.show_field_list(dataset.disease, "Diseases", facet_url=facets_url.disease) }}
             {{ macros.show_field_list(dataset.treatment_category, "Treatment or experiment categories", facet_url=facets_url.treatment_category) }}
             {{ macros.show_field_list(dataset.treatment_name, "Treatment or experiment names", facet_url=facets_url.treatment_name) }}
 
             {{ macros.end_panel() }}
 
+        {# Technical metadata #}
+            {% if dataset.checksum or dataset.checksum_algorithm or dataset.file_formats or dataset.size or dataset.number_of_files %}
+                {{ macros.start_panel("Technical Information", "contacts") }}
+                {{ macros.show_field_text(dataset.size , "Size") }}
+                {{ macros.show_field_text(dataset.file_formats, "Dataset file formats",  list=True) }}
+                {{ macros.show_field_text(dataset.number_of_files , "Number of files") }}
+                {% if dataset.checksum %}
+                 {{ macros.show_field_text(dataset.checksum , "Checksum") }}
+                {% endif %}
+                {{  macros.show_field_text(dataset.checksum_algorithm, "Checksum Algorithm") }}
+                {{ macros.end_panel() }}
+            {% endif %}
+
+
+
         {#    CONTACTS    #}
             {% if dataset.dataset_owner or dataset.dataset_contact %}
-
                 {{ macros.start_panel("Dataset contacts", "contacts") }}
                 {{ macros.show_field_text(dataset.dataset_owner , "Data owner") }}
                 {{ macros.show_field_text(dataset.dataset_contact , "Main contact") }}
@@ -226,29 +258,29 @@
                 {{ macros.end_table() }}
                 {{ macros.end_panel() }}
             {% endif %}
-            {% if dataset.use_restrictions %}
-                {% set use_restrictions_by_type, icons = dataset.use_restrictions_by_type %}
-                {{ macros.start_panel("Use restrictions", "use-restrictions") }}
-                {% for restriction_type in use_restrictions_by_type %}
-                    <h4 class="restrictionType">
-                        <i class="material-icons {{ icons[restriction_type][1] }}">{{ icons[restriction_type][0] }}</i><span> {{ icons[restriction_type][2] }}
+            {% if dataset.use_conditions %}
+                {% set use_conditions_by_type, icons = dataset.use_conditions_by_type %}
+                {{ macros.start_panel("Use conditions", "use-conditions") }}
+                {% for condition_type in use_conditions_by_type %}
+                    <h4 class="conditionType">
+                        <i class="material-icons {{ icons[condition_type][1] }}">{{ icons[condition_type][0] }}</i><span> {{ icons[condition_type][2] }}
         </span>
                     </h4>
-                    <table class="table table-hover table-condensed table-striped datasetRestrictions">
+                    <table class="table table-hover table-condensed table-striped datasetConditions">
                         <thead>
                         <tr>
-                            <th>Use Restriction</th>
+                            <th>Use Condition</th>
                             <th>Remarks</th>
                             <th>Category (GA4GH)</th>
                         </tr>
                         </thead>
                         <tbody>
 
-                        {% for restriction in use_restrictions_by_type[restriction_type] %}
+                        {% for condition in use_conditions_by_type[condition_type] %}
                             <tr>
-                                <td>{{ restriction['use_restriction_note'] }}</td>
-                                <td>{{ restriction['use_class_note'] }}</td>
-                                <td>{{ restriction['use_class_label'] }} ({{ restriction["use_class"] }})</td>
+                                <td>{{ condition['use_condition_note'] }}</td>
+                                <td>{{ condition['use_class_note'] }}</td>
+                                <td>{{ condition['use_class_label'] }} ({{ condition["use_class"] }})</td>
                             </tr>
                         {% endfor %}
                         </tbody>

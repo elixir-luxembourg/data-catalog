@@ -22,7 +22,7 @@ from ..exceptions import DownloadsHandlerLinksException
 
 logger = logging.getLogger(__name__)
 
-PLATFORM_NAME = "LCSB Aspera"
+PLATFORM_NAMES = ["LCSB Aspera", "LCSB File Transfer (LFT)"]
 
 
 class LFTStorageHandler(DownloadHandler):
@@ -30,7 +30,7 @@ class LFTStorageHandler(DownloadHandler):
 
     @staticmethod
     def can_handle(storage):
-        return storage.get("platform") == PLATFORM_NAME
+        return storage.get("platform") in PLATFORM_NAMES
 
     def __init__(self, lft_client, namespace_id, base_link_url):
         super().__init__()

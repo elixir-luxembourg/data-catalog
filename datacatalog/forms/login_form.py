@@ -14,10 +14,10 @@
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-    datacatalog.forms.login_form
-    -------------------
+datacatalog.forms.login_form
+-------------------
 
-    Login form
+Login form
 
 """
 import logging

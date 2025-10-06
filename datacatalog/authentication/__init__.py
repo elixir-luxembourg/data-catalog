@@ -17,13 +17,13 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-    datacatalog.authentication
-    -------------------
+datacatalog.authentication
+-------------------
 
-    Package for the abstract classs UserPasswordAuthentication, RemoteAuthentication  and its implementations
-    Implementations:
-        - LDAPAuthentication
-        - OIDCAuthentication
+Package for the abstract classs UserPasswordAuthentication, RemoteAuthentication  and its implementations
+Implementations:
+    - LDAPAuthentication
+    - OIDCAuthentication
 
 """
 

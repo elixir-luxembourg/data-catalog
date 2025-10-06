@@ -14,11 +14,11 @@
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
-    datacatalog
-    -------------------
+ datacatalog
+ -------------------
 
-   DataCatalog root package
-   Loads configuration and creates the Flask application
+DataCatalog root package
+Loads configuration and creates the Flask application
 
 """
 import logging
@@ -26,18 +26,20 @@ import os
 import json
 from collections import defaultdict
 from datetime import datetime
+from importlib import import_module
 from logging.config import dictConfig
 from typing import Optional, List
 
 import jinja2
 import ldap
+
 from datacatalog.solr.solr_orm_fields import SolrField
 from flask import Flask, request, redirect, url_for
 from flask_assets import Environment
 from flask_caching import Cache
 from flask_login import LoginManager, current_user
 from flask_mail import Mail
-from flask_reverse_proxy_fix.middleware import ReverseProxyPrefixFix
+from datacatalog.reverse_proxy_fix import ReverseProxyPrefixFix
 from flask_wtf.csrf import CSRFProtect
 from webassets.loaders import PythonLoader as PythonAssetsLoader
 
@@ -53,7 +55,7 @@ DEFAULT_ENTITIES = {
     "project": "datacatalog.models.project.Project",
 }
 
-DEFAULT_USE_RESTRICTIONS_ICONS = {
+DEFAULT_USE_CONDITIONS_ICONS = {
     "PERMISSION": ("thumb_up", "text-default", "Permissions"),
     "OBLIGATION": ("hardware", "text-default", "Obligations"),
     "CONSTRAINED_PERMISSION": ("info", "text-default", "Constrained permissions"),
@@ -78,6 +80,8 @@ def get_access_handler(user, entity_name):
     access_handler_map = app.config.get("ACCESS_HANDLERS", {"dataset": "Email"})
     access_handler_string = access_handler_map.get(entity_name)
     if access_handler_string and "Rems" in access_handler_string:
+        if not user:
+            return None
         if access_handler_string == "Rems":
             from .acces_handler.rems_handler import RemsAccessHandler
 
@@ -131,6 +135,9 @@ def configure_authentication_system() -> None:
                 client_secret=app.config["PYOIDC_CLIENT_SECRET"],
                 idp_url=app.config["PYOIDC_IDP_URL"],
             )
+        elif authentication_method is None:
+            authentication = None
+            app.config["SHOW_LOGIN"] = False
         else:
             raise ValueError("Unsupported authentication method")
     except Exception as e:
@@ -270,6 +277,12 @@ assets_env = Environment(app)
 assets_loader = PythonAssetsLoader(assets)
 for name, bundle in assets_loader.load_bundles().items():
     assets_env.register(name, bundle)
+custom_assets = app.config.get("CUSTOM_ASSETS")
+if custom_assets:
+    plugin_assets = import_module(custom_assets)
+    assets_loader = PythonAssetsLoader(plugin_assets)
+    for name, bundle in assets_loader.load_bundles().items():
+        assets_env.register(name, bundle)
 
 
 @app.before_request
@@ -291,18 +304,16 @@ def public_route(decorated_function):
     return decorated_function
 
 
-@app.template_filter("use_restrictions")
-def _jinja2_filter_use_restrictions(form):
-    mapping_icons = app.config.get(
-        "USE_RESTRICTIONS_ICONS", DEFAULT_USE_RESTRICTIONS_ICONS
-    )
+@app.template_filter("use_conditions")
+def _jinja2_filter_use_conditions(form):
+    mapping_icons = app.config.get("USE_CONDITIONS_ICONS", DEFAULT_USE_CONDITIONS_ICONS)
     result = defaultdict(list)
     icons = {}
     for field in form:
-        if field.render_kw and "use_restriction_rule" in field.render_kw:
-            result[field.render_kw["use_restriction_rule"]].append(field)
-    for restriction_type in result:
-        icons[restriction_type] = mapping_icons.get(restriction_type)
+        if field.render_kw and "use_condition_rule" in field.render_kw:
+            result[field.render_kw["use_condition_rule"]].append(field)
+    for condition_type in result:
+        icons[condition_type] = mapping_icons.get(condition_type)
     return result, icons
 
 
@@ -315,7 +326,7 @@ def _jinja_2_filter_render_keywords(keywords: List["SolrField"]) -> str:
     ]
     return json.dumps(
         [
-            {"@type": "DefinedTerm", "@id": "", "name": f"{ keyword }"}
+            {"@type": "DefinedTerm", "@id": "", "name": f"{keyword}"}
             for keyword in entries
         ]
     )
