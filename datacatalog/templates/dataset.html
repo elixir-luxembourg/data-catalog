@@ -57,6 +57,14 @@
 {% endblock %}
 {% block title %}Dataset - {{ dataset.title }}{% endblock %}
 
+{% block meta %}
+{{ super() }}
+<meta property="og:type" content="website">
+<meta property="og:title" content="Dataset: {{ dataset.title }}">
+<meta property="og:description" content="{{ dataset.description | default('View dataset details on ' ~ config.get('TITLE')) }}">
+<meta property="og:url" content="{{ request.url }}">
+<meta property="og:image" content="{{ config.get('URL_PREFIX', '') }}/static/public/images/datacatalog_logo.png">
+{% endblock %}
 
 {% block content %}
     <div class="well box datasetDetails">

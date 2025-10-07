@@ -45,6 +45,14 @@
     </script>
 {% endblock %}
 
+{% block meta %}
+{{ super() }}
+<meta property="og:title" content="Study: {{ study.title }}">
+<meta property="og:description" content="{{ study.description | default('View study details on ' ~ config.get('TITLE')) }}">
+<meta property="og:url" content="{{ request.url }}">
+<meta property="og:image" content="{{ config.get('URL_PREFIX', '') }}/static/public/images/datacatalog_logo.png">
+{% endblock %}
+
 {% block content %}
     <div class="well box studyDetails">
         {% if fair_evaluations_show and study.fair_evaluation %}

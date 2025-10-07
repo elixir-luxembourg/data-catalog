@@ -1,5 +1,14 @@
 {% extends 'layout.html' %}
 
+{% block meta %}
+{{ super() }}
+<meta property="og:title" content="{{ config.get('TITLE', 'Data Catalogue') }}">
+<meta property="og:description" content="The ELIXIR Luxembourg Data Catalogue is a unique collection of project-level metadata from large research initiatives in a diverse range of fields.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{ request.url }}">
+<meta property="og:image" content="{{ config.get('URL_PREFIX', '') }}/static/public/images/datacatalog_logo.png">
+{% endblock %}
+
 
 {% block content %}
     <div class="text-center">

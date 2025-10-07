@@ -46,6 +46,13 @@
 
 {% block title %}Project - {{ project.title }}{% endblock %}
 
+{% block meta %}
+{{ super() }}
+<meta property="og:title" content="Project: {{ project.title }}">
+<meta property="og:description" content="{{ project.description | default('View project details on ' ~ config.get('TITLE')) }}">
+<meta property="og:url" content="{{ request.url }}">
+<meta property="og:image" content="{{ config.get('URL_PREFIX', '') }}/static/public/images/datacatalog_logo.png">
+{% endblock %}
 
 {% block content %}
 <div class="well box projectDetails">
