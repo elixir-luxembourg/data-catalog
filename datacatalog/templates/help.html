@@ -67,12 +67,12 @@
         <p>Please submit any bug reports and feature requests to the <strong><a
                 href="https://github.com/elixir-luxembourg/data-catalog/issues">issue tracker</a></strong> on catalogue Github repo. We'd love to hear from you!</p>
 
-        <h2>I think my project should be in the Data Catalogue but it isn't. How can I get it included?</h2>
-        <p>To talk to us about Data Catalogue content, please drop us
+        <h2>I think my project should be in the {{ config.get('TITLE', 'Data Catalogue') }} but it isn't. How can I get it included?</h2>
+        <p>To talk to us about {{ config.get('TITLE', 'Data Catalogue') }} content, please drop us
             <strong><a href="mailto:data-catalog@elixir-luxembourg.org">an email</a></strong>.</p>
 
         <h2>I have found a mistake in the metadata for my project. How can I get it fixed?</h2>
-        <p>To talk to us about Data Catalog content, please drop us
+        <p>To talk to us about {{ config.get('TITLE', 'Data Catalogue') }} content, please drop us
             <strong><a href="mailto:data-catalog@elixir-luxembourg.org">an email</a></strong>.</p>
     </div>
 
