@@ -9,8 +9,6 @@
 {{ super() }}
 <meta property="og:title" content="Projects – {{ config.get('TITLE', 'Data Catalogue') }}">
 <meta property="og:description" content="Browse projects available in the {{ config.get('TITLE', 'Data Catalogue') }}.">
-<meta property="og:url" content="{{ request.url }}">
-<meta property="og:image" content="{{ config.get('URL_PREFIX', '') }}/static/public/images/datacatalog_logo.png">
 {% endblock %}
 
 

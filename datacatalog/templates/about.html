@@ -5,8 +5,6 @@
 {{ super() }}
 <meta property="og:title" content="About – {{ config.get('TITLE', 'Data Catalogue') }}">
 <meta property="og:description" content="Learn about {{ config.get('TITLE', 'Data Catalogue') }} the centralized metadata repository for biomedical datasets.">
-<meta property="og:url" content="{{ request.url }}">
-<meta property="og:image" content="{{ config.get('URL_PREFIX', '') }}/static/public/images/datacatalog_logo.png">
 {% endblock %}
 
 {% block title %}About{% endblock %}

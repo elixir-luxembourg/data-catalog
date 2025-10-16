@@ -9,6 +9,9 @@
             <meta http-equiv="content-type" content="text/html; charset=utf-8">
             <meta name="csrf-token" id="csrf-token" content="{{ csrf_token() }}">
             <meta name="viewport" content="width=device-width, initial-scale=1">
+            <meta property="og:url" content="{{ request.url }}">
+            <meta property="og:type" content="website">
+            <meta property="og:image" content="{{ url_for('static', filename='public/images/datacatalog_logo.png', _external=True, _scheme=config.get('SCHEME', 'http')) }}">
         {% endblock %}
         {#    <link rel="shortcut icon" href="{{ url_for('static',filename='favicon.ico') }}">#}
         {% block css %}
