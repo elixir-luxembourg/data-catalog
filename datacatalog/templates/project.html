@@ -46,6 +46,11 @@
 
 {% block title %}Project - {{ project.title }}{% endblock %}
 
+{% block meta %}
+{{ super() }}
+<meta property="og:title" content="Project: {{ project.title }}">
+<meta property="og:description" content="{{ project.description | default('View project details on ' ~ config.get('TITLE')) }}">
+{% endblock %}
 
 {% block content %}
 <div class="well box projectDetails">

@@ -57,6 +57,11 @@
 {% endblock %}
 {% block title %}Dataset - {{ dataset.title }}{% endblock %}
 
+{% block meta %}
+{{ super() }}
+<meta property="og:title" content="Dataset: {{ dataset.title }}">
+<meta property="og:description" content="{{ dataset.description | default('View dataset details on ' ~ config.get('TITLE')) }}">
+{% endblock %}
 
 {% block content %}
     <div class="well box datasetDetails">

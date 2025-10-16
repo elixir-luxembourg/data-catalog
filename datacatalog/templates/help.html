@@ -1,6 +1,12 @@
 {% extends 'layout.html' %}
 {% set active_page = "help" %}
 
+{% block meta %}
+{{ super() }}
+<meta property="og:title" content="Help – {{ config.get('TITLE', 'Data Catalogue') }}">
+<meta property="og:description" content="Here are some of the most frequently asked questions about the {{ config.get('TITLE', 'Data Catalogue') }} and how to use it.">
+{% endblock %}
+
 {% block title %}Help{% endblock %}
 
 {% block content %}
