@@ -84,8 +84,9 @@ class User(UserMixin):
 
     @staticmethod
     def destroy():
-        session.pop("_user_id")
-        session.pop("user_details")
+        for key in ["state", "nonce", "user_details", "_user_id"]:
+            if key in session:
+                session.pop(key)
 
     def update(self, updated_user):
         self.email = updated_user.email

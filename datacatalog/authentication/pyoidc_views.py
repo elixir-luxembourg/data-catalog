@@ -100,6 +100,8 @@ def pyoidc_logged_out():
         del auth.oidc_client.authz_req[session["state"]]
     except KeyError:
         pass
+    if current_user.is_authenticated:
+        current_user.destroy()
     logout_user()
     logger.debug("done. redirecting to home")
     return redirect(url_for("home"))
@@ -115,6 +117,7 @@ def parse_role(role):
 
 def extract_accesses(access_token):
     logger.debug("extracting accesses from access_token")
+    # verify=false because the access_token has been already verified
     decoded_access_token = JasonWebToken().from_jwt(access_token, verify=False)
     realm_accesses = decoded_access_token.get("realm_access")
     accesses = []

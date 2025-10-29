@@ -227,12 +227,16 @@ class PyOIDCAuthentication(RemoteAuthentication):
                 error_description=error_description,
             )
         response = token_request.json()
-
         if "error" in response:
             return TokenErrorResponse(**response)
         else:
             token = AccessTokenResponse(**response)
             token.verify(keyjar=self.oidc_client.keyjar, skew=SKEW)
+            # check nonce in id_token
+            id_token = token["id_token"]
+            if id_token["nonce"] != session.get("nonce", "undefined"):
+                logger.info("invalid nonce when doing authentication")
+                raise AuthenticationException("Invalid nonce", 400)
             return token
 
     def get_redirect_uri(self):
