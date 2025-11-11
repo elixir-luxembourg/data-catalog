@@ -29,7 +29,7 @@ from os.path import isfile, join
 from jsonschema import Draft7Validator
 
 from datacatalog import app
-from tests.dats.dats_validator import validate_instance
+from datsvalidator.datsvalidator import validate_instance
 
 logging.basicConfig(filename="json_validation.log", level=logging.INFO)
 logger = logging.getLogger(__name__)
