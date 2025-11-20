@@ -100,6 +100,14 @@ jobs:
       - name: Install Python dependencies
         run: pip install .[testing] --default-timeout=180
 
+      - name: Install Dats-validator
+        run: |
+          git clone https://github.com/elixir-luxembourg/dats-validator.git
+          cd dats-validator
+          pip install .
+          cd ..
+        continue-on-error: true
+
       - name: Clone DATS schema
         run: |
           git clone https://gitlab.lcsb.uni.lu/core-services/datacatalog/dats-schema.git
