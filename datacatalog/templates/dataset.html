@@ -57,6 +57,11 @@
 {% endblock %}
 {% block title %}Dataset - {{ dataset.title }}{% endblock %}
 
+{% block meta %}
+{{ super() }}
+<meta property="og:title" content="Dataset: {{ dataset.title }}">
+<meta property="og:description" content="{{ dataset.description | default('View dataset details on ' ~ config.get('TITLE')) }}">
+{% endblock %}
 
 {% block content %}
     <div class="well box datasetDetails">
@@ -195,7 +200,7 @@
             {{ macros.show_field_text(dataset.dataset_created | date, "Created on", facet_url=facets_url.dataset_created) }}
             {{ macros.show_field_text(dataset.dataset_modified | date, "Updated on", facet_url=facets_url.dataset_modified) }}
             {{ macros.show_field_list(dataset.data_standards, "Data standards", facet_url=facets_url.data_standards) }}
-            {{ macros.show_field_list(dataset.data_types, "Experiment types", facet_url=facets_url.data_types) }}
+            {{ macros.show_field_list(dataset.data_types, "Data types", facet_url=facets_url.data_types) }}
             {% if dataset.samples_type %}
                 {{ macros.show_field_text(dataset.samples_type, "Type of Samples Collected", list=True, facet_url=facets_url.samples_type) }}
             {% else %}

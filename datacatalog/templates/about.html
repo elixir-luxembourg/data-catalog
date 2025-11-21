@@ -1,6 +1,12 @@
 {% extends 'layout.html' %}
 {% set active_page = "about" %}
 
+{% block meta %}
+{{ super() }}
+<meta property="og:title" content="About – {{ config.get('TITLE', 'Data Catalogue') }}">
+<meta property="og:description" content="Learn about {{ config.get('TITLE', 'Data Catalogue') }} the centralized metadata repository for biomedical datasets.">
+{% endblock %}
+
 {% block title %}About{% endblock %}
 
 {% block content %}

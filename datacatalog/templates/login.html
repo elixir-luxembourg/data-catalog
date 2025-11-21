@@ -1,1 +1,7 @@
 {% extends 'base_login.html' %}
+
+{% block meta %}
+{{ super() }}
+<meta property="og:title" content="Login – {{ config.get('TITLE', 'Data Catalogue') }}">
+<meta property="og:description" content="Log in to the {{ config.get('TITLE', 'Data Catalogue') }}.">
+{% endblock %}

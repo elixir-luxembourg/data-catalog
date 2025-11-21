@@ -45,6 +45,12 @@
     </script>
 {% endblock %}
 
+{% block meta %}
+{{ super() }}
+<meta property="og:title" content="Study: {{ study.title }}">
+<meta property="og:description" content="{{ study.description | default('View study details on ' ~ config.get('TITLE')) }}">
+{% endblock %}
+
 {% block content %}
     <div class="well box studyDetails">
         {% if fair_evaluations_show and study.fair_evaluation %}
