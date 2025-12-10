@@ -328,6 +328,35 @@ class TestRemsConnector(BaseTest):
         catalogue_item = self.rems_connector.get_catalogue_item(self.dataset)
         self.assertEqual(catalogue_item.resid, self.dataset_id)
 
+    def test_export_entities_infourl(self, m):
+        m.get(f"{REMS_URL}/api/resources", json=[])
+        m.post(f"{REMS_URL}/api/resources/create", json={"success": True, "id": 1})
+        m.post(
+            f"{REMS_URL}/api/catalogue-items/create",
+            json={"success": True, "id": 1},
+        )
+
+        self.rems_connector.export_entities([self.dataset])
+
+        post_req = None
+        for req in m.request_history:
+            if (
+                req.method == "POST"
+                and req.url == f"{REMS_URL}/api/catalogue-items/create"
+            ):
+                post_req = req
+                break
+        self.assertIsNotNone(
+            post_req, "No POST to catalogue-items/create was performed"
+        )
+
+        body = post_req.json()
+        self.assertIn("localizations", body)
+        self.assertIn("en", body["localizations"])
+
+        expected = app.config["BASE_URL"] + f"/e/dataset/{self.dataset.id}"
+        self.assertEqual(body["localizations"]["en"]["infourl"], expected)
+
     def test_get_catalogue_item_matching_formid(self, m):
         # Mock export_entities calls
         m.get(f"{REMS_URL}/api/resources", json=[])
