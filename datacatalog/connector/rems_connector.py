@@ -118,6 +118,7 @@ class RemsConnector(ExportEntitiesConnector):
                         "entity_details",
                         entity_name=entity_name,
                         entity_id=entity.id,
+                        _external=False,
                     ),
                 }
             }
