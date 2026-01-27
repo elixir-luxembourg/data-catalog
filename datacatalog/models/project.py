@@ -24,6 +24,7 @@
 
 
 """
+
 import logging
 
 from . import EntityWithSlugs

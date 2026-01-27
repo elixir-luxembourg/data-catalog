@@ -24,6 +24,7 @@ REST endpoints:
     - api_entity
     - api_entities
 """
+
 import logging
 
 from flask import jsonify, request, Response

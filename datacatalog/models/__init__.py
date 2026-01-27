@@ -21,6 +21,7 @@ Package containing SolrEntity subclasses and corresponding SolrQuery subclasses
 
 
 """
+
 import logging
 
 from .. import app

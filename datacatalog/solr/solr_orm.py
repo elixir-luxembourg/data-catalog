@@ -25,6 +25,7 @@ Module containing the following classes:
   - SolrQuery: base class to query solr
 
 """
+
 import json
 import logging
 

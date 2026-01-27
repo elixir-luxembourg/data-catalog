@@ -24,6 +24,7 @@ Module containing the DaisyConnector class
 
 
 """
+
 import json
 import logging
 from json import JSONDecodeError

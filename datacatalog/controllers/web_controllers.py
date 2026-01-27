@@ -25,6 +25,7 @@ HTML endpoints:
     - about
     - request_access
 """
+
 import json
 import logging
 import re

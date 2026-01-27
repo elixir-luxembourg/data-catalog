@@ -20,6 +20,7 @@
 Module containing the SolrEntity class
 
 """
+
 import json
 import logging
 import uuid

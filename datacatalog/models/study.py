@@ -21,6 +21,7 @@ Module containing the Study entity
 
 
 """
+
 import logging
 
 from flask import url_for
