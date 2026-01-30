@@ -94,6 +94,7 @@ class Config(object):
     SOLR_ENDPOINT = os.environ.get("SOLR_ENDPOINT", "http://localhost:8983/solr")
     # SOLR CORE
     SOLR_COLLECTION = "datacatalog"
+    USE_CURSOR_PAGINATION = False
     # FOR ENTITIES IMPORT FROM JSON FILES
     JSON_FILE_PATH = {
         "dataset": "data/imi_projects",

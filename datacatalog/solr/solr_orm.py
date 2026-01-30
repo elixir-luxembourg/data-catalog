@@ -82,6 +82,7 @@ class SolrQuery(object):
         self.class_object = class_object
         self.entity_name = class_object.__name__.lower()
         self.solr_orm = solr_orm
+        self.cursor_enabled = app.config.get("USE_CURSOR_PAGINATION", False)
 
     def query_has_solr_query_field(self, query: str) -> bool:
         """
@@ -145,6 +146,8 @@ class SolrQuery(object):
         edismax: bool = False,
         bq: str = None,
         sorts: List[str] = None,
+        cursor: str = None,
+        use_cursor_threshold: int = 1000,
     ) -> pysolr.Results:
         """
         Execute a solr search
@@ -157,6 +160,8 @@ class SolrQuery(object):
         See https://lucene.apache.org/solr/guide/8_4/common-query-parameters.html#fq-filter-query-parameter
         @param facets: list of facets to retrieve
         @param fuzzy:boolean triggering fuzzy search to be active or not
+        @param cursor: cursor mark for deep pagination
+        @param use_cursor_threshold: switch to cursor pagination when start exceeds this value
         @return: a pysolr.Results instance containing the search results
         """
         if sort_order or sort:
@@ -171,6 +176,14 @@ class SolrQuery(object):
             sort_with_order = ", ".join(
                 [self.format_field_name_with_order(sort) for sort in sorts]
             )
+
+        cursor_mark = cursor or "*" if self.cursor_enabled else None
+        if self.cursor_enabled:
+            sort_field = sort or "id"
+            sort_with_order = (
+                f"{sort_field} {order}, id asc" if sort_field != "id" else "id asc"
+            )
+
         if fq is None:
             fq = []
         params = {
@@ -211,7 +224,9 @@ class SolrQuery(object):
                     fq.append(query)
         if rows:
             params["rows"] = rows
-        if start:
+        if self.cursor_enabled:
+            params["cursorMark"] = cursor_mark
+        elif start:
             params["start"] = start
 
         if facets:
@@ -263,6 +278,13 @@ class SolrQuery(object):
                 entity = self._build_instance(doc)
                 entities.append(entity)
             results.entities = entities
+
+            results.has_more = (
+                results.nextCursorMark and results.nextCursorMark != cursor_mark
+                if self.cursor_enabled
+                else False
+            )
+
             # replace facets fields name to remove prefix
             facet_fields = results.facets.get("facet_fields")
             new_facets_fields = {}
