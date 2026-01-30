@@ -147,7 +147,7 @@ class SolrQuery(object):
         edismax: bool = False,
         bq: str = None,
         sorts: List[str] = None,
-        cursor: str = None,
+        cursor: str = None
     ) -> pysolr.Results:
         """
         Execute a solr search
