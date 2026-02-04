@@ -110,7 +110,7 @@ jobs:
 
       - name: Clone DATS schema
         run: |
-          git clone https://gitlab.lcsb.uni.lu/core-services/datacatalog/dats-schema.git
+          git clone https://github.com/elixir-luxembourg/dats-schema.git
           cd dats-schema
           for i in *.json; do sed -i 's$https://w3id.org/dats/schema/$./$g' $i; done
           cd ..
@@ -118,7 +118,7 @@ jobs:
 
       - name: Clone DATS context
         run: |
-          git clone https://gitlab.lcsb.uni.lu/core-services/datacatalog/dats-context.git
+          git clone https://github.com/elixir-luxembourg/dats-context.git
         continue-on-error: true
 
       - name: Install Node.js dependencies and build
