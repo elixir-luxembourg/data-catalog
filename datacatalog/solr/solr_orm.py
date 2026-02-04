@@ -147,7 +147,6 @@ class SolrQuery(object):
         bq: str = None,
         sorts: List[str] = None,
         cursor: str = None,
-        use_cursor_threshold: int = 1000,
     ) -> pysolr.Results:
         """
         Execute a solr search
@@ -161,7 +160,6 @@ class SolrQuery(object):
         @param facets: list of facets to retrieve
         @param fuzzy:boolean triggering fuzzy search to be active or not
         @param cursor: cursor mark for deep pagination
-        @param use_cursor_threshold: switch to cursor pagination when start exceeds this value
         @return: a pysolr.Results instance containing the search results
         """
         if sort_order or sort:
