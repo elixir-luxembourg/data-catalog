@@ -26,6 +26,8 @@ services:
         depends_on:
             solr:
                 condition: service_healthy
+            redis:
+                condition: service_healthy
         networks:
             - datacatalog-network
         restart: unless-stopped
@@ -35,6 +37,53 @@ services:
             timeout: 10s
             retries: 3
             start_period: 30s # Allow time for app and reload server to start
+
+    celery:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: datacatalog_celery_dev
+        volumes:
+            - .:/code
+        command: celery -A celery_worker worker --loglevel=info
+        entrypoint: ""
+        environment:
+            - DATACATALOG_ENV=docker
+            - PYTHONUNBUFFERED=1
+            - CELERY_BROKER_URL=redis://redis:6379/0
+            - CELERY_RESULT_BACKEND=redis://redis:6379/0
+        depends_on:
+            redis:
+                condition: service_healthy
+            solr:
+                condition: service_healthy
+        networks:
+            - datacatalog-network
+        restart: unless-stopped
+        healthcheck:
+            test: ["CMD-SHELL", "celery -A celery_worker inspect ping -t 5 || exit 1"]
+            interval: 30s
+            timeout: 15s
+            retries: 3
+            start_period: 45s
+
+    redis:
+        image: redis:7-alpine
+        container_name: datacatalog_redis_dev
+        expose:
+            - "6379"
+        volumes:
+            - redisdata:/data
+        networks:
+            - datacatalog-network
+        restart: unless-stopped
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            start_period: 10s
+
     solr:
         image: solr:9.9-slim
         container_name: datacatalog_solr_dev
@@ -79,6 +128,7 @@ volumes:
     solrdata:
     static_files:
     nginx_logs:
+    redisdata:
 
 networks:
     datacatalog-network:
