@@ -292,3 +292,25 @@ class TestRemsConnector:
             command.organization.id, command.resid, command.licenses
         )
         assert isinstance(resource, CreateResponse)
+
+    def test_add_remark(
+        self, rems_client, requests_mock, success_response_factory
+    ):
+        application_id = 456
+        comment = "Remark with attachment"
+        attachments = [{"attachment/id": 1}, {"attachment/id": 2}]
+        mock_response = success_response_factory.build(success=True, errors=None)
+        requests_mock.post(
+            url=f"{rems_client.base_url}/api/applications/remark",
+            json=mock_response.model_dump(by_alias=True, exclude_unset=True),
+        )
+
+        result = rems_client.add_remark(
+            application_id, comment=comment, attachments=attachments, public=True
+        )
+
+        assert isinstance(result, SuccessResponse)
+        last_request = requests_mock.request_history[-1]
+        assert last_request.json()["attachments"] == attachments
+        assert last_request.json()["public"] is True
+

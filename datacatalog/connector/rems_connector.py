@@ -16,7 +16,7 @@
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
-from typing import List
+from typing import Dict, List, Optional
 import requests
 from flask import url_for
 
@@ -241,3 +241,22 @@ class RemsConnector(ExportEntitiesConnector):
     def get_application(self, application_id):
         logger.debug("getting application %s", application_id)
         return self.rems_client.get_application(application_id)
+
+    def get_attachment(self, attachment_id: int) -> bytes:
+        logger.debug("getting attachment %s", attachment_id)
+        return self.rems_client.get_attachment(attachment_id)
+
+    def add_remark(
+        self,
+        application_id: int,
+        comment: Optional[str] = None,
+        attachments: Optional[List[Dict[str, int]]] = None,
+        public: bool = False,
+    ) -> bool:
+        logger.info(
+            "adding remark to application %s (public=%s)", application_id, public
+        )
+        response = self.rems_client.add_remark(
+            application_id, comment, attachments, public
+        )
+        return response.success
