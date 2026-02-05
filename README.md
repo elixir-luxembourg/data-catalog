@@ -25,6 +25,7 @@ The code is available under **AGPL-3.0 license**.
     * [Requirements](#requirements)
     * [Procedure](#procedure)
     * [Testing](#testing)
+* [Background Tasks (Celery)](#background-tasks-celery)
 * [Docker-compose build](#docker-compose-build)
     * [Requirements](#requirements-for-docker-compose-build)
     * [Building](#building)
@@ -152,6 +153,64 @@ pytest --cov .
 Note that a different core is used for tests and will have to be created. By default, it should be called
 datacatalog_test.
 
+## Background Tasks (Celery)
+
+The application uses Celery with Redis for background task processing.
+
+### Requirements
+
+Redis must be running:
+
+```bash
+# macOS
+brew services start redis
+
+# Linux
+sudo systemctl start redis
+
+# Docker
+docker run -d -p 6379:6379 redis
+```
+
+### Running the Worker
+
+Start the Celery worker in a separate terminal:
+
+```bash
+# Development
+celery -A celery_worker worker --loglevel=info
+
+# With periodic task scheduler (beat)
+celery -A celery_worker worker --beat --loglevel=info
+
+# Production (with concurrency)
+celery -A celery_worker worker --loglevel=warning --concurrency=4
+```
+
+### Configuration
+
+Celery is configured via the `CELERY` dict in `settings.py`. Key settings:
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `broker_url` | `redis://localhost:6379/0` | Message broker URL |
+| `result_backend` | `redis://localhost:6379/0` | Task result storage |
+| `task_time_limit` | `300` | Hard time limit (seconds) |
+| `task_soft_time_limit` | `240` | Soft time limit (seconds) |
+
+Environment variables `CELERY_BROKER_URL` and `CELERY_RESULT_BACKEND` can override defaults.
+
+### Monitoring (Optional)
+
+Use Flower for web-based monitoring:
+
+```bash
+pip install flower
+celery -A celery_worker flower --port=5555
+```
+
+Access the dashboard at http://localhost:5555
+
 ## Docker-compose build
 
 Thanks to docker-compose, it is possible to easily manage all the components (solr and web server) required to run the
@@ -208,6 +267,11 @@ Docker and git must be installed.
    ```
 1. The web application should now be available with loaded data via http://localhost and https://localhost with ssl
    connection (beware that most browsers display a warning or block self-signed certificates)
+
+   Note: Redis and Celery worker services start automatically with docker-compose. Check worker logs with:
+   ```
+   (local) $ docker-compose logs -f celery
+   ```
 
 ### Maintenance of docker-compose
 
