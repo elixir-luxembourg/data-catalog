@@ -117,6 +117,7 @@ class Dataset(SolrEntity, EntityWithSlugs):
     dataset_affiliation = SolrField("dataset_affiliation")
     dataset_owner = SolrField("dataset_owner")
     form_id = SolrIntField("form_id")
+    request_pdf_enabled = SolrBooleanField("request_pdf_enabled")
     deprecated = SolrField("deprecated")
     deprecation_date = SolrDateTimeField("deprecation_date")
     deprecation_notes = SolrField("deprecation_notes")
