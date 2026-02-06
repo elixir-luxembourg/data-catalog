@@ -140,6 +140,22 @@ class SolrFloatField(SolrField):
             )
 
 
+class SolrBinaryField(SolrField):
+    """
+    SolrField subclass setting solr type to binary
+    """
+
+    def __init__(
+        self,
+        name: str,
+        attribute_name: Optional[str] = None,
+        indexed: bool = False,
+        stored: bool = True,
+        multivalued: bool = False,
+    ) -> None:
+        super().__init__(name, attribute_name, "binary", indexed, stored, multivalued)
+
+
 class SolrIntField(SolrField):
     """
     SolrField subclass setting solr type to pint

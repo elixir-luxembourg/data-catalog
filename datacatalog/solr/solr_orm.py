@@ -25,6 +25,7 @@ Module containing the following classes:
   - SolrQuery: base class to query solr
 
 """
+import base64
 import json
 import logging
 import re
@@ -41,7 +42,12 @@ from werkzeug.exceptions import abort
 
 from .facets import Facet, FacetRange
 from .solr_orm_entity import DATETIME_FORMAT, DATETIME_FORMAT_NO_MICRO, SolrEntity
-from .solr_orm_fields import SolrField, SolrForeignKeyField, SolrJsonField
+from .solr_orm_fields import (
+    SolrField,
+    SolrForeignKeyField,
+    SolrJsonField,
+    SolrBinaryField,
+)
 from .solr_orm_schema import SolrSchemaAdmin
 from .. import app
 from ..exceptions import SolrQueryException
@@ -147,7 +153,7 @@ class SolrQuery(object):
         edismax: bool = False,
         bq: str = None,
         sorts: List[str] = None,
-        cursor: str = None
+        cursor: str = None,
     ) -> pysolr.Results:
         """
         Execute a solr search
@@ -401,6 +407,8 @@ class SolrQuery(object):
                         solr_value[count] = field.model.from_json(data)
                 else:
                     solr_value = json.loads(solr_value)
+            elif solr_value is not None and isinstance(field, SolrBinaryField):
+                solr_value = base64.b64decode(solr_value)
             setattr(new_instance, attribute_name, solr_value)
         doc_id = doc.get("id", None)
         # remove prefix from id (entity_name_)
@@ -912,7 +920,8 @@ class SolrORM(object):
         @param soft_commit: if true, only a soft commit will be triggered
         @return: a string containing the response body from solr
         """
-        logger.debug("Solr commit")
+        logger.debug("Solr %scommit", "soft " if soft_commit else "")
+
         return self.indexer.commit(softCommit=soft_commit)
 
     def _delete_fields_for_class(self, entity_class):

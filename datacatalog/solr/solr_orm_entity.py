@@ -20,13 +20,20 @@
 Module containing the SolrEntity class
 
 """
+import base64
 import json
 import logging
 import uuid
 from datetime import datetime
 from typing import Optional, Any
 
-from .solr_orm_fields import SolrDateTimeField, SolrField, SolrIntField, SolrJsonField
+from .solr_orm_fields import (
+    SolrDateTimeField,
+    SolrField,
+    SolrIntField,
+    SolrJsonField,
+    SolrBinaryField,
+)
 from .. import app
 from ..connector.file_storage_connectors.webdav_file_connector import (
     WebdavFileStorageConnector,
@@ -174,6 +181,12 @@ class SolrEntity:
                 key = entity_type + "_" + field.name
             else:
                 key = field.name
+            if (
+                isinstance(field, SolrBinaryField)
+                and attribute_value
+                and isinstance(attribute_value, bytes)
+            ):
+                attribute_value = base64.b64encode(attribute_value).decode("ascii")
             if isinstance(field, SolrJsonField):
                 if field.model:
                     if attribute_value is not None:
@@ -221,6 +234,8 @@ class SolrEntity:
                     solr_value = datetime.strptime(solr_value, DATETIME_FORMAT_NO_MICRO)
             if solr_value is not None and isinstance(field, SolrIntField):
                 solr_value = int(solr_value)
+            if solr_value is not None and isinstance(field, SolrBinaryField):
+                solr_value = base64.b16decode(solr_value)
             setattr(new_instance, attribute_name, solr_value)
         if "id" in entity_json:
             new_instance.id = entity_json.get("id")

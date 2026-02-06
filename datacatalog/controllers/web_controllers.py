@@ -41,7 +41,6 @@ from flask import (
     send_from_directory,
     jsonify,
     abort,
-    session,
 )
 from flask_login import current_user, login_required
 from flask_wtf.csrf import CSRFError
@@ -238,21 +237,6 @@ def default_search(
     page = search_request.args.get("page", "1").strip()
     sort_by = search_request.args.get("sort_by", searcher_default_sort)
     sort_order = search_request.args.get("order", searcher_default_sort_order)
-
-    cursor_enabled = app.config.get("USE_CURSOR_PAGINATION", False)
-    cursor, prev_cursor = None, None
-    if cursor_enabled:
-        cursor = search_request.args.get("cursor", "*")
-        prev_cursor = search_request.args.get("prev_cursor")
-
-        session_key = f"{entity_type}_{query}_{sort_by}_{sort_order}"
-        if (
-            "last_search_key" not in session
-            or session["last_search_key"] != session_key
-        ):
-            session["last_search_key"] = session_key
-            cursor = "*"
-            prev_cursor = None
 
     export_excel = "export_excel" in search_request.args and exporter
 
