@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <style>
+        :root {
+            --color-primary:     #1a2744;
+            --color-accent:      #2c5282;
+            --color-text:        #1a1a1a;
+            --color-text-muted:  #555;
+            --color-text-light:  #777;
+            --color-border:      #d0d5dd;
+            --color-border-light:#e4e7ec;
+            --color-bg-subtle:   #f8f9fb;
+            --color-bg-section:  #f0f2f5;
+            --color-success:     #16643a;
+            --color-white:       #fff;
+
+            --font-body:    "Helvetica Neue", Helvetica, Arial, sans-serif;
+            --font-mono:    "Courier New", Courier, monospace;
+
+            --space-xs:  4px;
+            --space-sm:  8px;
+            --space-md:  14px;
+            --space-lg:  20px;
+            --space-xl:  28px;
+        }
+
+        @page {
+            size: A4;
+            margin: 2cm 1.8cm 2.2cm 1.8cm;
+
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 9.5pt;
+            line-height: 1.5;
+            color: var(--color-text);
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            font-size: 17pt;
+            font-weight: 700;
+            color: var(--color-primary);
+            margin: 0 0 var(--space-xs) 0;
+            letter-spacing: -0.3px;
+        }
+
+        .document-subtitle {
+            font-size: 9pt;
+            color: var(--color-text-muted);
+            margin: 0 0 var(--space-lg) 0;
+            padding-bottom: var(--space-md);
+            border-bottom: 2px solid var(--color-primary);
+        }
+
+        h2 {
+            font-size: 11pt;
+            font-weight: 700;
+            color: var(--color-primary);
+            margin: var(--space-xl) 0 var(--space-sm) 0;
+            padding-bottom: var(--space-xs);
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .doc-header {
+            margin-bottom: var(--space-lg);
+        }
+
+        .doc-header-meta {
+            font-size: 8.5pt;
+            color: var(--color-text-light);
+        }
+
+        .section-header td {
+            background: var(--color-primary);
+            color: var(--color-white);
+            font-weight: 700;
+            font-size: 8.5pt;
+            padding: 5px 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .metadata-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: var(--space-lg);
+            font-size: 9pt;
+        }
+
+        .metadata-table td {
+            padding: 5px 10px;
+            vertical-align: top;
+            border-bottom: 1px solid var(--color-border-light);
+        }
+
+        .metadata-table .label {
+            font-weight: 700;
+            color: var(--color-text-muted);
+            width: 115px;
+            white-space: nowrap;
+            font-size: 8.5pt;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .metadata-table .value {
+            color: var(--color-text);
+        }
+
+        .metadata-table .description-cell {
+            font-size: 8.5pt;
+            color: var(--color-text-muted);
+            font-style: italic;
+            padding-top: var(--space-sm);
+            line-height: 1.6;
+        }
+
+        .tag {
+            display: inline-block;
+            background: var(--color-bg-section);
+            border: 1px solid var(--color-border);
+            padding: 1px 8px;
+            margin: 1px 3px 1px 0;
+            border-radius: 3px;
+            font-size: 8pt;
+            color: var(--color-text-muted);
+        }
+
+        .form-fields {
+            margin-top: var(--space-sm);
+        }
+
+        .field {
+            margin-bottom: var(--space-sm);
+            page-break-inside: avoid;
+        }
+
+        .field-label {
+            font-size: 8.5pt;
+            font-weight: 700;
+            color: var(--color-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 2px;
+        }
+
+        .field-value {
+            font-size: 9.5pt;
+            padding: 4px 8px;
+            background: var(--color-bg-subtle);
+            border-left: 3px solid var(--color-accent);
+            color: var(--color-text);
+            line-height: 1.5;
+        }
+
+        .field-value--empty {
+            color: var(--color-text-light);
+            font-style: italic;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9pt;
+        }
+
+        th, td {
+            text-align: left;
+        }
+
+        .conditions-table {
+            margin-top: var(--space-sm);
+            border: 1px solid var(--color-border);
+        }
+
+        .conditions-table thead th {
+            background: var(--color-primary);
+            color: var(--color-white);
+            font-size: 8pt;
+            font-weight: 700;
+            padding: 6px 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            border: none;
+        }
+
+        .conditions-table tbody td {
+            padding: 6px 10px;
+            vertical-align: top;
+            border-bottom: 1px solid var(--color-border-light);
+        }
+
+        .conditions-table tbody tr:nth-child(even) td {
+            background: var(--color-bg-subtle);
+        }
+
+        .col-accepted  { width: 55px;  text-align: center; }
+        .col-code      { width: 85px; }
+        .col-condition { width: auto; }
+        .col-category  { width: 110px; }
+
+        .checkbox {
+            font-size: 13pt;
+            color: var(--color-border);
+        }
+
+        .checkbox--checked {
+            color: var(--color-success);
+        }
+
+        .cell-code {
+            font-family: var(--font-mono);
+            font-size: 7.5pt;
+            color: var(--color-text-muted);
+        }
+
+        .condition-note {
+            display: block;
+            font-size: 7.5pt;
+            color: var(--color-text-light);
+            margin-top: 2px;
+        }
+
+        .licenses-list {
+            margin: var(--space-sm) 0;
+            padding-left: 0;
+            list-style: none;
+        }
+
+        .licenses-list li {
+            font-size: 9.5pt;
+            padding: 4px 10px;
+            margin-bottom: 3px;
+            background: var(--color-bg-subtle);
+            border-left: 3px solid var(--color-success);
+        }
+
+        .timestamp {
+            font-size: 8pt;
+            color: var(--color-text-light);
+        }
+
+        .page-break {
+            page-break-before: always;
+        }
+
+        .no-break {
+            page-break-inside: avoid;
+        }
+    </style>
+</head>
+<body>
+    <div class="doc-header">
+        <h1>{{ dataset_title }}</h1>
+        <p class="document-subtitle">
+            Access Request &middot; Application #{{ application_id }}
+            &middot; <span class="timestamp">{{ timestamp }}</span>
+        </p>
+    </div>
+
+    <table class="metadata-table">
+        <tr class="section-header"><td colspan="4">Dataset Information</td></tr>
+        {% if dataset.id or dataset.version %}
+        <tr>
+            {% if dataset.id %}<td class="label">ID</td><td class="value">{{ dataset.id }}</td>{% endif %}
+            {% if dataset.version %}<td class="label">Version</td><td class="value">{{ dataset.version }}</td>{% endif %}
+        </tr>
+        {% endif %}
+        {% if dataset.owner or dataset.access_mode %}
+        <tr>
+            {% if dataset.owner %}<td class="label">Owner</td><td class="value">{{ dataset.owner }}</td>{% endif %}
+            {% if dataset.access_mode %}<td class="label">Access Mode</td><td class="value">{{ dataset.access_mode }}</td>{% endif %}
+        </tr>
+        {% endif %}
+        {% if dataset.affiliation %}
+        <tr>
+            <td class="label">Affiliation</td>
+            <td class="value" colspan="3">{{ dataset.affiliation }}</td>
+        </tr>
+        {% endif %}
+        {% if dataset.platform %}
+        <tr>
+            <td class="label">Platform</td>
+            <td class="value" colspan="3">{{ dataset.platform }}</td>
+        </tr>
+        {% endif %}
+        {% if dataset.contact %}
+        <tr>
+            <td class="label">Contact</td>
+            <td class="value" colspan="3">{{ dataset.contact }}{% if dataset.email %} ({{ dataset.email }}){% endif %}</td>
+        </tr>
+        {% endif %}
+        {% if dataset.data_types %}
+        <tr>
+            <td class="label">Data Types</td>
+            <td class="value" colspan="3">{% for dt in dataset.data_types %}<span class="tag">{{ dt }}</span>{% endfor %}</td>
+        </tr>
+        {% endif %}
+        {% if dataset.description %}
+        <tr>
+            <td class="description-cell" colspan="4">{{ dataset.description[:300] }}{% if dataset.description|length > 300 %}&hellip;{% endif %}</td>
+        </tr>
+        {% endif %}
+
+        <tr class="section-header"><td colspan="4">Requester</td></tr>
+        <tr>
+            <td class="label">Name</td>
+            <td class="value" colspan="3">{{ requester.name }}</td>
+        </tr>
+        <tr>
+            <td class="label">Email</td>
+            <td class="value" colspan="3">{{ requester.email }}</td>
+        </tr>
+        {% if requester.organization %}
+        <tr>
+            <td class="label">Organization</td>
+            <td class="value" colspan="3">{{ requester.organization }}</td>
+        </tr>
+        {% endif %}
+    </table>
+
+    <h2>Form Data</h2>
+    <div class="form-fields">
+        {% for field in form_fields %}
+            {% if field.type == 'table' %}
+                {% for row in field.value %}
+                    {% for i in range(field.columns|length) %}
+                    <div class="field no-break">
+                        <div class="field-label">{{ field.columns[i] }}</div>
+                        <div class="field-value {% if not row[i] %}field-value--empty{% endif %}">
+                            {{ row[i] or 'Not provided' }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endfor %}
+            {% else %}
+            <div class="field no-break">
+                <div class="field-label">{{ field.label }}</div>
+                <div class="field-value {% if not field.value %}field-value--empty{% endif %}">
+                    {{ field.value or 'Not provided' }}
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    {% if attachments %}
+    <h2>Attachments</h2>
+    <table class="conditions-table">
+        <thead>
+            <tr>
+                <th style="width: 40px;">#</th>
+                <th>Filename</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for att in attachments %}
+            <tr>
+                <td style="text-align: center;">{{ loop.index }}</td>
+                <td>{{ att.filename }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% if use_conditions %}
+    <h2>Use Conditions</h2>
+    {% set rule_labels = {
+        "PERMISSION": "Permissions",
+        "OBLIGATION": "Obligations",
+        "CONSTRAINED_PERMISSION": "Constrained Permissions",
+        "PROHIBITION": "Prohibitions"
+    } %}
+
+    {% for rule, conditions in use_conditions|groupby('use_condition_rule') %}
+    <h3 style="font-size: 9.5pt; font-weight: 700; color: var(--color-accent); margin: var(--space-md) 0 var(--space-xs) 0;">
+        {{ rule_labels.get(rule, rule) }}
+    </h3>
+    <table class="conditions-table">
+        <thead>
+            <tr>
+                <th class="col-accepted">Accepted</th>
+                <th class="col-code">Code</th>
+                <th class="col-condition">Condition</th>
+                <th class="col-category">Category</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for condition in conditions %}
+            <tr class="no-break">
+                <td class="col-accepted">
+                    <span class="checkbox {% if condition.accepted %}checkbox--checked{% endif %}">
+                        {% if condition.accepted %}&#9745;{% else %}&#9744;{% endif %}
+                    </span>
+                </td>
+                <td class="cell-code">{{ condition.use_class or '—' }}</td>
+                <td>
+                    {{ condition.use_condition_note or '(No description)' }}
+                    {% if condition.use_class_note %}
+                        <em class="condition-note">{{ condition.use_class_note }}</em>
+                    {% endif %}
+                </td>
+                <td>{{ condition.use_class_label or '—' }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endfor %}
+    {% endif %}
+
+    {% if licenses %}
+    <h2>Licenses</h2>
+    <ul class="licenses-list">
+    {% for license in licenses %}
+        <li>
+            <span class="checkbox {% if license.accepted %}checkbox--checked{% endif %}">
+                {% if license.accepted %}&#9745;{% else %}&#9744;{% endif %}
+            </span>
+            {{ license.title }}
+        </li>
+    {% endfor %}
+    </ul>
+    {% endif %}
+</body>
+</html>

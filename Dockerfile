@@ -15,7 +15,8 @@ RUN apt-get update --no-install-recommends && \
         python3-dev \
         libldap2-dev \
         libsasl2-dev \
-        ldap-utils && \
+        ldap-utils \
+        libreoffice-writer && \
     npm install -g lessc less && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*

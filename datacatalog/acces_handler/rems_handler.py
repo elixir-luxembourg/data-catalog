@@ -42,6 +42,7 @@ from .. import app
 from ..connector.rems_connector import RemsConnector, CatalogueItemDoesntExistException
 from ..exceptions import CouldNotCloseApplicationException
 from ..forms import MultiCheckboxField
+from ..exporter.rems_pdf_exporter import dispatch as dispatch_pdf
 
 logger = logging.getLogger(__name__)
 
@@ -185,6 +186,17 @@ class RemsAccessHandler(AccessHandler):
             license_ids.append(license_id)
         self.rems_connector.accept_license(application_id, license_ids)
         self.rems_connector.submit_application(application_id)
+
+        if dataset.request_pdf_enabled:
+            dispatch_pdf(
+                application_id=application_id,
+                dataset=dataset,
+                rems_form=rems_form,
+                field_values=field_values,
+                licenses=licenses,
+                form=form,
+                user=self.user,
+            )
 
     def get_datasets(self):
         pass

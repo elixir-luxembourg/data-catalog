@@ -50,6 +50,25 @@ npm ≥ 7.5.6
 sudo apt-get install libsasl2-dev libldap2-dev libssl-dev
 ```
 
+#### PDF and Background Tasks
+
+##### Rocky Linux 8 / RHEL 8
+
+```bash
+sudo dnf install pango cairo gdk-pixbuf2 libffi-devel
+sudo dnf install libreoffice-writer
+sudo dnf install redis
+sudo systemctl enable --now redis
+```
+
+##### Ubuntu / Debian
+
+```bash
+sudo apt-get install libpango-1.0-0 libcairo2 libgdk-pixbuf-2.0-0 libffi-dev shared-mime-info
+sudo apt-get install libreoffice-writer
+sudo apt-get install redis-server
+```
+
 ### Procedure
 
 1. Install python requirements with:
