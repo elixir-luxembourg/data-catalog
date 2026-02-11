@@ -175,8 +175,9 @@ class SolrQuery(object):
                 [self.format_field_name_with_order(sort) for sort in sorts]
             )
 
-        cursor_mark = cursor or "*" if self.cursor_enabled else None
+        cursor_mark = None
         if self.cursor_enabled:
+            cursor_mark = cursor or "*"
             sort_field = sort or "id"
             sort_with_order = (
                 f"{sort_field} {order}, id asc" if sort_field != "id" else "id asc"
@@ -276,12 +277,7 @@ class SolrQuery(object):
                 entity = self._build_instance(doc)
                 entities.append(entity)
             results.entities = entities
-
-            results.has_more = (
-                results.nextCursorMark and results.nextCursorMark != cursor_mark
-                if self.cursor_enabled
-                else False
-            )
+            results.has_more = len(results.docs) >= rows
 
             # replace facets fields name to remove prefix
             facet_fields = results.facets.get("facet_fields")
