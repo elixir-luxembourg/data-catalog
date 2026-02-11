@@ -208,7 +208,6 @@ Use Flower for web-based monitoring:
 pip install flower
 celery -A celery_worker flower --port=5555
 ```
-
 Access the dashboard at http://localhost:5555
 
 ## Docker-compose build
