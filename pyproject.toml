@@ -26,6 +26,7 @@ dependencies = [
     "webassets==2.0",
     "Flask-Testing==0.8.1",
     "requests==2.28.1",
+    "setuptools<81",
     "GEOparse==2.0.3",
     "Flask-Caching==2.0.1",
     "python-ldap==3.3.1",
