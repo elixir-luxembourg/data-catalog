@@ -215,6 +215,7 @@ class CreateResponse(BaseModel):
 
 class RemarkCommand(BaseModel):
     """Command to add a remark to a REMS application."""
+
     application_id: int = Field(..., alias="application-id")
     comment: Optional[str] = None
     attachments: Optional[List[Dict[str, int]]] = None

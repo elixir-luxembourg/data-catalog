@@ -305,9 +305,7 @@ class TestRemsConnector:
 
         assert result == content
 
-    def test_add_remark(
-        self, rems_client, requests_mock, success_response_factory
-    ):
+    def test_add_remark(self, rems_client, requests_mock, success_response_factory):
         application_id = 456
         comment = "Remark with attachment"
         attachments = [{"attachment/id": 1}, {"attachment/id": 2}]
@@ -326,4 +324,3 @@ class TestRemsConnector:
         last_request = requests_mock.request_history[-1]
         assert last_request.json()["attachments"] == attachments
         assert last_request.json()["public"] is True
-
