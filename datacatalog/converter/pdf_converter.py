@@ -31,7 +31,15 @@ def docx_to_pdf(data: bytes) -> bytes:
 
         try:
             result = subprocess.run(
-                ["libreoffice", "--headless", "--convert-to", "pdf", "--outdir", tmpdir, str(docx_path)],
+                [
+                    "libreoffice",
+                    "--headless",
+                    "--convert-to",
+                    "pdf",
+                    "--outdir",
+                    tmpdir,
+                    str(docx_path),
+                ],
                 capture_output=True,
                 timeout=60,
             )

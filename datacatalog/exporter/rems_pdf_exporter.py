@@ -13,7 +13,9 @@ USE_CONDITION_KEYS = (
 )
 
 
-def build_payload(application_id, dataset, rems_form, field_values, licenses, form, user):
+def build_payload(
+    application_id, dataset, rems_form, field_values, licenses, form, user
+):
     form_fields = []
     attachment_ids = []
 
@@ -46,10 +48,12 @@ def build_payload(application_id, dataset, rems_form, field_values, licenses, fo
     accepted_licenses = []
     for license in licenses:
         form_field = getattr(form, f"license_{license.id}", None)
-        accepted_licenses.append({
-            "title": license.localizations["en"]["title"],
-            "accepted": form_field.data if form_field else False,
-        })
+        accepted_licenses.append(
+            {
+                "title": license.localizations["en"]["title"],
+                "accepted": form_field.data if form_field else False,
+            }
+        )
 
     return {
         "application_id": application_id,

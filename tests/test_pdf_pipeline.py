@@ -117,7 +117,12 @@ class TestPdfPipeline(BaseTest):
                 dataset_title="Test Dataset",
                 requester={"name": "Jane Doe", "email": "jane@uni.lu"},
                 form_fields=[
-                    {"label": "Purpose", "value": "Cancer research", "type": "text", "columns": []}
+                    {
+                        "label": "Purpose",
+                        "value": "Cancer research",
+                        "type": "text",
+                        "columns": [],
+                    }
                 ],
                 use_conditions=[
                     {
@@ -144,7 +149,9 @@ class TestPdfPipeline(BaseTest):
                 ],
             )
 
-        full_text = "".join(p.extract_text() or "" for p in PdfReader(BytesIO(form_pdf)).pages)
+        full_text = "".join(
+            p.extract_text() or "" for p in PdfReader(BytesIO(form_pdf)).pages
+        )
         self.assertIn("Test Dataset", full_text)
         self.assertIn("sample3.docx", full_text)
         self.assertIn("Obligations", full_text)

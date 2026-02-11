@@ -44,10 +44,12 @@ def attach_request_pdf(
         application = connector.get_application(application_id)
         attachments_by_id = {a.id: a for a in application.attachments}
         for att_id in attachment_ids:
-            attachments_info.append({
-                "id": att_id,
-                "filename": attachments_by_id[att_id].filename,
-            })
+            attachments_info.append(
+                {
+                    "id": att_id,
+                    "filename": attachments_by_id[att_id].filename,
+                }
+            )
 
     form_pdf = render_form(
         application_id=application_id,
