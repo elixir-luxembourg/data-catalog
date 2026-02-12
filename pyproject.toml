@@ -8,6 +8,7 @@ version = "0.0.1"
 authors = [{ name = "Valentin Grouès", email = "valentin.groues@uni.lu" }]
 description = "A tool for advertising bio-medical projects and their associated datasets."
 keywords = ["data catalog", "lcsb"]
+requires-python = ">=3.10"
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "Natural Language :: English",
