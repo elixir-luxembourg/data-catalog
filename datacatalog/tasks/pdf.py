@@ -51,25 +51,34 @@ def attach_request_pdf(
                 }
             )
 
-    form_pdf = render_form(
-        application_id=application_id,
-        dataset_title=dataset_title,
-        dataset_metadata=dataset_metadata,
-        requester=requester,
-        form_fields=form_fields,
-        use_conditions=use_conditions,
-        licenses=licenses,
-        attachments=attachments_info,
-    )
-    parts = [form_pdf]
+    try:
+        form_pdf = render_form(
+            application_id=application_id,
+            dataset_title=dataset_title,
+            dataset_metadata=dataset_metadata,
+            requester=requester,
+            form_fields=form_fields,
+            use_conditions=use_conditions,
+            licenses=licenses,
+            attachments=attachments_info,
+        )
+        parts = [form_pdf]
 
-    for att_id in attachment_ids:
-        content = connector.get_attachment(att_id)
-        converted = to_pdf(content, attachments_by_id[att_id].filename)
-        if converted:
-            parts.append(converted)
+        for att_id in attachment_ids:
+            content = connector.get_attachment(att_id)
+            converted = to_pdf(content, attachments_by_id[att_id].filename)
+            if converted:
+                parts.append(converted)
 
-    final_pdf = merge(parts)
+        final_pdf = merge(parts)
+    except Exception:
+        logger.exception("Request PDF generation failed for application %s", application_id)
+        connector.add_remark(
+            application_id=application_id,
+            comment="Access request PDF generation failed",
+            public=False,
+        )
+        raise
 
     with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
         tmp.write(final_pdf)
