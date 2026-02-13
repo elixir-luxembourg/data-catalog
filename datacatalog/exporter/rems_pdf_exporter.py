@@ -69,6 +69,8 @@ def build_payload(
             "email": dataset.dataset_email,
             "affiliation": dataset.dataset_affiliation,
             "owner": dataset.dataset_owner,
+            "dataset_link_href": dataset.dataset_link_href,
+            "released_on": dataset.released_on,
         },
         "requester": {
             "name": user.displayname,

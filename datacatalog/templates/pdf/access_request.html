@@ -197,16 +197,12 @@
     <table class="sheet-table">
         <tbody>
             <tr>
-                <td class="label label--short">Request Type</td>
-                <td class="value">Access Request</td>
                 <td class="label label--short">Application ID</td>
                 <td class="value">#{{ application_id }}</td>
             </tr>
             <tr>
                 <td class="label label--short">Generated At</td>
                 <td class="value wrap"><span class="timestamp">{{ timestamp }}</span></td>
-                <td class="label label--short">Dataset Title</td>
-                <td class="value wrap">{{ dataset_title }}</td>
             </tr>
         </tbody>
     </table>
@@ -214,40 +210,38 @@
     <h2 class="section-title">Dataset Information</h2>
     <table class="sheet-table">
         <tbody>
-            {% if dataset.id or dataset.version %}
+            {% if dataset.id %}
             <tr>
-                {% if dataset.id %}
-                <td class="label label--short">ID</td>
-                <td class="value wrap">{{ dataset.id }}</td>
-                {% else %}
-                <td class="label label--short"></td>
-                <td class="value"></td>
-                {% endif %}
-                {% if dataset.version %}
-                <td class="label label--short">Version</td>
-                <td class="value wrap">{{ dataset.version }}</td>
-                {% else %}
-                <td class="label label--short"></td>
-                <td class="value"></td>
-                {% endif %}
+                <td class="label label--short">Accession number</td>
+                <td class="value wrap" colspan="3">{{ dataset.id }}</td>
             </tr>
             {% endif %}
-            {% if dataset.owner or dataset.access_mode %}
+            {% if dataset_title %}
             <tr>
-                {% if dataset.owner %}
-                <td class="label label--short">Owner</td>
-                <td class="value wrap">{{ dataset.owner }}</td>
-                {% else %}
-                <td class="label label--short"></td>
-                <td class="value"></td>
-                {% endif %}
-                {% if dataset.access_mode %}
-                <td class="label label--short">Access Mode</td>
-                <td class="value wrap">{{ dataset.access_mode }}</td>
-                {% else %}
-                <td class="label label--short"></td>
-                <td class="value"></td>
-                {% endif %}
+                <td class="label">Dataset Title</td>
+                <td class="value wrap" colspan="3">{{ dataset_title }}</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <td class="label">Version</td>
+                <td class="value wrap" colspan="3">V1.0</td>
+            </tr>
+            {% if dataset.access_mode %}
+            <tr>
+                <td class="label">Access Mode</td>
+                <td class="value wrap" colspan="3">{{ dataset.access_mode }}</td>
+            </tr>
+            {% endif %}
+            {% if dataset.released_on %}
+            <tr>
+                <td class="label">Released On</td>
+                <td class="value wrap" colspan="3">{{ dataset.released_on }}</td>
+            </tr>
+            {% endif %}
+            {% if dataset.owner %}
+            <tr>
+                <td class="label">Owner</td>
+                <td class="value wrap" colspan="3">{{ dataset.owner }}</td>
             </tr>
             {% endif %}
             {% if dataset.affiliation %}
@@ -265,8 +259,20 @@
             {% if dataset.contact %}
             <tr>
                 <td class="label">Contact</td>
+                <td class="value wrap" colspan="3">{{ dataset.contact }}</td>
+            </tr>
+            {% endif %}
+            {% if dataset.email %}
+            <tr>
+                <td class="label">Email</td>
+                <td class="value wrap" colspan="3">{{ dataset.email }}</td>
+            </tr>
+            {% endif %}
+            {% if dataset.dataset_link_href %}
+            <tr>
+                <td class="label">Dataset Link</td>
                 <td class="value wrap" colspan="3">
-                    {{ dataset.contact }}{% if dataset.email %} ({{ dataset.email }}){% endif %}
+                    <a href="{{ dataset.dataset_link_href }}">{{ dataset.dataset_link_href }}</a>
                 </td>
             </tr>
             {% endif %}
@@ -282,9 +288,7 @@
             {% endif %}
             {% if dataset.description %}
             <tr>
-                <td class="description-cell wrap" colspan="4">
-                    {{ dataset.description[:300] }}{% if dataset.description|length > 300 %}&hellip;{% endif %}
-                </td>
+                <td class="description-cell wrap" colspan="4">{{ dataset.description }}</td>
             </tr>
             {% endif %}
         </tbody>
