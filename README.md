@@ -50,23 +50,13 @@ npm ≥ 7.5.6
 sudo apt-get install libsasl2-dev libldap2-dev libssl-dev
 ```
 
-#### PDF and Background Tasks
-
-##### Rocky Linux 8 / RHEL 8
+##### Background Tasks Rocky Linux 8
 
 ```bash
 sudo dnf install pango cairo gdk-pixbuf2 libffi-devel
 sudo dnf install libreoffice-writer
 sudo dnf install redis
 sudo systemctl enable --now redis
-```
-
-##### Ubuntu / Debian
-
-```bash
-sudo apt-get install libpango-1.0-0 libcairo2 libgdk-pixbuf-2.0-0 libffi-dev shared-mime-info
-sudo apt-get install libreoffice-writer
-sudo apt-get install redis-server
 ```
 
 ### Procedure
@@ -181,8 +171,10 @@ The application uses Celery with Redis for background task processing.
 Redis must be running:
 
 ```bash
-# macOS
-brew services start redis
+sudo dnf install pango cairo gdk-pixbuf2 libffi-devel
+sudo dnf install libreoffice-writer
+sudo dnf install redis
+sudo systemctl enable --now redis
 
 # Linux
 sudo systemctl start redis
@@ -219,13 +211,6 @@ Celery is configured via the `CELERY` dict in `settings.py`. Key settings:
 
 Environment variables `CELERY_BROKER_URL` and `CELERY_RESULT_BACKEND` can override defaults.
 
-### Monitoring (Optional)
-
-Use Flower for web-based monitoring:
-
-```bash
-pip install flower
-celery -A celery_worker flower --port=5555
 ```
 Access the dashboard at http://localhost:5555
 
