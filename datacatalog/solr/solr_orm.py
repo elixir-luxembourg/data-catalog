@@ -179,7 +179,7 @@ class SolrQuery(object):
         cursor_mark = None
         if self.cursor_enabled:
             cursor_mark = cursor or "*"
-            if sort_with_order and not re.search(r'\bid (asc|desc)', sort_with_order):
+            if sort_with_order and not re.search(r"\bid (asc|desc)", sort_with_order):
                 sort_with_order += ", id asc"
             else:
                 sort_with_order = "id asc"
