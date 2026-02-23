@@ -50,7 +50,7 @@ services:
         environment:
             - DATACATALOG_ENV=docker
             - PYTHONUNBUFFERED=1
-            - USE_CELERY=true
+            - USE_CELERY=${USE_CELERY:-false}
             - CELERY_BROKER_URL=redis://redis:6379/0
             - CELERY_RESULT_BACKEND=redis://redis:6379/0
         depends_on:
