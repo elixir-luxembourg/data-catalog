@@ -189,13 +189,13 @@ Start the Celery worker in a separate terminal:
 
 ```bash
 # Development
-celery -A celery_worker worker --loglevel=info
+USE_CELERY=true celery -A celery_worker:celery_app worker --loglevel=info
 
 # With periodic task scheduler (beat)
-celery -A celery_worker worker --beat --loglevel=info
+USE_CELERY=true celery -A celery_worker:celery_app worker --beat --loglevel=info
 
 # Production (with concurrency)
-celery -A celery_worker worker --loglevel=warning --concurrency=4
+USE_CELERY=true celery -A celery_worker:celery_app worker --loglevel=warning --concurrency=4
 ```
 
 ### Configuration
@@ -211,9 +211,6 @@ Celery is configured via the `CELERY` dict in `settings.py`. Key settings:
 
 Environment variables `CELERY_BROKER_URL` and `CELERY_RESULT_BACKEND` can override defaults.
 Set `USE_CELERY=true` to enable asynchronous task dispatch; when false, tasks run synchronously.
-
-```
-Access the dashboard at http://localhost:5555
 
 ## Docker-compose build
 

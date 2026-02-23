@@ -45,7 +45,7 @@ services:
         container_name: datacatalog_celery_dev
         volumes:
             - .:/code
-        command: celery -A celery_worker worker --loglevel=info
+        command: celery -A celery_worker:celery_app worker --loglevel=info
         entrypoint: ""
         environment:
             - DATACATALOG_ENV=docker
@@ -62,7 +62,7 @@ services:
             - datacatalog-network
         restart: unless-stopped
         healthcheck:
-            test: ["CMD-SHELL", "celery -A celery_worker inspect ping -t 5 || exit 1"]
+            test: ["CMD-SHELL", "celery -A celery_worker:celery_app inspect ping -t 5 || exit 1"]
             interval: 30s
             timeout: 15s
             retries: 3
