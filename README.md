@@ -198,6 +198,12 @@ USE_CELERY=true celery -A celery_worker:celery_app worker --beat --loglevel=info
 USE_CELERY=true celery -A celery_worker:celery_app worker --loglevel=warning --concurrency=4
 ```
 
+For local (non-Docker) async execution, start the web app with the same flag:
+
+```bash
+USE_CELERY=true flask run
+```
+
 ### Configuration
 
 Celery is configured via the `CELERY` dict in `settings.py`. Key settings:
