@@ -1,7 +1,14 @@
 from celery import Celery, Task
-from flask import Flask
+from flask import Flask, current_app
 
 from datacatalog.tasks import pdf  # noqa: F401
+
+
+def dispatch_task(task, *args, **kwargs):
+    if current_app.config.get("USE_CELERY", True) and "celery" in current_app.extensions:
+        return task.delay(*args, **kwargs)
+
+    return task.run(*args, **kwargs)
 
 
 def celery_init_app(app: Flask) -> Celery:

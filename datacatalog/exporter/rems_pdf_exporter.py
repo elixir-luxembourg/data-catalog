@@ -1,16 +1,9 @@
 import logging
 
+from datacatalog.tasks import dispatch_task
 from datacatalog.tasks.pdf import attach_request_pdf
 
 logger = logging.getLogger(__name__)
-
-USE_CONDITION_KEYS = (
-    "use_condition_note",
-    "use_class",
-    "use_class_label",
-    "use_condition_rule",
-    "use_class_note",
-)
 
 
 def build_payload(
@@ -107,10 +100,17 @@ def resolve_field_value(field, value):
 
 
 def collect_use_conditions(dataset, form):
+    use_condition_keys = (
+        "use_condition_note",
+        "use_class",
+        "use_class_label",
+        "use_condition_rule",
+        "use_class_note",
+    )
     result = []
     for index, condition in enumerate(dataset.use_conditions or []):
         form_field = getattr(form, f"use_condition_{index}", None)
-        entry = {key: condition.get(key, "") for key in USE_CONDITION_KEYS}
+        entry = {key: condition.get(key, "") for key in use_condition_keys}
         entry["accepted"] = form_field.data if form_field else False
         result.append(entry)
     return result
@@ -126,5 +126,5 @@ def dispatch(application_id, dataset, rems_form, field_values, licenses, form, u
         form=form,
         user=user,
     )
-    attach_request_pdf.delay(**payload)
-    logger.info(f"Queued request PDF for application {application_id}")
+    dispatch_task(attach_request_pdf, **payload)
+    logger.info("Dispatched request PDF generation for application %s", application_id)
