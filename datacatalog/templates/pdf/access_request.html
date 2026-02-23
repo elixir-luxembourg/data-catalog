@@ -224,7 +224,7 @@
             {% endif %}
             <tr>
                 <td class="label">Version</td>
-                <td class="value wrap" colspan="3">V1.0</td>
+                <td class="value wrap" colspan="3">{{ dataset.version or "" }}</td>
             </tr>
             {% if dataset.access_mode %}
             <tr>

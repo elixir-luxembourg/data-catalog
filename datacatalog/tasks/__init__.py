@@ -5,7 +5,10 @@ from datacatalog.tasks import pdf  # noqa: F401
 
 
 def dispatch_task(task, *args, **kwargs):
-    if current_app.config.get("USE_CELERY", False) and "celery" in current_app.extensions:
+    if (
+        current_app.config.get("USE_CELERY", False)
+        and "celery" in current_app.extensions
+    ):
         return task.delay(*args, **kwargs)
 
     return task.run(*args, **kwargs)
