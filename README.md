@@ -210,6 +210,7 @@ Celery is configured via the `CELERY` dict in `settings.py`. Key settings:
 | `task_soft_time_limit` | `240` | Soft time limit (seconds) |
 
 Environment variables `CELERY_BROKER_URL` and `CELERY_RESULT_BACKEND` can override defaults.
+Set `USE_CELERY=true` to enable asynchronous task dispatch; when false, tasks run synchronously.
 
 ```
 Access the dashboard at http://localhost:5555
@@ -240,7 +241,7 @@ Docker and git must be installed.
    ```
    in python to generate this key.
 
-   Then build and start the dockers containers by running:
+   Then build and start the docker containers by running:
 
    ```
    (local) $ docker-compose up --build
@@ -271,7 +272,11 @@ Docker and git must be installed.
 1. The web application should now be available with loaded data via http://localhost and https://localhost with ssl
    connection (beware that most browsers display a warning or block self-signed certificates)
 
-   Note: Redis and Celery worker services start automatically with docker-compose. Check worker logs with:
+   Note: Redis and Celery worker are optional and enabled with the `celery` profile:
+   ```
+   (local) $ USE_CELERY=true docker-compose --profile celery up --build
+   ```
+   Check worker logs with:
    ```
    (local) $ docker-compose logs -f celery
    ```

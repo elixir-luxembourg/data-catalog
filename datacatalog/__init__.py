@@ -273,7 +273,7 @@ login_manager.login_message_category = "error"
 configure_authentication_system()
 
 celery_app = None
-if "CELERY" in app.config and app.config.get("USE_CELERY", True):
+if app.config.get("USE_CELERY", False) and "CELERY" in app.config:
     from datacatalog.tasks import celery_init_app
 
     celery_app = celery_init_app(app)

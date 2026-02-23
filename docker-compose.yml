@@ -23,10 +23,9 @@ services:
             - FLASK_DEBUG=1
             - BASE_URL=${BASE_URL:-https://localhost}
             - APP_SECRET=${APP_SECRET}
+            - USE_CELERY=${USE_CELERY:-false}
         depends_on:
             solr:
-                condition: service_healthy
-            redis:
                 condition: service_healthy
         networks:
             - datacatalog-network
@@ -39,6 +38,7 @@ services:
             start_period: 30s # Allow time for app and reload server to start
 
     celery:
+        profiles: ["celery"]
         build:
             context: .
             dockerfile: Dockerfile
@@ -50,6 +50,7 @@ services:
         environment:
             - DATACATALOG_ENV=docker
             - PYTHONUNBUFFERED=1
+            - USE_CELERY=true
             - CELERY_BROKER_URL=redis://redis:6379/0
             - CELERY_RESULT_BACKEND=redis://redis:6379/0
         depends_on:
@@ -68,6 +69,7 @@ services:
             start_period: 45s
 
     redis:
+        profiles: ["celery"]
         image: redis:7-alpine
         container_name: datacatalog_redis_dev
         expose:
