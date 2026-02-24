@@ -27,6 +27,7 @@ Module containing the following classes:
 """
 import json
 import logging
+import re
 
 from datetime import datetime
 from typing import Type, Dict, List, Tuple, Optional, Union, Iterable
@@ -162,7 +163,7 @@ class SolrQuery(object):
         @param cursor: cursor mark for deep pagination
         @return: a pysolr.Results instance containing the search results
         """
-        if sort_order or sort:
+        if sort_order or sort:  # string to sort using sort_order
             order = sort_order or "desc"
             if sort:
                 sort_with_order = sort + " " + order
@@ -170,7 +171,7 @@ class SolrQuery(object):
                 sort_with_order = "score " + order
         else:
             sort_with_order = ""
-        if sorts:
+        if sorts:  # list of fields to sort in order
             sort_with_order = ", ".join(
                 [self.format_field_name_with_order(sort) for sort in sorts]
             )
@@ -178,10 +179,11 @@ class SolrQuery(object):
         cursor_mark = None
         if self.cursor_enabled:
             cursor_mark = cursor or "*"
-            sort_field = sort or "id"
-            sort_with_order = (
-                f"{sort_field} {order}, id asc" if sort_field != "id" else "id asc"
-            )
+            if sort_with_order:
+                if not re.search(r"\bid (asc|desc)", sort_with_order):
+                    sort_with_order += ", id asc"
+            else:
+                sort_with_order = "id asc"
 
         if fq is None:
             fq = []
