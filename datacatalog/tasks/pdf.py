@@ -74,7 +74,10 @@ def attach_request_pdf(
 
         final_pdf = merge(parts)
 
-        tmp_path = Path(tempfile.gettempdir()) / f"data_access_request_summary_{application_id}.pdf"
+        tmp_path = (
+            Path(tempfile.gettempdir())
+            / f"data_access_request_summary_{application_id}.pdf"
+        )
         tmp_path.write_bytes(final_pdf)
 
         pdf_attachment_id = connector.add_attachment(application_id, str(tmp_path))
