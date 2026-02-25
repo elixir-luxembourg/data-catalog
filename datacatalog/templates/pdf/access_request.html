@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <style>
+        :root {
+            --color-blue: #124a7a;
+            --color-text: #111111;
+            --color-text-muted: #4f4f4f;
+            --color-border: #b7bcc3;
+            --color-table-head: #dfe3e8;
+            --color-success: #1f6e3f;
+            --color-off: #8b9096;
+            --color-white: #ffffff;
+
+            --font-body: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            --font-mono: "Courier New", Courier, monospace;
+
+            --space-sm: 8px;
+            --space-md: 8px;
+        }
+
+        @page {
+            size: A4;
+            margin: 1.8cm 1.8cm 2cm 1.8cm;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-body);
+            font-size: 9pt;
+            line-height: 1.25;
+            color: var(--color-text);
+            counter-reset: section;
+        }
+
+        h1 {
+            margin: 0 0 6px 0;
+            text-align: center;
+            font-size: 20pt;
+            color: var(--color-blue);
+            letter-spacing: -0.2px;
+        }
+
+        .section-title {
+            margin: var(--space-md) 0 3px 0;
+            font-size: 12.5pt;
+            color: var(--color-blue);
+            font-weight: 700;
+            page-break-after: avoid;
+        }
+
+        .section-title::before {
+            counter-increment: section;
+            content: counter(section) ". ";
+            margin-right: 2px;
+        }
+
+        .subsection-title {
+            margin: 2px 0;
+            font-size: 9.5pt;
+            color: var(--color-blue);
+            font-weight: 700;
+            page-break-after: avoid;
+        }
+
+        .sheet-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            margin-bottom: var(--space-sm);
+            background: var(--color-white);
+            font-size: 8.8pt;
+        }
+
+        .sheet-table th,
+        .sheet-table td {
+            border: 1px solid var(--color-border);
+            padding: 2px 5px;
+            vertical-align: top;
+            text-align: left;
+            line-height: 1.15;
+            background: var(--color-white);
+        }
+
+        .sheet-table th {
+            background: var(--color-table-head);
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .sheet-table .label {
+            width: 24%;
+            background: var(--color-table-head);
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .sheet-table .label--field {
+            white-space: normal;
+            overflow-wrap: break-word;
+        }
+
+        .sheet-table .label--short {
+            width: 18%;
+        }
+
+        .description-cell {
+            font-size: 8.5pt;
+            color: var(--color-text-muted);
+            font-style: italic;
+            line-height: 1.2;
+        }
+
+        .tag {
+            display: inline-block;
+            margin: 0 3px 2px 0;
+            padding: 0 6px;
+            border: 1px solid var(--color-border);
+            background: var(--color-white);
+            font-size: 7.8pt;
+        }
+
+        .field-value--empty {
+            color: var(--color-text-muted);
+            font-style: italic;
+        }
+
+        .table-group-title {
+            text-align: center;
+            font-weight: 700;
+            background: var(--color-table-head);
+            padding-top: 2px;
+            padding-bottom: 2px;
+            white-space: nowrap;
+        }
+
+        .col-accepted {
+            width: 90px;
+            text-align: center;
+        }
+
+        .col-code {
+            width: 70px;
+        }
+
+        .col-category {
+            width: 120px;
+        }
+
+        .checkbox {
+            font-size: 11pt;
+            color: var(--color-off);
+        }
+
+        .checkbox--checked {
+            color: var(--color-success);
+        }
+
+        .cell-code {
+            font-family: var(--font-mono);
+            font-size: 8pt;
+            color: var(--color-text-muted);
+        }
+
+        .condition-note {
+            display: block;
+            margin-top: 2px;
+            color: var(--color-text-muted);
+            font-size: 8pt;
+            font-style: italic;
+        }
+
+        .timestamp {
+            color: var(--color-text-muted);
+        }
+
+        .wrap {
+            overflow-wrap: break-word;
+            white-space: normal;
+        }
+
+        .no-break {
+            page-break-inside: avoid;
+        }
+    </style>
+</head>
+<body>
+    <h1>Data Request Information Sheet</h1>
+
+    <h2 class="section-title">Request Information</h2>
+    <table class="sheet-table">
+        <tbody>
+            <tr>
+                <td class="label label--short">Application ID</td>
+                <td class="value">#{{ application_id }}</td>
+            </tr>
+            <tr>
+                <td class="label label--short">Generated At</td>
+                <td class="value wrap"><span class="timestamp">{{ timestamp }}</span></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2 class="section-title">Dataset Information</h2>
+    <table class="sheet-table">
+        <tbody>
+            {% if dataset.id %}
+            <tr>
+                <td class="label label--short">Accession number</td>
+                <td class="value wrap" colspan="3">{{ dataset.id }}</td>
+            </tr>
+            {% endif %}
+            {% if dataset_title %}
+            <tr>
+                <td class="label">Dataset Title</td>
+                <td class="value wrap" colspan="3">{{ dataset_title }}</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <td class="label">Version</td>
+                <td class="value wrap" colspan="3">{{ dataset.version or "" }}</td>
+            </tr>
+            {% if dataset.access_mode %}
+            <tr>
+                <td class="label">Access Mode</td>
+                <td class="value wrap" colspan="3">{{ dataset.access_mode }}</td>
+            </tr>
+            {% endif %}
+            {% if dataset.released_on %}
+            <tr>
+                <td class="label">Released On</td>
+                <td class="value wrap" colspan="3">{{ dataset.released_on }}</td>
+            </tr>
+            {% endif %}
+            {% if dataset.owner %}
+            <tr>
+                <td class="label">Owner</td>
+                <td class="value wrap" colspan="3">{{ dataset.owner }}</td>
+            </tr>
+            {% endif %}
+            {% if dataset.affiliation %}
+            <tr>
+                <td class="label">Affiliation</td>
+                <td class="value wrap" colspan="3">{{ dataset.affiliation }}</td>
+            </tr>
+            {% endif %}
+            {% if dataset.platform %}
+            <tr>
+                <td class="label">Platform</td>
+                <td class="value wrap" colspan="3">{{ dataset.platform }}</td>
+            </tr>
+            {% endif %}
+            {% if dataset.contact %}
+            <tr>
+                <td class="label">Contact</td>
+                <td class="value wrap" colspan="3">{{ dataset.contact }}</td>
+            </tr>
+            {% endif %}
+            {% if dataset.email %}
+            <tr>
+                <td class="label">Email</td>
+                <td class="value wrap" colspan="3">{{ dataset.email }}</td>
+            </tr>
+            {% endif %}
+            {% if dataset.dataset_link_href %}
+            <tr>
+                <td class="label">Dataset Link</td>
+                <td class="value wrap" colspan="3">
+                    <a href="{{ dataset.dataset_link_href }}">{{ dataset.dataset_link_href }}</a>
+                </td>
+            </tr>
+            {% endif %}
+            {% if dataset.data_types %}
+            <tr>
+                <td class="label">Data Types</td>
+                <td class="value" colspan="3">
+                    {% for dt in dataset.data_types %}
+                    <span class="tag">{{ dt }}</span>
+                    {% endfor %}
+                </td>
+            </tr>
+            {% endif %}
+            {% if dataset.description %}
+            <tr>
+                <td class="description-cell wrap" colspan="4">{{ dataset.description }}</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <h2 class="section-title">Requester</h2>
+    <table class="sheet-table">
+        <tbody>
+            <tr>
+                <td class="label">Name</td>
+                <td class="value wrap">{{ requester.name }}</td>
+            </tr>
+            <tr>
+                <td class="label">Email</td>
+                <td class="value wrap">{{ requester.email }}</td>
+            </tr>
+            {% if requester.organization %}
+            <tr>
+                <td class="label">Organization</td>
+                <td class="value wrap">{{ requester.organization }}</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <h2 class="section-title">Form Data</h2>
+    <table class="sheet-table">
+        <tbody>
+            {% for field in form_fields %}
+                {% if field.type == 'table' %}
+                    <tr class="no-break">
+                        <td class="table-group-title" colspan="2">{{ field.label }}</td>
+                    </tr>
+                    {% for row in field.value %}
+                        {% for i in range(field.columns|length) %}
+                        <tr class="no-break">
+                            <td class="label">{{ field.columns[i] }}</td>
+                            <td class="value wrap {% if not row[i] %}field-value--empty{% endif %}">{{ row[i] or 'Not provided' }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% endfor %}
+                {% else %}
+                <tr class="no-break">
+                    <td class="label label--field">{{ field.label }}</td>
+                    <td class="value wrap {% if not field.value %}field-value--empty{% endif %}">{{ field.value or 'Not provided' }}</td>
+                </tr>
+                {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if attachments %}
+    <h2 class="section-title">Attachments</h2>
+    <table class="sheet-table">
+        <thead>
+            <tr>
+                <th style="width: 44px;">#</th>
+                <th>Filename</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for att in attachments %}
+            <tr>
+                <td style="text-align: center;">{{ loop.index }}</td>
+                <td class="wrap">{{ att.filename }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% if use_conditions %}
+    <h2 class="section-title">Use Conditions</h2>
+    {% set rule_labels = {
+        "PERMISSION": "Permissions",
+        "OBLIGATION": "Obligations",
+        "CONSTRAINED_PERMISSION": "Constrained Permissions",
+        "PROHIBITION": "Prohibitions"
+    } %}
+
+    {% for rule, conditions in use_conditions|groupby('use_condition_rule') %}
+    <h3 class="subsection-title">{{ rule_labels.get(rule, rule) }}</h3>
+    <table class="sheet-table">
+        <thead>
+            <tr>
+                <th class="col-accepted">Accepted</th>
+                <th class="col-code">Code</th>
+                <th>Condition</th>
+                <th class="col-category">Category</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for condition in conditions %}
+            <tr class="no-break">
+                <td class="col-accepted">
+                    <span class="checkbox {% if condition.accepted %}checkbox--checked{% endif %}">
+                        {% if condition.accepted %}&#9745;{% else %}&#9744;{% endif %}
+                    </span>
+                </td>
+                <td class="cell-code wrap">{{ condition.use_class or "N/A" }}</td>
+                <td class="wrap">
+                    {{ condition.use_condition_note or "(No description)" }}
+                    {% if condition.use_class_note %}
+                        <span class="condition-note wrap">{{ condition.use_class_note }}</span>
+                    {% endif %}
+                </td>
+                <td class="wrap">{{ condition.use_class_label or "N/A" }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endfor %}
+    {% endif %}
+
+    {% if licenses %}
+    <h2 class="section-title">Licenses</h2>
+    <table class="sheet-table">
+        <thead>
+            <tr>
+                <th class="col-accepted">Accepted</th>
+                <th>License</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for license in licenses %}
+            <tr class="no-break">
+                <td class="col-accepted">
+                    <span class="checkbox {% if license.accepted %}checkbox--checked{% endif %}">
+                        {% if license.accepted %}&#9745;{% else %}&#9744;{% endif %}
+                    </span>
+                </td>
+                <td class="wrap">{{ license.title }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+</body>
+</html>

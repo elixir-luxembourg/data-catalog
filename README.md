@@ -25,6 +25,7 @@ The code is available under **AGPL-3.0 license**.
     * [Requirements](#requirements)
     * [Procedure](#procedure)
     * [Testing](#testing)
+* [Background Tasks (Celery)](#background-tasks-celery)
 * [Docker-compose build](#docker-compose-build)
     * [Requirements](#requirements-for-docker-compose-build)
     * [Building](#building)
@@ -47,6 +48,15 @@ npm ≥ 7.5.6
 
 ```
 sudo apt-get install libsasl2-dev libldap2-dev libssl-dev
+```
+
+##### Background Tasks Rocky Linux 8
+
+```bash
+sudo dnf install pango cairo gdk-pixbuf2 libffi-devel
+sudo dnf install libreoffice-writer
+sudo dnf install redis
+sudo systemctl enable --now redis
 ```
 
 ### Procedure
@@ -152,6 +162,62 @@ pytest --cov .
 Note that a different core is used for tests and will have to be created. By default, it should be called
 datacatalog_test.
 
+## Background Tasks (Celery)
+
+The application uses Celery with Redis for background task processing.
+
+### Requirements
+
+Redis must be running:
+
+```bash
+sudo dnf install pango cairo gdk-pixbuf2 libffi-devel
+sudo dnf install libreoffice-writer
+sudo dnf install redis
+sudo systemctl enable --now redis
+
+# Linux
+sudo systemctl start redis
+
+# Docker
+docker run -d -p 6379:6379 redis
+```
+
+### Running the Worker
+
+Start the Celery worker in a separate terminal:
+
+```bash
+# Development
+USE_CELERY=true celery -A celery_worker:celery_app worker --loglevel=info
+
+# With periodic task scheduler (beat)
+USE_CELERY=true celery -A celery_worker:celery_app worker --beat --loglevel=info
+
+# Production (with concurrency)
+USE_CELERY=true celery -A celery_worker:celery_app worker --loglevel=warning --concurrency=4
+```
+
+For local (non-Docker) async execution, start the web app with the same flag:
+
+```bash
+USE_CELERY=true flask run
+```
+
+### Configuration
+
+Celery is configured via the `CELERY` dict in `settings.py`. Key settings:
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `broker_url` | `redis://localhost:6379/0` | Message broker URL |
+| `result_backend` | `redis://localhost:6379/0` | Task result storage |
+| `task_time_limit` | `300` | Hard time limit (seconds) |
+| `task_soft_time_limit` | `240` | Soft time limit (seconds) |
+
+Environment variables `CELERY_BROKER_URL` and `CELERY_RESULT_BACKEND` can override defaults.
+Set `USE_CELERY=true` to enable asynchronous task dispatch; when false, tasks run synchronously.
+
 ## Docker-compose build
 
 Thanks to docker-compose, it is possible to easily manage all the components (solr and web server) required to run the
@@ -178,7 +244,7 @@ Docker and git must be installed.
    ```
    in python to generate this key.
 
-   Then build and start the dockers containers by running:
+   Then build and start the docker containers by running:
 
    ```
    (local) $ docker-compose up --build
@@ -208,6 +274,15 @@ Docker and git must be installed.
    ```
 1. The web application should now be available with loaded data via http://localhost and https://localhost with ssl
    connection (beware that most browsers display a warning or block self-signed certificates)
+
+   Note: Redis and Celery worker are optional and enabled with the `celery` profile:
+   ```
+   (local) $ USE_CELERY=true docker-compose --profile celery up --build
+   ```
+   Check worker logs with:
+   ```
+   (local) $ docker-compose logs -f celery
+   ```
 
 ### Maintenance of docker-compose
 

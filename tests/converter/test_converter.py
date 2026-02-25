@@ -33,9 +33,10 @@ class TestConverter(TestCase):
         datasets_file_path = os.path.join(base_folder, "datasets_new.json")
         studies_file_path = os.path.join(base_folder, "studies_new.json")
         projects_file_path = os.path.join(base_folder, "projects_new.json")
-        with open(records_file_path) as records_file, open(
-            datasets_file_path, "w"
-        ) as datasets_file, open(studies_file_path, "w") as studies_file, open(
-            projects_file_path, "w"
-        ) as projects_file:
+        with (
+            open(records_file_path) as records_file,
+            open(datasets_file_path, "w") as datasets_file,
+            open(studies_file_path, "w") as studies_file,
+            open(projects_file_path, "w") as projects_file,
+        ):
             split_entities(records_file, datasets_file, studies_file, projects_file)

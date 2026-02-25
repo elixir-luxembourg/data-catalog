@@ -8,6 +8,7 @@ version = "0.0.1"
 authors = [{ name = "Valentin Grouès", email = "valentin.groues@uni.lu" }]
 description = "A tool for advertising bio-medical projects and their associated datasets."
 keywords = ["data catalog", "lcsb"]
+requires-python = ">=3.10"
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "Natural Language :: English",
@@ -27,6 +28,7 @@ dependencies = [
     "webassets==2.0",
     "Flask-Testing==0.8.1",
     "requests==2.28.1",
+    "setuptools<81",
     "GEOparse==2.0.3",
     "Flask-Caching==2.0.1",
     "python-ldap==3.3.1",
@@ -42,6 +44,10 @@ dependencies = [
     "python-slugify==5.0.2",
     "jsonschema==4.4.0",
     "click==8.1.7",
+    "celery[redis]>=5.3.0",
+    "weasyprint>=68.0",
+    "pypdf>=6.6.0",
+    "Pillow>=12.0.0",
 ]
 
 [project.urls]
@@ -51,7 +57,7 @@ Homepage = "https://git-r3lab.uni.lu/core-services/data-catalog"
 "flask.commands" = { assets = "flask_assets:assets" }
 
 [project.optional-dependencies]
-dev = ["flake8", "black"]
+dev = ["flake8", "black==25.12.0"]
 testing = [
     "coverage==5.5",
     "pytest==8.3.3",

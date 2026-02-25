@@ -132,6 +132,7 @@ class DaisyConnector(ImportEntitiesConnector):
                 form_id = None
 
             dataset.form_id = form_id
+            dataset.request_pdf_enabled = item.get("request_pdf_enabled") is True
 
             data_types_set = set()
             dataset.use_conditions = []

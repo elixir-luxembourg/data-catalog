@@ -272,6 +272,12 @@ login_manager.init_app(app)
 login_manager.login_message_category = "error"
 configure_authentication_system()
 
+celery_app = None
+if app.config.get("USE_CELERY", False) and "CELERY" in app.config:
+    from datacatalog.tasks import celery_init_app
+
+    celery_app = celery_init_app(app)
+
 # configure static files loader
 assets_env = Environment(app)
 assets_loader = PythonAssetsLoader(assets)
@@ -430,7 +436,7 @@ from . import controllers  # noqa: E402
 # Import to register filter
 from .storage_handler import all_handlers  # noqa: E402
 
-__all__ = [controllers, assets, app, all_handlers]
+__all__ = [controllers, assets, app, all_handlers, celery_app]
 
 # import extra controllers from plugin if CONTROLLERS_EXTRA is set in settings
 controllers_extra_strings = app.config.get("CONTROLLERS_EXTRA", [])

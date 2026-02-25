@@ -1234,5 +1234,4 @@ class TestRemsConnector(BaseTest):
         response = self.rems_connector.save_application_draft(
             application_id, rems_form.id, field_values
         )
-
         self.assertTrue(response)

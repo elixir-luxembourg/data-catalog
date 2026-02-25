@@ -41,6 +41,7 @@ jobs:
         if: matrix.lint-type == 'black'
         uses: psf/black@25.1.0
         with:
+          version: "25.12.0"
           options: "--check --verbose"
           src: "."
 
@@ -87,7 +88,7 @@ jobs:
           node-version: "18"
 
       - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install -y libsasl2-dev python3-dev libssl-dev openjdk-17-jdk libldap2-dev
+        run: sudo apt-get update && sudo apt-get install -y libsasl2-dev python3-dev libssl-dev openjdk-17-jdk libldap2-dev libreoffice-writer
 
       - name: Cache pip dependencies
         uses: actions/cache@v4
