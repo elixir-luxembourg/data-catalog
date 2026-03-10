@@ -246,9 +246,7 @@ class MultipleRemsAccessHandler(AccessHandler):
             field_id = f"license_{license_id}"
             setattr(FormClass, field_id, license_field)
         use_conditions = dataset.use_conditions or []
-        logger.debug(
-            "processing use conditions, %d conditions", len(use_conditions)
-        )
+        logger.debug("processing use conditions, %d conditions", len(use_conditions))
         for index, use_condition in enumerate(use_conditions):
             field_id = f"use_condition_{index}"
             values = []
@@ -276,9 +274,7 @@ class MultipleRemsAccessHandler(AccessHandler):
                     " ".join(values),
                     validators=[
                         DataRequired(),
-                        AnyOf(
-                            [True], message="You must accept all the use conditions"
-                        ),
+                        AnyOf([True], message="You must accept all the use conditions"),
                     ],
                     render_kw={
                         "compact": True,
