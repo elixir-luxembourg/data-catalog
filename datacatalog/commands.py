@@ -34,6 +34,8 @@ from flask.cli import AppGroup
 
 import requests
 
+from datacatalog.connector.entities_connector import ImportEntitiesConnector
+
 
 def register_cli(app: Flask):
     def register_indexer_commands():
@@ -114,7 +116,7 @@ def register_cli(app: Flask):
             Unpublish entities of type entity_name using the connector specified by connector_name
             Trigger a commit and clear the cache.
             Checks for type mismatch for each field
-            @param connector_name: Short name of the connector to use, e.g. Json. See method get_importer_connector
+            @param connector_name: Short name of the connector to use, e.g. Json. See method get_importer_connectors
             @type entity_name: type of the entities to delete
             """
             solr_orm = app.config["_solr_orm"]
@@ -123,21 +125,22 @@ def register_cli(app: Flask):
                     app.logger.error("unknown entity name")
                     exit(1)
                 entity_class = app.config["entities"][entity_name]
-                connector = get_importer_connector(connector_name, entity_class)
+                connectors = get_importer_connectors(connector_name, entity_class)
                 if solr_orm.field_type_mismatch(entity_name):
                     app.logger.error("Type mismatch run init_index to fix")
                     exit(1)
-                if not connector:
+                if not connectors:
                     app.logger.error("no known connector found")
                     exit(1)
 
-                solr_orm.delete(
-                    query=f"{entity_name}_connector_name:{connector.__class__.__name__}"
-                )
-                solr_orm.commit()
-                app.logger.info(
-                    f"All {entity_name}(s) of {connector.__class__.__name__} were deleted"
-                )
+                for connector in connectors:
+                    solr_orm.delete(
+                        query=f"{entity_name}_connector_name:{connector.__class__.__name__}"
+                    )
+                    solr_orm.commit()
+                    app.logger.info(
+                        f"All {entity_name}(s) of {connector.__class__.__name__} were deleted"
+                    )
                 app.cache.clear()
             else:
                 app.logger.error("Please run init_index first! ")
@@ -168,16 +171,16 @@ def register_cli(app: Flask):
                     app.logger.error("unknown entity name")
                     exit(1)
                 entity_class = app.config["entities"][entity_name]
-                connector = get_importer_connector(connector_name, entity_class)
+                connectors = get_importer_connectors(connector_name, entity_class)
                 if solr_orm.field_type_mismatch(entity_name):
                     app.logger.error("Type mismatch run init_index to fix")
                     exit(1)
-                if not connector:
+                if not connectors:
                     app.logger.error("no known connector found")
                     exit(1)
                 from datacatalog.importer.entities_importer import EntitiesImporter
 
-                importer = EntitiesImporter([connector])
+                importer = EntitiesImporter(connectors)
                 importer.import_all()
                 if sitemap:
                     generate_sitemaps()
@@ -206,6 +209,44 @@ def register_cli(app: Flask):
             entity_class = app.config["entities"][entity_name]
             from datacatalog.exporter.entities_exporter import EntitiesExporter
             from datacatalog.connector.rems_connector import RemsConnector
+
+            if app.config.get("CONNECTED_INSTANCES"):
+                rems_connectors = {
+                    instance_id: RemsConnector(
+                        api_username=app.config["REMS_INSTANCES"][instance_id][
+                            "REMS_API_USER"
+                        ],
+                        api_key=app.config["REMS_INSTANCES"][instance_id][
+                            "REMS_API_KEY"
+                        ],
+                        host=app.config["REMS_INSTANCES"][instance_id]["REMS_URL"],
+                        workflow_id=app.config["REMS_INSTANCES"][instance_id][
+                            "REMS_WORKFLOW_ID"
+                        ],
+                        organization_id=app.config["REMS_INSTANCES"][instance_id][
+                            "REMS_ORGANIZATION_ID"
+                        ],
+                        licenses=app.config["REMS_INSTANCES"][instance_id][
+                            "REMS_LICENSES"
+                        ],
+                        verify_ssl=app.config["REMS_INSTANCES"][instance_id][
+                            "REMS_VERIFY_SSL"
+                        ],
+                    )
+                    for instance_id in app.config["CONNECTED_INSTANCES"]
+                }
+                if not rems_connectors:
+                    app.logger.error("no known connector found")
+                    exit(1)
+
+                for instance_id, rems_connector in rems_connectors.items():
+                    entities = entity_class.query.search(
+                        query="*:*", fq=[f"{entity_name}_instance_id:{instance_id}"]
+                    ).entities
+                    exporter = EntitiesExporter([rems_connector])
+                    exporter.export_all(entities)
+
+                return
 
             connector = RemsConnector(
                 api_username=app.config.get("REMS_API_USER"),
@@ -249,7 +290,9 @@ def register_cli(app: Flask):
     register_importer_commands()
     register_exporter_commands()
 
-    def get_importer_connector(connector_name, entity_class):
+    def get_importer_connectors(
+        connector_name, entity_class
+    ) -> list[ImportEntitiesConnector]:
         """
         Returns an instance of the connector corresponding to connector_name
         Will check if the entity_class is compatible with the connector asked.
@@ -292,11 +335,26 @@ def register_cli(app: Flask):
         elif connector_name == "Daisy":
             from datacatalog.connector.daisy_connector import DaisyConnector
 
-            connector = DaisyConnector(
-                app.config["DAISY_API_URLS"][entity_class.__name__.lower()],
-                entity_class,
-                verify_ssl=app.config.get("DAISY_VERIFY_SSL", True),
-            )
+            if app.config["CONNECTED_INSTANCES"]:
+                connectors = []
+                for instance_id in app.config["CONNECTED_INSTANCES"]:
+                    connectors.append(
+                        DaisyConnector(
+                            app.config["DAISY_INSTANCES"][instance_id][
+                                entity_class.__name__.lower()
+                            ],
+                            entity_class,
+                            verify_ssl=app.config.get("DAISY_VERIFY_SSL", True),
+                            instance_id=instance_id,
+                        )
+                    )
+                return connectors
+            else:
+                connector = DaisyConnector(
+                    app.config["DAISY_API_URLS"][entity_class.__name__.lower()],
+                    entity_class,
+                    verify_ssl=app.config.get("DAISY_VERIFY_SSL", True),
+                )
         elif connector_name == "Limesurvey":
             from datacatalog.connector.limesurvey_connector import LimesurveyConnector
 
@@ -316,4 +374,4 @@ def register_cli(app: Flask):
             )
             importer_class = getattr(importer_module, importer_class_string_class)
             connector = importer_class.get_default_instance(entity_class)
-        return connector
+        return [connector]

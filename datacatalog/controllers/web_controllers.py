@@ -228,6 +228,7 @@ def default_search(
     query = search_request.args.get("query", "").strip()
     searcher: SolrQuery = entity.query
     entity_type = searcher.entity_name
+    update_users_accesses(current_user, entity_type)
     logger.debug("searching entity %s with query %s", entity_type, query)
     if template is None:
         template = "search_" + entity_type + ".html"
@@ -312,6 +313,20 @@ def default_search(
             explanation="see log for more details",
         )
 
+    if results.facets and "access_granted_users" in results.facets["facet_fields"]:
+        try:
+            user_index = results.facets["facet_fields"]["access_granted_users"].index(
+                current_user.id
+            )
+            results.facets["facet_fields"]["access_granted_users"] = results.facets[
+                "facet_fields"
+            ]["access_granted_users"][user_index : user_index + 2]
+        except ValueError:
+            results.facets["facet_fields"]["access_granted_users"] = [
+                current_user.id,
+                0,
+            ]
+
     if export_excel:
         if not current_user.is_authenticated:
             return login_manager.unauthorized()
@@ -326,6 +341,13 @@ def default_search(
         facet = facets.get(attribute_name, None)
         if facet is not None:
             ordered_facets.append(facet)
+    has_access = {}
+    if current_user.is_authenticated:
+        for entity in results.entities:
+            handler = get_access_handler(current_user, entity_type)
+            if handler and handler.supports_listing_accesses():
+                access = handler.has_access(entity)
+                has_access[entity.id] = access
 
     return render_template(
         template,
@@ -343,7 +365,35 @@ def default_search(
         fair_values_show=FAIR_VALUES_SHOW,
         fair_evaluations_show=FAIR_EVALUATIONS_SHOW,
         search_examples=search_examples,
+        has_access=has_access,
+        current_user=current_user,
     )
+
+
+def update_users_accesses(current_user, entity_type):
+    if not hasattr(app.config["entities"][entity_type], "access_granted_users"):
+        return
+    if not current_user.is_authenticated:
+        return
+    entities = list(app.config["entities"][entity_type].query.all())
+    handler = get_access_handler(current_user, entity_type)
+    for entity in entities:
+        access = handler.has_access(entity)
+        access_granted = access and access.value == "approved" or False
+        user_in_list = current_user.id in entity.access_granted_users
+
+        if user_in_list and access_granted or not user_in_list and not access_granted:
+            continue
+        if user_in_list and not access_granted:
+            # remove_from_list
+            try:
+                entity.access_granted_users.remove(current_user.id)
+            except Exception:
+                continue
+        if not user_in_list and access_granted:
+            # add_to_list
+            entity.access_granted_users.append(current_user.id)
+        entity.save()
 
 
 @app.route("/e/<entity_name>/<entity_id>", methods=["GET"])
@@ -579,6 +629,31 @@ def export_dats_entity(entity_name: str, entity_id: str) -> Response:
         )
         flash(
             "The export of metadata as DATS is currently not available. Please try again later.",
+            category="error",
+        )
+        return redirect(
+            url_for("entity_details", entity_name=entity_name, entity_id=entity_id)
+        )
+
+
+@app.route("/e/<entity_name>/<entity_id>/export_json_entity", methods=["GET"])
+def export_json_entity(entity_name: str, entity_id: str) -> Response:
+    try:
+        entity = get_entity(entity_name, entity_id)
+        title = re.sub("[^A-Za-z0-9]+", "_", entity.title)
+        filename = title + "_" + entity_name + ".json"
+        response = jsonify(entity.__dict__)
+        response.headers["Content-Disposition"] = f"attachment;filename={filename}"
+        return response
+    except Exception as e:
+        logger.error(
+            "error during json export of entity %s (%s)",
+            entity_id,
+            entity_name,
+            exc_info=e,
+        )
+        flash(
+            "The export of metadata as JSON is currently not available. Please try again later.",
             category="error",
         )
         return redirect(
