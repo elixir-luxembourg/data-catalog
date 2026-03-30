@@ -16,6 +16,7 @@ import logging
 import os
 import tempfile
 from abc import ABCMeta, abstractmethod
+from datetime import datetime as dt
 
 from flask import request
 from flask_login import current_user
@@ -37,6 +38,8 @@ from .access_handler import AccessHandler, ApplicationState, Application
 from .email_handler import EmailAccessHandler
 from .. import app
 from ..connector.rems_connector import RemsConnector, CatalogueItemDoesntExistException
+from ..exceptions import CouldNotCloseApplicationException
+from ..exporter.rems_pdf_exporter import dispatch as dispatch_pdf
 from ..forms import MultiCheckboxField
 from ..models.dataset import Dataset
 
@@ -97,13 +100,13 @@ class MultipleRemsAccessHandler(AccessHandler):
     def get_rems_connector(self, dataset: Dataset) -> RemsConnector:
         return self.rems_connectors[dataset.instance_id]
 
-    def get_rems_connector_by_application(self, application_id: str) -> RemsConnector:
-        applications = []
-        for rems_connector in self.rems_connectors:
-            applications.extend(rems_connector.my_applications())
-        for application in applications:
-            if application.id == application_id:
-                return
+    def get_rems_connector_by_application(self, application_id: int) -> RemsConnector:
+        for instance_id, rems_connector in self.rems_connectors.items():
+            applications = rems_connector.my_applications()
+            for application in applications:
+                if application.id == application_id:
+                    return rems_connector
+        return None
 
     def has_access(self, dataset):
         logger.info(
@@ -121,14 +124,14 @@ class MultipleRemsAccessHandler(AccessHandler):
         if not applications:
             return False
         for application in applications:
-            if application.applicationapplicant["userid"] != self.api_username:
+            if application.applicant.user_id != self.api_username:
                 continue
-            if application.applicationstate[18:] == ApplicationState.approved.value:
+            if application.state[18:] == ApplicationState.approved.value:
                 logger.info(
                     "application found for user %s, approved state", self.api_username
                 )
                 return ApplicationState.approved
-            if application.applicationstate[18:] == ApplicationState.submitted.value:
+            if application.state[18:] == ApplicationState.submitted.value:
                 has_submitted = True
         if has_submitted:
             logger.info(
@@ -138,7 +141,19 @@ class MultipleRemsAccessHandler(AccessHandler):
         return False
 
     def close_application(self, application_id):
-        pass
+        logger.info(
+            "closing application %s for user %s", application_id, current_user.id
+        )
+        application_id = int(application_id)
+        rems_connector = self.get_rems_connector_by_application(application_id)
+        if rems_connector is None:
+            raise CouldNotCloseApplicationException("application not found")
+        application_raw = rems_connector.get_application(application_id)
+        application = self.build_application(application_raw)
+        if application.applicant_id != current_user.id:
+            raise CouldNotCloseApplicationException("not authorized")
+        rems_connector.close_application(application_id)
+        return True
 
     def my_applications(self):
         logger.debug("getting list of applications")
@@ -147,9 +162,8 @@ class MultipleRemsAccessHandler(AccessHandler):
             applications.extend(rems_connector.my_applications())
         results = []
         for a in applications:
-            if a.applicationstate[18:] != ApplicationState.draft.value and (
-                a.applicationresources[0].resourceext_id in self.all_ids
-                or not self.all_ids
+            if a.state[18:] != ApplicationState.draft.value and (
+                a.resources[0].ext_id in self.all_ids or not self.all_ids
             ):
                 application = self.build_application(a)
                 results.append(application)
@@ -174,11 +188,11 @@ class MultipleRemsAccessHandler(AccessHandler):
             logger.error(e)
             return self.fallback_handler.apply(dataset, form)
 
-        rems_form = rems_connector.get_form_for_catalogue_item(catalogue_item.formid)
+        rems_form = rems_connector.get_form_for_catalogue_item(catalogue_item.form_id)
         field_values = {}
         # create application
         application_id = rems_connector.create_application([catalogue_item.id])
-        for field in rems_form.formfields:
+        for field in rems_form.fields:
             rems_field_id = field.fieldid
             wtf_field = FieldBuilder.build_field_builder(field)
             flask_form_value = getattr(form, rems_field_id).data
@@ -187,7 +201,7 @@ class MultipleRemsAccessHandler(AccessHandler):
             )
         # save draftFormTemplate
         rems_connector.save_application_draft(
-            application_id, rems_form.formid, field_values
+            application_id, rems_form.id, field_values
         )
         resource_id = catalogue_item.resource_id
         resource = rems_connector.get_resource(resource_id)
@@ -198,6 +212,17 @@ class MultipleRemsAccessHandler(AccessHandler):
             license_ids.append(license_id)
         rems_connector.accept_license(application_id, license_ids)
         rems_connector.submit_application(application_id)
+
+        if dataset.request_pdf_enabled:
+            dispatch_pdf(
+                application_id=application_id,
+                dataset=dataset,
+                rems_form=rems_form,
+                field_values=field_values,
+                licenses=licenses,
+                form=form,
+                user=self.user,
+            )
 
     def get_datasets(self):
         pass
@@ -220,8 +245,8 @@ class MultipleRemsAccessHandler(AccessHandler):
         resource_id = catalogue_item.resource_id
         resource = rems_connector.get_resource(resource_id)
 
-        form = rems_connector.get_form_for_catalogue_item(catalogue_item.formid)
-        fields = form.formfields
+        form = rems_connector.get_form_for_catalogue_item(catalogue_item.form_id)
+        fields = form.fields
         for field in fields:
             try:
                 wtf_field = FieldBuilder.build_field(field)
@@ -284,18 +309,18 @@ class MultipleRemsAccessHandler(AccessHandler):
                 ),
             )
         setattr(FormClass, "submit", SubmitField("Send"))
-        return FormClass(form_data)
+        return FormClass() if form_data is None else FormClass(formdata=form_data)
 
     @staticmethod
     def build_application(application):
-        resource_id = application.applicationresources[0].resourceext_id
-        resource_title = application.applicationresources[0].catalogue_itemtitle["en"]
-        creation_date = application.applicationcreated
-        external_id = application.applicationexternal_id
-        application_id = application.applicationid
-        applicant_id = application.applicationapplicant["userid"]
+        resource_id = application.resources[0].ext_id
+        resource_title = application.resources[0].title["en"]
+        creation_date = dt.fromisoformat(application.created)
+        external_id = application.external_id
+        application_id = application.id
+        applicant_id = application.applicant.user_id
         try:
-            state = ApplicationState(application.applicationstate[18:])
+            state = ApplicationState(application.state[18:])
         except ValueError as e:
             logger.error(e)
             state = None
