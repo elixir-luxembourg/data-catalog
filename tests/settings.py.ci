@@ -226,5 +226,11 @@ class TestConfig(Config):
 
     # multiple instances configuration
     CONNECTED_INSTANCES = []
-    DAISY_INSTANCES = {}
-    REMS_INSTANCES = {}
+    DAISY_INSTANCES = {
+            "I1": {"dataset": "http://fake-daisy-i1"},
+            "I2": {"dataset": "http://fake-daisy-i2"},
+        }
+    REMS_INSTANCES = {
+        "I1": {"REMS_API_KEY": "k1", "REMS_URL": "http://rems-i1", "REMS_API_USER": "u1", "REMS_WORKFLOW_ID": 1},
+        "I2": {"REMS_API_KEY": "k2", "REMS_URL": "http://rems-i2", "REMS_API_USER": "u2", "REMS_WORKFLOW_ID": 1},
+    }

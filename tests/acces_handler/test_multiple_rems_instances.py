@@ -12,6 +12,7 @@ class TestMultipleRemsInstances(BaseTest):
     def setUp(self):
         super().setUp()
         with self.app.app_context():
+            app.config["CONNECTED_INSTANCES"] = ["I1", "I2"]
             self.handler = MultipleRemsAccessHandler(
                 current_user, api_username=app.config.get("REMS_API_USER")
             )
