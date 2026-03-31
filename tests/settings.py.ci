@@ -224,3 +224,7 @@ class TestConfig(Config):
     # For entities attached files
     PUBLIC_FILE_STORAGE_ROOT = "https://webdav.lcsb.uni.lu/public/datacatalog_documents"
 
+    # multiple instances configuration
+    CONNECTED_INSTANCES = []
+    DAISY_INSTANCES = {}
+    REMS_INSTANCES = {}
