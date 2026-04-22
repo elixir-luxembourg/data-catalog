@@ -3,8 +3,8 @@
 {% extends 'layout.html' %}
 {% import 'macros.html' as macros %}
 {% block jsonld %}
-    {{ super() }}
-    <script type="application/ld+json">
+{{ super() }}
+<script type="application/ld+json">
     {
       "@context": "http://schema.org",
       "@id": "{{ request.url }}",
@@ -144,12 +144,10 @@
                     {% endif %}
                 {% endif %}
 
-                <div class="button-link input-group right_side_btn">
-                    <button class="btn button-link-text" data-toggle="modal" data-target="#citationModal">
-                        <i class="material-icons">format_quote</i>
-                        Cite
-                    </button>
-                </div>
+        <button type="button" class="btn btn-default right_side_btn"
+                data-toggle="modal" data-target="#citationModal">
+            <i class="material-icons">format_quote</i> Cite
+        </button>
 
                 {% if config.get('ALLOW_ENTITY_EXPORT', False) %}
                     <div class="button-link input-group right_side_btn">
@@ -303,30 +301,25 @@
         </div>
         {# Citation Modal #}
         <div class="modal fade" id="citationModal" tabindex="-1" role="dialog" aria-labelledby="citationModalLabel">
-            <div class="modal-dialog" role="document">
+            <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
-                        <h4 class="modal-title" id="citationModalLabel">
-                            <i class="material-icons citation-title-icon">format_quote</i>
-                            Cite this dataset
-                        </h4>
+                        <h4 class="modal-title" id="citationModalLabel">Cite this dataset</h4>
                     </div>
                     <div class="modal-body">
-                        <p class="text-muted citation-hint">
+                        <p><small class="text-muted">
                             APA citation format. Copy the citation below and paste it into your reference manager or document.
-                        </p>
-                        <div class="citation-box">
-                            <span id="citation-text"></span>
-                        </div>
+                        </small></p>
+                        <blockquote id="citation-text">ELIXIR Luxembourg. ({{ dataset.dataset_created.year if dataset.dataset_created else '' }}). {{ dataset.title }} ({{ dataset.version }}) [Data set]. {{ url_for('entity_details', entity_name='dataset', entity_id=dataset.id, _external=True) }}</blockquote>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary" id="copy-btn" onclick="copyCitation()">
-                            <i class="material-icons copy-btn-icon">content_copy</i>
-                            Copy to clipboard
+                        <button type="button" class="btn btn-primary" id="copy-btn">
+                            <i class="material-icons">content_copy</i>
+                            <span>Copy to clipboard</span>
                         </button>
                     </div>
                 </div>
@@ -338,63 +331,11 @@
 {% block js %}
 {{ super() }}
 <script>
-    const CITE_DATA = {
-        title: "{{ dataset.title | e }}",
-        id: "{{ dataset.id }}",
-        url: "{{ request.url }}",
-        {% if dataset.dataset_created %}
-            year: "{{ dataset.dataset_created.year }}",
-            month: "{{ dataset.dataset_created.strftime('%B') }}",
-            day: "{{ dataset.dataset_created.day }}"
-        {% else %}
-            year: "n.d.",
-            month: null,
-            day: null
-        {% endif %}
-    };
-
-    function updateCitation() {
-        const { title, id, url, year, month, day } = CITE_DATA;
-
-        const datePart = (month && day)
-            ? `${year}, ${month} ${day}`
-            : year;
-
-        const citation =
-            `ELIXIR Luxembourg. (${datePart}). ${title}. ELIXIR Luxembourg Data Catalogue. ${url}`;
-
-        document.getElementById("citation-text").textContent = citation;
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        updateCitation();
+    document.getElementById('copy-btn').addEventListener('click', (e) => {
+        const label = e.currentTarget.querySelector('span');
+        navigator.clipboard.writeText(document.getElementById('citation-text').textContent);
+        label.textContent = 'Copied!';
+        setTimeout(() => label.textContent = 'Copy to clipboard', 2000);
     });
-
-    function copyCitation() {
-        const citation = document.getElementById('citation-text').textContent;
-
-        function successUI() {
-            const btn = document.getElementById('copy-btn');
-            btn.innerHTML = '<i class="material-icons copy-btn-icon">check</i> Copied!';
-            btn.classList.replace('btn-primary', 'btn-success');
-
-            setTimeout(() => {
-                btn.innerHTML = '<i class="material-icons copy-btn-icon">content_copy</i> Copy to clipboard';
-                btn.classList.replace('btn-success', 'btn-primary');
-            }, 2000);
-        }
-
-        if (navigator.clipboard) {
-            navigator.clipboard.writeText(citation).then(successUI);
-        } else {
-            const textarea = document.createElement("textarea");
-            textarea.value = citation;
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand("copy");
-            document.body.removeChild(textarea);
-            successUI();
-        }
-    }
 </script>
 {% endblock %}
