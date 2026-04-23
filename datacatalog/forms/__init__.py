@@ -23,6 +23,7 @@ datacatalog.forms
 Package for forms classes
 
 """
+
 from urllib.parse import urlparse, urljoin
 
 from flask import redirect, request, Response, url_for

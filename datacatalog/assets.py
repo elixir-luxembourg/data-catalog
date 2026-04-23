@@ -20,6 +20,7 @@
 Module to configure Flask-Assets
 
 """
+
 from flask_assets import Bundle
 
 typeahead_js = "vendor/node_modules/typeahead.js/dist/typeahead.bundle.js"

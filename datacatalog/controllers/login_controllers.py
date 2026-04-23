@@ -22,6 +22,7 @@ HTML endpoints:
     - login
     - logout
 """
+
 import logging
 from typing import Optional
 

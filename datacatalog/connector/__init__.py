@@ -23,4 +23,5 @@ The connectors build list of entities instances from different sources (JSON fil
 
 
 """
+
 __author__ = "Valentin Grouès"

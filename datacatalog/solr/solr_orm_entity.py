@@ -20,6 +20,7 @@
 Module containing the SolrEntity class
 
 """
+
 import base64
 import json
 import logging
