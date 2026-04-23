@@ -49,7 +49,7 @@ common_js = Bundle(
         handlebars_js,
         typeahead_js,
         "js/main.js",
-        filters="closure_js",
+        filters="rjsmin",
         debug=False,
     ),
     "js/react/bundle.js",

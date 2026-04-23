@@ -41,6 +41,7 @@ Local installation of development environment and procedure for docker version a
 ### Requirements
 
 Python ≥ 3.10
+[uv](https://docs.astral.sh/uv/) ≥ 0.8
 Solr ≥ 8.2  
 npm ≥ 7.5.6
 
@@ -64,7 +65,7 @@ sudo systemctl enable --now redis
 1. Install python requirements with:
 
     ```
-    python -m pip install .
+    uv sync
     ```
 
 1. The less compiler needs to be installed to generate the css files.
@@ -156,7 +157,7 @@ The application should now be available under http://localhost:5000
 To run the unit tests:
 
 ```
-pytest --cov .
+uv run pytest
 ```
 
 Note that a different core is used for tests and will have to be created. By default, it should be called
@@ -342,9 +343,22 @@ runnning). Then, simply use:
 
 ## Development
 
-Install needed dependencies with:
+Install all dependencies (runtime + dev + testing) with:
 
-`pip install .[testing]`
+```
+uv sync --all-groups
+```
 
-Configure pre-commit hook for black and flake8:  
-see https://dev.to/m1yag1/how-to-setup-your-project-with-pre-commit-black-and-flake8-183k
+Linting and formatting use [ruff](https://docs.astral.sh/ruff/); type checking uses [ty](https://docs.astral.sh/ty/).
+
+```
+uv run ruff check .
+uv run ruff format .
+uv run ty check
+```
+
+Install the pre-commit hooks (ruff, ty, eslint):
+
+```
+uvx pre-commit install
+```
