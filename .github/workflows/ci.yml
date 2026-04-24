@@ -31,15 +31,15 @@ jobs:
 
       - name: Install dependencies
         if: matrix.lint-type != 'eslint'
-        run: uv sync
+        run: uv sync --only-group dev --no-install-project
 
       - name: Run ruff check
         if: matrix.lint-type == 'python'
-        run: uv run ruff check .
+        run: uv run --no-sync ruff check .
 
       - name: Run ruff format
         if: matrix.lint-type == 'python'
-        run: uv run ruff format --check .
+        run: uv run --no-sync ruff format --check .
 
       - name: Run ESLint
         if: matrix.lint-type == 'eslint'
