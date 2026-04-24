@@ -33,7 +33,7 @@ from wtforms import (
     FieldList,
     FormField,
 )
-from wtforms.fields.html5 import EmailField
+from wtforms.fields import EmailField
 from wtforms.validators import DataRequired, Length, Email, AnyOf, Optional
 
 from .access_handler import AccessHandler, ApplicationState, Application

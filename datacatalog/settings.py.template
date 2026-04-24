@@ -22,7 +22,8 @@ dirname = os.path.dirname(__file__)
 class Config(object):
     BASE_URL = os.environ.get("BASE_URL", "")
     SECRET_KEY = os.environ.get("APP_SECRET", b"")
-    TITLE = "Data Catalog"
+    MAX_FORM_MEMORY_SIZE = 1 * 1024 * 1024
+    TITLE = "Data Catalogue"
     ENTITIES = {
         "dataset": "datacatalog.models.dataset.Dataset",
         "project": "datacatalog.models.project.Project",
@@ -287,6 +288,7 @@ class DockerConfig(Config):
         "CACHE_TIMEOUT": 0,
     }
     SERVER_NAME = os.environ.get("SERVER_NAME")
+    TRUSTED_HOSTS = [SERVER_NAME] if SERVER_NAME else None
     PREFERRED_URL_SCHEME = os.environ.get("PREFERRED_URL_SCHEME", "http")
     PLUGIN = os.environ.get("PLUGIN")
     CELERY = {
@@ -305,6 +307,8 @@ class ProdConfig(Config):
         "CACHE_THRESHOLD": 10000,
         "CACHE_TIMEOUT": 0,
     }
+    SERVER_NAME = os.environ.get("SERVER_NAME")
+    TRUSTED_HOSTS = [SERVER_NAME] if SERVER_NAME else None
     SECRET_KEY = b""
 
 

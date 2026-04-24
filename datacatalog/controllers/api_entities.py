@@ -29,7 +29,6 @@ import logging
 
 from flask import jsonify, request, Response
 from flask_login import current_user, login_required
-from werkzeug.exceptions import BadRequest
 
 from .. import app, csrf, get_access_handler, get_downloads_handler
 from ..exceptions import DownloadsHandlerLinksException, AuthenticationException
@@ -87,9 +86,8 @@ def api_entities(entity_name: str) -> Response:
 @app.route("/api/downloadLink", methods=["POST"])
 @login_required
 def download_link() -> Response:
-    try:
-        request_data = request.get_json()
-    except BadRequest:
+    request_data = request.get_json(silent=True)
+    if request_data is None:
         return jsonify({"message": "wrong parameters"}), 400
     entity_id = request_data.get("entityId")
     logger.info(

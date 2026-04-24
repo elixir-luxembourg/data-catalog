@@ -25,7 +25,7 @@ import logging
 
 from flask_wtf import FlaskForm, RecaptchaField
 from wtforms import StringField, validators, TextAreaField, SubmitField
-from wtforms.fields.html5 import EmailField
+from wtforms.fields import EmailField
 
 logger = logging.getLogger(__name__)
 

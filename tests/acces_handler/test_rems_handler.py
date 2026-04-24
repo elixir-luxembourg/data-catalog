@@ -34,7 +34,7 @@ from wtforms import (
     SelectMultipleField,
 )
 from wtforms.validators import DataRequired, Optional
-from wtforms.fields.html5 import EmailField
+from wtforms.fields import EmailField
 
 from datacatalog import app
 from datacatalog.acces_handler.access_handler import ApplicationState

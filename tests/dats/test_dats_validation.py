@@ -19,6 +19,10 @@
 import json
 import os
 
+import pytest
+
+pytest.importorskip("datsvalidator")
+
 from tests.base_test import BaseTest, get_resource_path
 from tests.dats import dats_model
 

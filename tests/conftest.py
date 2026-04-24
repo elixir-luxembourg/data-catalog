@@ -39,6 +39,15 @@ def rems_client():
         admin_user="test-admin",
     )
 
+@pytest.fixture(autouse=True)
+def _flask_request_context(request):
+    instance = request.instance
+    if instance is None or not hasattr(instance, "app"):
+        yield
+        return
+    with instance.app.test_request_context():
+        instance.client = instance.app.test_client()
+        yield
 
 @pytest.fixture
 def rems_application():

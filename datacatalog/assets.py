@@ -34,7 +34,7 @@ common_css = Bundle(
     jqueryui_css,
     Bundle("css/layout.less", filters="less"),
     "css/typeahead.css",
-    filters="cssmin",
+    filters="rcssmin",
     output="public/css/common.min.css",
     debug=False,
 )
