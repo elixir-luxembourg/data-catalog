@@ -20,10 +20,6 @@ import json
 import os
 import tempfile
 
-import pytest
-
-pytest.importorskip("datsvalidator")
-
 from datacatalog import app
 from datacatalog.connector.dats_connector import DATSConnector
 from datacatalog.exporter.dats_exporter import DATSExporter
