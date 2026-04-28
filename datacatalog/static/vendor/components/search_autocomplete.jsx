@@ -16,9 +16,14 @@
 import React, {Component} from "react";
 import ReactDOM from "react-dom";
 import PropTypes from "prop-types";
+import {Search} from "lucide-react";
 
 
 let domContainer = document.querySelector("#autocomplete_input");
+
+const itemBase = "block cursor-pointer px-3 py-2 text-sm text-gray-800 hover:bg-gray-100";
+const itemActive = "block cursor-pointer px-3 py-2 text-sm bg-blue-900 text-white";
+const headerClass = "px-3 pt-2 pb-1 text-xs font-semibold uppercase tracking-wide text-blue-900";
 
 class Autocomplete extends Component {
     constructor(props) {
@@ -79,7 +84,7 @@ class Autocomplete extends Component {
         // Keep only titles and acronyms that contains the input query
         const newFilteredSuggestions = suggestionsList.filter(
             suggestion =>
-                suggestion.title.toLowerCase().indexOf(input.toLowerCase()) > -1 
+                suggestion.title.toLowerCase().indexOf(input.toLowerCase()) > -1
                 || (suggestion.acronym && suggestion.acronym.toLowerCase().indexOf(input.toLowerCase()) > -1)
                 || (suggestion.id.toLowerCase().indexOf(input.toLowerCase()) > -1)
         );
@@ -175,32 +180,29 @@ class Autocomplete extends Component {
 
         // Create dropdown divider if there are both suggested terms and entity titles
         if (filtered.length > 0 && totalTermsState > 0 && suggestionsTerms.length > 0 && totalEntityTitleState > 0) {
-            divider = <div className="dropdown-divider"></div>;
+            divider = <div className="my-1 border-t border-gray-200"></div>;
         }
 
         // Create entity header if there are entities left after filtering
         if (filtered.length > 0 && totalEntityTitleState > 0) {
-            autocompleteHeaderEntity = <div className="autocomplete_header">{entityName + "s"}</div>;
+            autocompleteHeaderEntity = <div className={headerClass}>{entityName + "s"}</div>;
         }
 
         // Create keywords header if there are suggested terms
         if (suggestionsTerms.length > 0 && totalTermsState > 0) {
-            autocompleteHeaderKeyword = <div className="autocomplete_header">Keywords</div>;
+            autocompleteHeaderKeyword = <div className={headerClass}>Keywords</div>;
         }
 
         if (isShow && inputText &&
                 ((filtered.length > 0 && totalEntityTitleState > 0)
                         || (suggestionsTerms.length > 0 && totalTermsState > 0))) {
             return (
-                <div className="autocomplete dropdown">
+                <div className="absolute left-0 right-0 top-full z-30 mt-1 max-h-96 overflow-auto rounded border border-gray-200 bg-white py-1 shadow-lg">
                     {autocompleteHeaderKeyword}
                     {
                         // List of suggested terms for search
                         suggestionsTerms.slice(0, totalTermsState).map((suggestion, index) => {
-                            let className = "dropdown-item";
-                            if (index === this.state.active) {
-                                className += " active";
-                            }
+                            const className = index === this.state.active ? itemActive : itemBase;
 
                             return (
                                 <div className={className} key={index} onClick={() => this.onItemClick(suggestion)}>
@@ -214,18 +216,18 @@ class Autocomplete extends Component {
                     {
                         // List of entities with acronym or title containing the input
                         filtered.slice(0, totalEntityTitleState).map((suggestion, index) => {
-                            let className = "dropdown-item";
-                            if (suggestionsTerms.slice(0, totalTermsState).length + index === this.state.active) {
-                                className += " active";
-                            }
+                            const isActive = suggestionsTerms.slice(0, totalTermsState).length + index === this.state.active;
+                            const className = isActive ? itemActive : itemBase;
                             return (
                                 <a href={entityLinkPattern + suggestion.id} id={suggestion.id}
-                                    key={suggestion.id}>
+                                    key={suggestion.id}
+                                    className="block no-underline">
                                     <div className={className}
                                         key={suggestionsTerms.slice(0, totalTermsState).length + index}
                                         data-entity-id={suggestion.id}
                                         onClick={() => this.onItemClick(suggestion)}>
-                                        {suggestion.acronym ? `${suggestion.acronym} - ${suggestion.title}` : suggestion.title} <small>({suggestion.id})</small>
+                                        {suggestion.acronym ? `${suggestion.acronym} - ${suggestion.title}` : suggestion.title}
+                                        <small className={isActive ? "ml-2 text-white/80" : "ml-2 text-gray-500"}>({suggestion.id})</small>
                                     </div>
                                 </a>
                             );
@@ -244,20 +246,31 @@ class Autocomplete extends Component {
 
 
         return (
-            <>
-                <input title="query" placeholder="enter your query here" type="text" name="query"
-                    id="query" className="form-control"
+            <div className="relative flex w-full">
+                <input
+                    title="query"
+                    placeholder="enter your query here"
+                    type="text"
+                    name="query"
+                    id="query"
                     value={inputText}
                     onChange={this.onInputChange}
-                    onKeyDown={this.onInputKeyDown} ref={this.inputRef}
-                    autoComplete={"off"}/>
-                <span className="input-group-addon">
-                    <button type="submit" className="btn btn-primary btn-raised" id="search-button" ref={this.btnRef}>
-                        <i className="material-icons">search</i>
-                    </button>
-                </span>
+                    onKeyDown={this.onInputKeyDown}
+                    ref={this.inputRef}
+                    autoComplete="off"
+                    className="block w-full flex-1 rounded-l border border-gray-200 bg-white px-3 py-2 text-sm text-blue-900 placeholder-gray-400 focus:border-blue-900 focus:outline-none focus:ring-1 focus:ring-blue-900"
+                />
+                <button
+                    type="submit"
+                    id="search-button"
+                    ref={this.btnRef}
+                    className="inline-flex items-center justify-center rounded-r border border-l-0 border-blue-900 bg-blue-900 px-4 py-2 text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-1"
+                    aria-label="Search"
+                >
+                    <Search className="h-5 w-5" aria-hidden="true" />
+                </button>
                 {this.renderAutocomplete()}
-            </>
+            </div>
         );
     }
 

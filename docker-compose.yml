@@ -7,7 +7,6 @@ services:
         volumes:
             - .:/code
             - /code/.venv
-            - static_files:/code/datacatalog/static/
         expose:
             - '${WEB_INTERNAL_PORT:-5000}'
         command: > 
@@ -120,7 +119,7 @@ services:
             - ./docker/nginx/nginx-selfsigned.crt:/etc/ssl/certs/nginx-selfsigned.crt:ro
             - ./docker/nginx/nginx-selfsigned.key:/etc/ssl/private/nginx-selfsigned.key:ro
             - ./docker/nginx/dhparam.pem:/etc/ssl/certs/dhparam.pem:ro
-            - static_files:/var/www/shared/static/:ro
+            - ./datacatalog/static:/var/www/shared/static/:ro
             - nginx_logs:/log
         depends_on:
             - web
@@ -130,7 +129,6 @@ services:
 
 volumes:
     solrdata:
-    static_files:
     nginx_logs:
     redisdata:
 

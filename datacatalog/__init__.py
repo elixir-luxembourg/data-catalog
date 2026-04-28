@@ -57,10 +57,10 @@ DEFAULT_ENTITIES = {
 }
 
 DEFAULT_USE_CONDITIONS_ICONS = {
-    "PERMISSION": ("thumb_up", "text-default", "Permissions"),
-    "OBLIGATION": ("hardware", "text-default", "Obligations"),
+    "PERMISSION": ("thumbs-up", "text-default", "Permissions"),
+    "OBLIGATION": ("wrench", "text-default", "Obligations"),
     "CONSTRAINED_PERMISSION": ("info", "text-default", "Constrained permissions"),
-    "PROHIBITION": ("block", "text-default", "Prohibitions"),
+    "PROHIBITION": ("ban", "text-default", "Prohibitions"),
 }
 
 ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_NEVER)

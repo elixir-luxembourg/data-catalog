@@ -1,7 +1,8 @@
+{% extends 'base_layout.html' %}
+{% import 'macros.html' as macros %}
 {% set entity_name = "dataset" %}
 {% set entity = dataset %}
-{% extends 'layout.html' %}
-{% import 'macros.html' as macros %}
+
 {% block jsonld %}
 {{ super() }}
 <script type="application/ld+json">
@@ -53,8 +54,9 @@
     {% endif %}
       "url": "{{ request.url }}"
     }
-    </script>
+</script>
 {% endblock %}
+
 {% block title %}Dataset - {{ dataset.title }}{% endblock %}
 
 {% block meta %}
@@ -64,278 +66,284 @@
 {% endblock %}
 
 {% block content %}
-    <div class="well box datasetDetails">
-        {% if dataset.deprecated == "Deprecated" %}
-            <div class="ribbon"><span>Deprecated</span></div>
-       {% else %}
-            {% if fair_evaluations_show and dataset.fair_evaluation %}
-                <a class="fairResultsStamp" data-expand="fairplus-evaluation-fields"
-                   href="#fairplus-evaluation-fields"><img alt='fairplus stamp'
-                                                           title="Dataset processed by FAIRplus. See FAIRplus Evaluation tab for details."
-                                                           src="/static/public/images/fairplus-stamp.png"/></a>
-            {% endif %}
+<section class="relative space-y-6 rounded border border-gray-200 bg-white p-6 shadow-sm">
+    {% if dataset.deprecated == "Deprecated" %}
+        <span class="absolute right-0 top-0 rounded-bl bg-red-900 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">Deprecated</span>
+    {% else %}
+        {% if fair_evaluations_show and dataset.fair_evaluation %}
+            <a href="#fairplus-evaluation-fields" class="absolute right-3 top-3" data-expand="fairplus-evaluation-fields">
+                <img alt="fairplus stamp"
+                     title="Dataset processed by FAIRplus. See FAIRplus Evaluation tab for details."
+                     src="/static/public/images/fairplus-stamp.png" class="h-12 w-12"/>
+            </a>
         {% endif %}
-        {% if dataset.released_on %}
-            <div class="date">Released on  {{ dataset.released_on|date }}</div>
-        {% endif %}
-        <h1>{{ dataset.title }}</h1>
-             {% if dataset.deprecated == "Deprecated" %}
-                        {{ macros.start_entity_info() }}
-                        {{ macros.entity_info_row("Accession number", dataset.id) }}
-                        {{ macros.entity_info_row("Date of Deprecation ", dataset.deprecation_date | date ) }}
-                        {{ macros.entity_info_deprecated("Deprecation Notes", dataset.deprecation_notes) }}
-                         {{ macros.entity_info_row("Description", dataset.description | default("", True)) }}
-                        {{ macros.end_entity_info() }}
-             {% else %}
-             {{ macros.start_entity_info() }}
-             {{ macros.entity_info_row("Accession number", dataset.id) }}
-             {{ macros.entity_info_row("Description", dataset.description | default("", True)) }}
-            {{ macros.end_entity_info() }}
-            {% if has_access.value == 'approved' %}
-                <div class="accessStatus">
-                    <div class="dataset_request_status">
-                            <span title="you were granted access to this dataset"
-                                  class="text-success  glyphicon glyphicon-ok-circle"></span>
-                        Data Access Granted
-                    </div>
-                </div>
-            {% endif %}
-            <div class="form-inline">
-                {% if dataset.dataset_link_href %}
-                    <div class="button-link input-group">
-                        <p class="input-group-btn">
-                            <i class="material-icons">download</i>
-                        </p>
-                        <a class="btn button-link-text"
-                           href="{{ dataset.dataset_link_href }}">Access Data</a>
+    {% endif %}
 
-                    </div>
+    {% if dataset.released_on %}
+        <div class="text-sm text-gray-600">Released on {{ dataset.released_on | date }}</div>
+    {% endif %}
+
+    <h1 class="font-display text-3xl font-semibold text-blue-900">{{ dataset.title }}</h1>
+
+    {% if dataset.deprecated == "Deprecated" %}
+        {{ macros.start_entity_info() }}
+        {{ macros.entity_info_row("Accession number", dataset.id) }}
+        {{ macros.entity_info_row("Date of Deprecation", dataset.deprecation_date | date) }}
+        {{ macros.entity_info_deprecated("Deprecation Notes", dataset.deprecation_notes) }}
+        {{ macros.entity_info_row("Description", dataset.description | default("", True)) }}
+        {{ macros.end_entity_info() }}
+    {% else %}
+        {{ macros.start_entity_info() }}
+        {{ macros.entity_info_row("Accession number", dataset.id) }}
+        {{ macros.entity_info_row("Description", dataset.description | default("", True)) }}
+        {{ macros.end_entity_info() }}
+
+        {% if has_access.value == 'approved' %}
+            <div class="inline-flex items-center gap-2 rounded border border-blue-900 bg-sky-50 px-3 py-2 text-sm font-medium text-blue-900">
+                <i data-lucide="circle-check" class="h-5 w-5"></i>
+                <span title="you were granted access to this dataset">Data Access Granted</span>
+            </div>
+        {% endif %}
+
+        <div class="flex flex-wrap items-center gap-3">
+            {% if dataset.dataset_link_href %}
+                <a href="{{ dataset.dataset_link_href }}"
+                   class="inline-flex items-center gap-2 rounded bg-blue-900 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus:ring-2 focus:ring-blue-900 focus:ring-offset-2 focus:outline-none">
+                    <i data-lucide="download" class="h-4 w-4"></i>
+                    Access Data
+                </a>
             {% else %}
-                    {% if has_access.value == 'approved' %}
-                        <div class="storages">
-                            {% set storages_templates = dataset.storages | storage_templates %}
-                            {% for storage, storage_template in storages_templates %}
-                                {% include "storages/%s.html" % storage_template %}
-                            {% else %}
+                {% if has_access.value == 'approved' %}
+                    <div class="flex flex-wrap items-center gap-3">
+                        {% set storages_templates = dataset.storages | storage_templates %}
+                        {% for storage, storage_template in storages_templates %}
+                            {% include "storages/%s.html" % storage_template %}
+                        {% else %}
+                            <p class="text-sm text-gray-800">
                                 Please
-                                <a href="mailto:{{ config.get('CONTACT_ACCESS_RECIPIENT') }}?body={{ config.get('CONTACT_ACCESS_BODY') | urlencode }}&subject={{ dataset.title ~ ' - access to data' | urlencode }}">contact
-                                    our data
-                                    stewards</a> to
-                                get access to the data.
-                            {% endfor %}
-                        </div>
-                    {% elif has_access.value == 'submitted' %}
-                        <div class="dataset_request_status">
-                            <span title="you have already requested access to this dataset"
-                                  class="text-muted glyphicon glyphicon-hourglass"></span>
-                            Data Access Requested
-                        </div>
-
-                    {% elif dataset.hosted %}
-                        <div class="button-link input-group">
-                            <p class="input-group-btn">
-                                <i class="material-icons">fact_check</i>
+                                <a href="mailto:{{ config.get('CONTACT_ACCESS_RECIPIENT') }}?body={{ config.get('CONTACT_ACCESS_BODY') | urlencode }}&subject={{ dataset.title ~ ' - access to data' | urlencode }}"
+                                   class="font-semibold text-blue-900 underline hover:text-blue-700">contact our data stewards</a>
+                                to get access to the data.
                             </p>
-                            <a class="btn button-link-text"
-                               href="{{ url_for('request_access', entity_name='dataset', entity_id=dataset.id) }}">Request
-                                Data
-                                Access</a>
-                        </div>
-                    {% endif %}
-                {% endif %}
-
-        <button type="button" class="btn btn-default right_side_btn"
-                data-toggle="modal" data-target="#citationModal">
-            <i class="material-icons">format_quote</i> Cite
-        </button>
-
-                {% if config.get('ALLOW_ENTITY_EXPORT', False) %}
-                    <div class="button-link input-group right_side_btn">
-                        <p class="input-group-btn">
-                            <i class="material-icons">download</i>
-                        </p>
-                        <a class="btn button-link-text"
-                           href="{{ url_for('export_dats_entity', entity_name='dataset', entity_id=dataset.id) }}">Export
-                            Metadata
-                            as DATS</a>
-                    </div>
-                {% endif %}
-            </div>
-         {% endif %}
-        <p class="clearfix">
-            {% if dataset.tags %}
-                tags: {{ macros.split_labels(dataset.tags) }}
-            {% endif %}
-        </p>
-        <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
-            <div class="row">
-                <div class="col-md-6">
-                    {#    PROJECT      #}
-                    {{ macros.start_panel("Project", "project", True) }}
-                    {% set study =  dataset.study_entity %}
-                    {% set project = study.project_entity if study else dataset.project_entity %}
-                    {% if project %}
-                        {{ macros.show_field_link(project.title, "Project Title", url_for('entity_details', entity_name='project', entity_id=project.id)) }}
-                        {% if project.website %}
-                            {{ macros.show_field_link(project.website, "Project website", project.website) }}
-                        {% endif %}
-                        {% if project.contact_entities %}
-                            {{ macros.show_field_list(project.contact_entities, "Contact Person(s)", reference_list=True) }}
-                        {% endif %}
-                    {% endif %}
-                    {{ macros.end_panel() }}
-                </div>
-                <div class="col-md-6">
-                    {#    DATASETS    #}
-
-                    {{ macros.start_panel("Studies", "studies", True) }}
-                    {{ macros.show_field_link(study.title, "Study title", url_for('entity_details', entity_name='study', entity_id=study.id)) }}
-                    {{ macros.end_panel() }}
-                </div>
-            </div>
-        </div>
-
-        <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
-
-            {#    GENERAL DATASET INFORMATION    #}
-
-            {{ macros.start_panel("General Dataset Information", "general", True) }}
-
-            {{ macros.show_field_text(dataset.version, "Version") }}
-            {{ macros.show_field_text(dataset.dataset_created | date, "Created on", facet_url=facets_url.dataset_created) }}
-            {{ macros.show_field_text(dataset.dataset_modified | date, "Updated on", facet_url=facets_url.dataset_modified) }}
-            {{ macros.show_field_list(dataset.data_standards, "Data standards", facet_url=facets_url.data_standards) }}
-            {{ macros.show_field_list(dataset.data_types, "Data types", facet_url=facets_url.data_types) }}
-            {% if dataset.samples_type %}
-                {{ macros.show_field_text(dataset.samples_type, "Type of Samples Collected", list=True, facet_url=facets_url.samples_type) }}
-            {% else %}
-                {{ macros.show_field_text(study.samples_type, "Type of Samples Collected", list=True) }}
-            {% endif %}
-            {{ macros.show_field_text(dataset.samples_number, "Number of Samples Collected", facet_url=facets_url.samples_number) }}
-            {{ macros.show_field_list(dataset.disease, "Diseases", facet_url=facets_url.disease) }}
-            {{ macros.show_field_list(dataset.treatment_category, "Treatment or experiment categories", facet_url=facets_url.treatment_category) }}
-            {{ macros.show_field_list(dataset.treatment_name, "Treatment or experiment names", facet_url=facets_url.treatment_name) }}
-
-            {{ macros.end_panel() }}
-
-        {# Technical metadata #}
-            {% if dataset.checksum or dataset.checksum_algorithm or dataset.file_formats or dataset.size or dataset.number_of_files %}
-                {{ macros.start_panel("Technical Information", "contacts") }}
-                {{ macros.show_field_text(dataset.size , "Size") }}
-                {{ macros.show_field_text(dataset.file_formats, "Dataset file formats",  list=True) }}
-                {{ macros.show_field_text(dataset.number_of_files , "Number of files") }}
-                {% if dataset.checksum %}
-                 {{ macros.show_field_text(dataset.checksum , "Checksum") }}
-                {% endif %}
-                {{  macros.show_field_text(dataset.checksum_algorithm, "Checksum Algorithm") }}
-                {{ macros.end_panel() }}
-            {% endif %}
-
-
-
-        {#    CONTACTS    #}
-            {% if dataset.dataset_owner or dataset.dataset_contact %}
-                {{ macros.start_panel("Dataset contacts", "contacts") }}
-                {{ macros.show_field_text(dataset.dataset_owner , "Data owner") }}
-                {{ macros.show_field_text(dataset.dataset_contact , "Main contact") }}
-                {{ macros.show_field_text(dataset.dataset_email , "Email") }}
-                {{ macros.show_field_text(dataset.dataset_affiliation , "Affiliation") }}
-
-                {{ macros.end_panel() }}
-            {% endif %}
-
-            {#    ATTACHED FILES    #}
-            {% if attachments_exist %}
-                {{ macros.start_panel("Attached files", listType="") }}
-                <div id="attachments-datatable" data-url="{{ attachment_url }}"></div>
-                {{ macros.end_panel(listType="") }}
-            {% endif %}
-
-            {#    FAIRified #}
-            {% if fair_evaluations_show and dataset.fair_evaluation %}
-                {{ macros.start_panel("FAIRplus Evaluation", "fairplus-evaluation") }}
-                {{ macros.start_table() }}
-                {{ macros.table_row(["FAIR maturity level", "Pre-FAIRification Assessment", "Post-FAIRification Assessment"], header=True, links=["", dataset.fair_assessment_link_pre, dataset.fair_assessment_link_post]) }}
-                {{ macros.table_row(["Overall", dataset.fair_score_overall_pre, dataset.fair_score_overall_post], bold=True) }}
-                {{ macros.table_row(["Representation & Format", dataset.fair_score_representation_pre, dataset.fair_score_representation_post]) }}
-                {{ macros.table_row(["Content", dataset.fair_score_content_pre, dataset.fair_score_content_post]) }}
-                {{ macros.table_row(["Hosting", dataset.fair_score_hosting_pre, dataset.fair_score_hosting_post]) }}
-                {% if dataset.fair_indicators_href_pre == dataset.fair_indicators_href_post %}
-                    {{ macros.table_row(["FAIR maturity indicators", dataset.fair_indicators_post], links=["", dataset.fair_indicators_href_post], merge=True) }}
-                {% else %}
-                    {{ macros.table_row(["FAIR maturity indicators", dataset.fair_indicators_pre, dataset.fair_indicators_post], links=["", dataset.fair_indicators_href_pre, dataset.fair_indicators_href_post]) }}
-                {% endif %}
-                {{ macros.end_table() }}
-                {{ macros.end_panel() }}
-            {% endif %}
-            {% if dataset.use_conditions %}
-                {% set use_conditions_by_type, icons = dataset.use_conditions_by_type %}
-                {{ macros.start_panel("Use conditions", "use-conditions") }}
-                {% for condition_type in use_conditions_by_type %}
-                    <h4 class="conditionType">
-                        <i class="material-icons {{ icons[condition_type][1] }}">{{ icons[condition_type][0] }}</i><span> {{ icons[condition_type][2] }}
-        </span>
-                    </h4>
-                    <table class="table table-hover table-condensed table-striped datasetConditions">
-                        <thead>
-                        <tr>
-                            <th>Use Condition</th>
-                            <th>Remarks</th>
-                            <th>Category (GA4GH)</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-
-                        {% for condition in use_conditions_by_type[condition_type] %}
-                            <tr>
-                                <td>{{ condition['use_condition_note'] }}</td>
-                                <td>{{ condition['use_class_note'] }}</td>
-                                <td>{{ condition['use_class_label'] }} ({{ condition["use_class"] }})</td>
-                            </tr>
                         {% endfor %}
-                        </tbody>
-                    </table>
-                {% endfor %}
-                {{ macros.end_panel() }}
+                    </div>
+                {% elif has_access.value == 'submitted' %}
+                    <div class="inline-flex items-center gap-2 rounded border border-gray-300 bg-gray-50 px-3 py-2 text-sm font-medium text-gray-700">
+                        <i data-lucide="hourglass" class="h-5 w-5"></i>
+                        <span title="you have already requested access to this dataset">Data Access Requested</span>
+                    </div>
+                {% elif dataset.hosted %}
+                    <a href="{{ url_for('request_access', entity_name='dataset', entity_id=dataset.id) }}"
+                       class="inline-flex items-center gap-2 rounded bg-blue-900 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus:ring-2 focus:ring-blue-900 focus:ring-offset-2 focus:outline-none">
+                        <i data-lucide="clipboard-check" class="h-4 w-4"></i>
+                        Request Data Access
+                    </a>
+                {% endif %}
+            {% endif %}
+
+            <button type="button"
+                    id="open-citation-modal"
+                    class="inline-flex items-center gap-2 rounded border border-blue-900 bg-white px-4 py-2 text-sm font-medium text-blue-900 hover:bg-gray-100 focus:ring-2 focus:ring-blue-900 focus:ring-offset-2 focus:outline-none">
+                <i data-lucide="quote" class="h-4 w-4"></i>
+                Cite
+            </button>
+
+            {% if config.get('ALLOW_ENTITY_EXPORT', False) %}
+                <a href="{{ url_for('export_dats_entity', entity_name='dataset', entity_id=dataset.id) }}"
+                   class="inline-flex items-center gap-2 rounded border border-blue-900 bg-white px-4 py-2 text-sm font-medium text-blue-900 hover:bg-gray-100 focus:ring-2 focus:ring-blue-900 focus:ring-offset-2 focus:outline-none">
+                    <i data-lucide="download" class="h-4 w-4"></i>
+                    Export Metadata as DATS
+                </a>
             {% endif %}
         </div>
-        {# Citation Modal #}
-        <div class="modal fade" id="citationModal" tabindex="-1" role="dialog" aria-labelledby="citationModalLabel">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                        <h4 class="modal-title" id="citationModalLabel">Cite this dataset</h4>
-                    </div>
-                    <div class="modal-body">
-                        <p><small class="text-muted">
-                            APA citation format. Copy the citation below and paste it into your reference manager or document.
-                        </small></p>
-                        <blockquote id="citation-text">ELIXIR Luxembourg. ({{ dataset.dataset_created.year if dataset.dataset_created else '' }}). {{ dataset.title }} ({{ dataset.version }}) [Data set]. {{ url_for('entity_details', entity_name='dataset', entity_id=dataset.id, _external=True) }}</blockquote>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary" id="copy-btn">
-                            <i class="material-icons">content_copy</i>
-                            <span>Copy to clipboard</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
+    {% endif %}
+
+    {% if dataset.tags %}
+        <p class="flex flex-wrap items-center gap-2 text-sm">
+            <span class="font-medium text-blue-900">tags:</span>
+            {{ macros.split_labels(dataset.tags) }}
+        </p>
+    {% endif %}
+
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div>
+            {{ macros.start_panel("Project", "project", True) }}
+            {% set study = dataset.study_entity %}
+            {% set project = study.project_entity if study else dataset.project_entity %}
+            {% if project %}
+                {{ macros.show_field_link(project.title, "Project Title", url_for('entity_details', entity_name='project', entity_id=project.id)) }}
+                {% if project.website %}
+                    {{ macros.show_field_link(project.website, "Project website", project.website) }}
+                {% endif %}
+                {% if project.contact_entities %}
+                    {{ macros.show_field_list(project.contact_entities, "Contact Person(s)", reference_list=True) }}
+                {% endif %}
+            {% endif %}
+            {{ macros.end_panel() }}
+        </div>
+        <div>
+            {{ macros.start_panel("Studies", "studies", True) }}
+            {{ macros.show_field_link(study.title, "Study title", url_for('entity_details', entity_name='study', entity_id=study.id)) }}
+            {{ macros.end_panel() }}
         </div>
     </div>
+
+    <div class="space-y-4">
+        {{ macros.start_panel("General Dataset Information", "general", True) }}
+        {{ macros.show_field_text(dataset.version, "Version") }}
+        {{ macros.show_field_text(dataset.dataset_created | date, "Created on", facet_url=facets_url.dataset_created) }}
+        {{ macros.show_field_text(dataset.dataset_modified | date, "Updated on", facet_url=facets_url.dataset_modified) }}
+        {{ macros.show_field_list(dataset.data_standards, "Data standards", facet_url=facets_url.data_standards) }}
+        {{ macros.show_field_list(dataset.data_types, "Data types", facet_url=facets_url.data_types) }}
+        {% if dataset.samples_type %}
+            {{ macros.show_field_text(dataset.samples_type, "Type of Samples Collected", list=True, facet_url=facets_url.samples_type) }}
+        {% else %}
+            {{ macros.show_field_text(study.samples_type, "Type of Samples Collected", list=True) }}
+        {% endif %}
+        {{ macros.show_field_text(dataset.samples_number, "Number of Samples Collected", facet_url=facets_url.samples_number) }}
+        {{ macros.show_field_list(dataset.disease, "Diseases", facet_url=facets_url.disease) }}
+        {{ macros.show_field_list(dataset.treatment_category, "Treatment or experiment categories", facet_url=facets_url.treatment_category) }}
+        {{ macros.show_field_list(dataset.treatment_name, "Treatment or experiment names", facet_url=facets_url.treatment_name) }}
+        {{ macros.end_panel() }}
+
+        {% if dataset.checksum or dataset.checksum_algorithm or dataset.file_formats or dataset.size or dataset.number_of_files %}
+            {{ macros.start_panel("Technical Information", "contacts") }}
+            {{ macros.show_field_text(dataset.size, "Size") }}
+            {{ macros.show_field_text(dataset.file_formats, "Dataset file formats", list=True) }}
+            {{ macros.show_field_text(dataset.number_of_files, "Number of files") }}
+            {% if dataset.checksum %}
+                {{ macros.show_field_text(dataset.checksum, "Checksum") }}
+            {% endif %}
+            {{ macros.show_field_text(dataset.checksum_algorithm, "Checksum Algorithm") }}
+            {{ macros.end_panel() }}
+        {% endif %}
+
+        {% if dataset.dataset_owner or dataset.dataset_contact %}
+            {{ macros.start_panel("Dataset contacts", "contacts") }}
+            {{ macros.show_field_text(dataset.dataset_owner, "Data owner") }}
+            {{ macros.show_field_text(dataset.dataset_contact, "Main contact") }}
+            {{ macros.show_field_text(dataset.dataset_email, "Email") }}
+            {{ macros.show_field_text(dataset.dataset_affiliation, "Affiliation") }}
+            {{ macros.end_panel() }}
+        {% endif %}
+
+        {% if attachments_exist %}
+            {{ macros.start_panel("Attached files", listType="") }}
+            <div id="attachments-datatable" data-url="{{ attachment_url }}"></div>
+            {{ macros.end_panel(listType="") }}
+        {% endif %}
+
+        {% if fair_evaluations_show and dataset.fair_evaluation %}
+            {{ macros.start_panel("FAIRplus Evaluation", "fairplus-evaluation") }}
+            {{ macros.start_table() }}
+            {{ macros.table_row(["FAIR maturity level", "Pre-FAIRification Assessment", "Post-FAIRification Assessment"], header=True, links=["", dataset.fair_assessment_link_pre, dataset.fair_assessment_link_post]) }}
+            {{ macros.table_row(["Overall", dataset.fair_score_overall_pre, dataset.fair_score_overall_post], bold=True) }}
+            {{ macros.table_row(["Representation & Format", dataset.fair_score_representation_pre, dataset.fair_score_representation_post]) }}
+            {{ macros.table_row(["Content", dataset.fair_score_content_pre, dataset.fair_score_content_post]) }}
+            {{ macros.table_row(["Hosting", dataset.fair_score_hosting_pre, dataset.fair_score_hosting_post]) }}
+            {% if dataset.fair_indicators_href_pre == dataset.fair_indicators_href_post %}
+                {{ macros.table_row(["FAIR maturity indicators", dataset.fair_indicators_post], links=["", dataset.fair_indicators_href_post], merge=True) }}
+            {% else %}
+                {{ macros.table_row(["FAIR maturity indicators", dataset.fair_indicators_pre, dataset.fair_indicators_post], links=["", dataset.fair_indicators_href_pre, dataset.fair_indicators_href_post]) }}
+            {% endif %}
+            {{ macros.end_table() }}
+            {{ macros.end_panel() }}
+        {% endif %}
+
+        {% if dataset.use_conditions %}
+            {% set use_conditions_by_type, icons = dataset.use_conditions_by_type %}
+            {{ macros.start_panel("Use conditions", "use-conditions") }}
+            {% for condition_type in use_conditions_by_type %}
+                <h4 class="mt-4 flex items-center gap-2 font-display text-base font-semibold text-blue-900">
+                    <i data-lucide="{{ icons[condition_type][0] }}" class="h-5 w-5 {{ icons[condition_type][1] }}"></i>
+                    <span>{{ icons[condition_type][2] }}</span>
+                </h4>
+                <div class="mt-2 overflow-x-auto rounded border border-gray-200">
+                    <table class="min-w-full divide-y divide-gray-200 text-sm">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-3 py-2 text-left font-semibold text-blue-900">Use Condition</th>
+                                <th class="px-3 py-2 text-left font-semibold text-blue-900">Remarks</th>
+                                <th class="px-3 py-2 text-left font-semibold text-blue-900">Category (GA4GH)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 bg-white">
+                            {% for condition in use_conditions_by_type[condition_type] %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-3 py-2 text-gray-800">{{ condition['use_condition_note'] }}</td>
+                                    <td class="px-3 py-2 text-gray-800">{{ condition['use_class_note'] }}</td>
+                                    <td class="px-3 py-2 text-gray-800">{{ condition['use_class_label'] }} ({{ condition["use_class"] }})</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endfor %}
+            {{ macros.end_panel() }}
+        {% endif %}
+    </div>
+</section>
+
+<dialog id="citationModal" class="rounded border border-gray-200 bg-white p-0 shadow-xl backdrop:bg-black/50">
+    <div class="w-full max-w-2xl">
+        <div class="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+            <h4 class="font-display text-lg font-semibold text-blue-900">Cite this dataset</h4>
+            <button type="button" id="close-citation-modal" aria-label="Close"
+                    class="inline-flex items-center justify-center rounded p-1 text-blue-900 hover:bg-gray-100">
+                <i data-lucide="x" class="h-5 w-5"></i>
+            </button>
+        </div>
+        <div class="space-y-3 px-4 py-3">
+            <p class="text-sm text-gray-600">APA citation format. Copy the citation below and paste it into your reference manager or document.</p>
+            <blockquote id="citation-text"
+                        class="rounded border-l-4 border-blue-900 bg-sky-50 px-4 py-3 text-sm text-blue-900">
+                ELIXIR Luxembourg. ({{ dataset.dataset_created.year if dataset.dataset_created else '' }}). {{ dataset.title }} ({{ dataset.version }}) [Data set]. {{ url_for('entity_details', entity_name='dataset', entity_id=dataset.id, _external=True) }}
+            </blockquote>
+        </div>
+        <div class="flex items-center justify-end gap-2 border-t border-gray-200 px-4 py-3">
+            <button type="button" id="cancel-citation-modal"
+                    class="inline-flex items-center rounded border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-blue-900 hover:bg-gray-100">
+                Close
+            </button>
+            <button type="button" id="copy-btn"
+                    class="inline-flex items-center gap-2 rounded bg-blue-900 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800">
+                <i data-lucide="copy" class="h-4 w-4"></i>
+                <span>Copy to clipboard</span>
+            </button>
+        </div>
+    </div>
+</dialog>
 {% endblock %}
 
 {% block js %}
 {{ super() }}
 <script>
-    document.getElementById('copy-btn').addEventListener('click', (e) => {
-        const label = e.currentTarget.querySelector('span');
-        navigator.clipboard.writeText(document.getElementById('citation-text').textContent);
-        label.textContent = 'Copied!';
-        setTimeout(() => label.textContent = 'Copy to clipboard', 2000);
-    });
+    (function () {
+        const dialog = document.getElementById('citationModal');
+        const open = document.getElementById('open-citation-modal');
+        const close = document.getElementById('close-citation-modal');
+        const cancel = document.getElementById('cancel-citation-modal');
+        const copy = document.getElementById('copy-btn');
+        if (open && dialog) open.addEventListener('click', () => dialog.showModal());
+        if (close) close.addEventListener('click', () => dialog.close());
+        if (cancel) cancel.addEventListener('click', () => dialog.close());
+        if (copy) copy.addEventListener('click', (e) => {
+            const label = e.currentTarget.querySelector('span');
+            navigator.clipboard.writeText(document.getElementById('citation-text').textContent.trim());
+            label.textContent = 'Copied!';
+            setTimeout(() => label.textContent = 'Copy to clipboard', 2000);
+        });
+
+        document.querySelectorAll('[data-expand]').forEach((el) => {
+            el.addEventListener('click', () => {
+                const target = document.getElementById(el.getAttribute('data-expand'));
+                if (target) target.open = true;
+            });
+        });
+        if (window.location.hash) {
+            const target = document.querySelector(window.location.hash);
+            if (target && target.tagName === 'DETAILS') target.open = true;
+        }
+    })();
 </script>
 {% endblock %}

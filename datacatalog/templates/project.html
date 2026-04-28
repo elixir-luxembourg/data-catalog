@@ -1,7 +1,6 @@
-{% extends 'layout.html' %}
-{% set entity_name = "project" %}
+{% extends 'base_layout.html' %}
 {% import 'macros.html' as macros %}
-
+{% set entity_name = "project" %}
 
 {% block jsonld %}
 {{ super() }}
@@ -41,7 +40,7 @@
         "funding": {}
       {%- endif %}
     }
-    </script>
+</script>
 {% endblock %}
 
 {% block title %}Project - {{ project.title }}{% endblock %}
@@ -53,27 +52,26 @@
 {% endblock %}
 
 {% block content %}
-<div class="well box projectDetails">
+<section class="relative space-y-6 rounded border border-gray-200 bg-white p-6 shadow-sm">
     {% if fair_evaluations_show and project.fair_evaluation %}
-    <p class="fairResultsStamp"><img alt='fairplus stamp'
-            title="Dataset processed by FAIRplus. See FAIRplus Evaluation tab for details."
-            src="/static/public/images/fairplus-stamp.png" /></p>
-    {% endif %}
-    <h1>{{ project.title }}</h1>
-    {% if config.get('ALLOW_ENTITY_EXPORT', False) %}
-    <div class="form-inline">
-        <div class="button-link input-group">
-            <p class="input-group-btn">
-                <i class="material-icons">download</i>
-            </p>
-            <a class="btn button-link-text"
-                href="{{ url_for('export_dats_entity', entity_name='project', entity_id=project.id) }}">
-                Export Metadata as DATS</a>
-        </div>
-    </div>
+        <p class="absolute right-3 top-3">
+            <img alt="fairplus stamp"
+                 title="Dataset processed by FAIRplus. See FAIRplus Evaluation tab for details."
+                 src="/static/public/images/fairplus-stamp.png" class="h-12 w-12"/>
+        </p>
     {% endif %}
 
-    {# INFO #}
+    <h1 class="font-display text-3xl font-semibold text-blue-900">{{ project.title }}</h1>
+
+    {% if config.get('ALLOW_ENTITY_EXPORT', False) %}
+        <div>
+            <a href="{{ url_for('export_dats_entity', entity_name='project', entity_id=project.id) }}"
+               class="inline-flex items-center gap-2 rounded border border-blue-900 bg-white px-4 py-2 text-sm font-medium text-blue-900 hover:bg-gray-100 focus:ring-2 focus:ring-blue-900 focus:ring-offset-2 focus:outline-none">
+                <i data-lucide="download" class="h-4 w-4"></i>
+                Export Metadata as DATS
+            </a>
+        </div>
+    {% endif %}
 
     {{ macros.start_entity_info() }}
     {{ macros.entity_info_row("Description", project.description | default("", True)) }}
@@ -88,116 +86,108 @@
     {{ macros.entity_info_row("Keywords", project.keywords, list=True, facet_url=facets_url.keywords) }}
     {{ macros.end_entity_info() }}
 
-
-    <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
-
-        {# DATASETS #}
-
+    <div class="space-y-4">
         {% if study_datasets or has_deprecated_datasets %}
-        {{ macros.start_panel("Datasets", "datasets", expanded=True, listType="") }}
-        {% if study_datasets %}
-        <table class="table table-striped project-table">
-            <thead>
-                <tr class="bold-row">
-                    <td style="width: 180px;">Accession number</td>
-                    <td>Title</td>
-                    <td>Create date</td>
-                    <td>Study</td>
-                    <td>{{config.get('HOSTED_STRING')}}</td>
-                </tr>
-            </thead>
-            <tbody>
-                {% for dataset in study_datasets %}
-                <tr>
-                    <td>{{ dataset.dataset_id }}</td>
-                    <td>
-                        <a href="{{ url_for('entity_details', entity_name='dataset', entity_id=dataset.dataset_id) }}">
-                            {{ dataset.title }}
-                        </a>
-                        {% if dataset.is_deprecated %}<span class="label label-deprecated">deprecated</span>{% endif %}
-                    </td>
-                    <td>{{ dataset.create_date }}</td>
-                    <td>
-                        {% if dataset.study_title != "-" %}
-                        <a href="{{ url_for('entity_details', entity_name='study', entity_id=dataset.study_id) }}">
-                            {{ dataset.study_title }}
-                        </a>
-                        {% else %}
-                        {{ dataset.study_title }}
-                        {% endif %}
-                    </td>
-                    <td>{{ dataset.hosted }}</td>
-                </tr>
-                {% endfor %}
-                {% if has_deprecated_datasets %}
-                <tr>
-                    <td colspan="5" class="text-center">
-                        {% if show_deprecated %}
-                            <a href="{{ url_for('entity_details', entity_name='project', entity_id=project.id) }}" class="small text-muted">Hide deprecated records</a>
-                        {% else %}
-                            <a href="{{ url_for('entity_details', entity_name='project', entity_id=project.id, show_deprecated='true') }}" class="small text-muted">Show deprecated records</a>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endif %}
-            </tbody>
-        </table>
-        {% else %}
-        <div class="text-center">
-            <a href="{{ url_for('entity_details', entity_name='project', entity_id=project.id, show_deprecated='true') }}" class="small text-muted">Show deprecated records</a>
-        </div>
+            {{ macros.start_panel("Datasets", "datasets", expanded=True, listType="") }}
+            {% if study_datasets %}
+                <div class="overflow-x-auto rounded border border-gray-200">
+                    <table class="min-w-full divide-y divide-gray-200 text-sm">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="w-44 px-3 py-2 text-left font-semibold text-blue-900">Accession number</th>
+                                <th class="px-3 py-2 text-left font-semibold text-blue-900">Title</th>
+                                <th class="px-3 py-2 text-left font-semibold text-blue-900">Create date</th>
+                                <th class="px-3 py-2 text-left font-semibold text-blue-900">Study</th>
+                                <th class="px-3 py-2 text-left font-semibold text-blue-900">{{ config.get('HOSTED_STRING') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 bg-white">
+                            {% for dataset in study_datasets %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-3 py-2 text-gray-800">{{ dataset.dataset_id }}</td>
+                                    <td class="px-3 py-2 text-gray-800">
+                                        <a href="{{ url_for('entity_details', entity_name='dataset', entity_id=dataset.dataset_id) }}"
+                                           class="font-medium text-blue-900 hover:underline">{{ dataset.title }}</a>
+                                        {% if dataset.is_deprecated %}
+                                            <span class="ml-2 inline-flex items-center rounded bg-red-100 px-2 py-0.5 text-xs font-medium text-red-900">deprecated</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-3 py-2 text-gray-800">{{ dataset.create_date }}</td>
+                                    <td class="px-3 py-2 text-gray-800">
+                                        {% if dataset.study_title != "-" %}
+                                            <a href="{{ url_for('entity_details', entity_name='study', entity_id=dataset.study_id) }}"
+                                               class="font-medium text-blue-900 hover:underline">{{ dataset.study_title }}</a>
+                                        {% else %}
+                                            {{ dataset.study_title }}
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-3 py-2 text-gray-800">{{ dataset.hosted }}</td>
+                                </tr>
+                            {% endfor %}
+                            {% if has_deprecated_datasets %}
+                                <tr>
+                                    <td colspan="5" class="px-3 py-2 text-center text-sm text-gray-600">
+                                        {% if show_deprecated %}
+                                            <a href="{{ url_for('entity_details', entity_name='project', entity_id=project.id) }}" class="text-blue-900 underline hover:text-blue-700">Hide deprecated records</a>
+                                        {% else %}
+                                            <a href="{{ url_for('entity_details', entity_name='project', entity_id=project.id, show_deprecated='true') }}" class="text-blue-900 underline hover:text-blue-700">Show deprecated records</a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center text-sm text-gray-600">
+                    <a href="{{ url_for('entity_details', entity_name='project', entity_id=project.id, show_deprecated='true') }}"
+                       class="text-blue-900 underline hover:text-blue-700">Show deprecated records</a>
+                </div>
+            {% endif %}
+            {{ macros.end_panel(listType="") }}
         {% endif %}
-        {{ macros.end_panel(listType="") }}
-        {% endif %}
-
-        {# STUDIES #}
 
         {% if project.studies_entities %}
-        {{ macros.start_panel("Studies", "studies", listType="") }}
-        <table class="table table-striped project-table">
-            <thead>
-                <tr class="bold-row">
-                    <td>Title</td>
-                    <td>Primary purpose</td>
-                    <td>Study type</td>
-                    <td>Organism</td>
-                </tr>
-            </thead>
-            <tbody>
-                {% for study in project.studies_entities %}
-                <tr>
-                    <td>
-                        <a href="{{ url_for('entity_details', entity_name='study', entity_id=study.id) }}">
-                            {{ study.title }}
-                        </a>
-                    </td>
-                    <td>{{ study.primary_purpose }}</td>
-                    <td>{{ macros.show_field_list(study.types) }}</td>
-                    <td>{{ macros.show_field_list(study.organisms) }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {{ macros.end_panel(listType="") }}
+            {{ macros.start_panel("Studies", "studies", listType="") }}
+            <div class="overflow-x-auto rounded border border-gray-200">
+                <table class="min-w-full divide-y divide-gray-200 text-sm">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-3 py-2 text-left font-semibold text-blue-900">Title</th>
+                            <th class="px-3 py-2 text-left font-semibold text-blue-900">Primary purpose</th>
+                            <th class="px-3 py-2 text-left font-semibold text-blue-900">Study type</th>
+                            <th class="px-3 py-2 text-left font-semibold text-blue-900">Organism</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 bg-white">
+                        {% for study in project.studies_entities %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-3 py-2 text-gray-800">
+                                    <a href="{{ url_for('entity_details', entity_name='study', entity_id=study.id) }}"
+                                       class="font-medium text-blue-900 hover:underline">{{ study.title }}</a>
+                                </td>
+                                <td class="px-3 py-2 text-gray-800">{{ study.primary_purpose }}</td>
+                                <td class="px-3 py-2 text-gray-800">{{ macros.show_field_list(study.types) }}</td>
+                                <td class="px-3 py-2 text-gray-800">{{ macros.show_field_list(study.organisms) }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {{ macros.end_panel(listType="") }}
         {% endif %}
-
-        {# CONTACTS #}
 
         {% if contacts %}
-        {{ macros.start_panel("Contacts", "contacts", listType="") }}
-        {{ macros.show_contact(contacts) }}
-        {{ macros.end_panel(listType="") }}
+            {{ macros.start_panel("Contacts", "contacts", listType="") }}
+            {{ macros.show_contact(contacts) }}
+            {{ macros.end_panel(listType="") }}
         {% endif %}
-
-        {# ATTACHED FILES #}
 
         {% if attachments_exist %}
-        {{ macros.start_panel("Attached files", listType="") }}
-        <div id="attachments-datatable" data-url="{{ attachment_url }}"></div>
-        {{ macros.end_panel(listType="") }}
+            {{ macros.start_panel("Attached files", listType="") }}
+            <div id="attachments-datatable" data-url="{{ attachment_url }}"></div>
+            {{ macros.end_panel(listType="") }}
         {% endif %}
     </div>
-</div>
-
-
+</section>
 {% endblock %}

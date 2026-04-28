@@ -1,4 +1,5 @@
 {% extends 'base_search.html' %}
+{% import 'macros.html' as macros %}
 {% set entity_controller = "project_details" %}
 {% set entity_name = "project" %}
 {% set search_controller = "entities_search" %}
@@ -11,67 +12,60 @@
 <meta property="og:description" content="Browse projects available in the {{ config.get('TITLE', 'Data Catalogue') }}.">
 {% endblock %}
 
-
 {% block search_results %}
     {% set start_rank = (pagination.page - 1) * pagination.per_page %}
-    {% for project in entities %}
-
-        <div class="panel panel-default panel-flat panel-dataset">
-
-            <div class="panel-body" style="position:relative">
-                <h3>
-                    <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=project.id) }}">    
-                        {% if project.project_name and project.project_name != project.title %}
-                        {{ project.project_name| truncate(55, True) }}&nbsp;-&nbsp;{{ project.title| truncate(55, True) }}
-                        {% else %}
-                            {{ project.title| truncate(55, True) }}
-                        {% endif %}
-                    </a>
-                {{macros.small_id_row(project)}}
-                </h3>
-               
-                <p class="search-description">{{ project.description | default("", True)|truncate(500, True) }}</p>
-                {% if project.keywords %}
-                    <p>
-                        <span class="dataset-field-label">Keywords:</span>
-                        {% for keyword in project.keywords %}
-                            <span class="label label-default">{{ keyword }}</span>
-                        {% endfor %}
-                    </p>
-                {% endif %}
-                {% if fair_evaluations_show and project.fair_evaluation %}
-                    <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=project.id) }}#fairplus-evaluation-fields"
-                       class="fairResultsStamp"><img alt='fairplus stamp'
-                                                     title="Dataset processed by FAIRplus. See FAIRplus Evaluation tab for details."
-                                                     src="/static/public/images/fairplus-stamp.png"/></a>
-                {% endif %}
-            </div>
-            <div class="panel-footer">
-                <div class="row">
-                    <div class="col-md-12">
-                        <ul class="dataset-card">
+    <div class="space-y-4">
+        {% for project in entities %}
+            <article class="relative rounded border border-gray-200 bg-white shadow-sm">
+                <div class="space-y-2 px-4 py-3">
+                    <h3 class="font-display text-lg font-semibold text-blue-900">
+                        <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=project.id) }}"
+                           class="text-blue-900 hover:underline">
+                            {% if project.project_name and project.project_name != project.title %}
+                                {{ project.project_name | truncate(55, True) }}&nbsp;-&nbsp;{{ project.title | truncate(55, True) }}
+                            {% else %}
+                                {{ project.title | truncate(55, True) }}
+                            {% endif %}
+                        </a>
+                    </h3>
+                    {{ macros.small_id_row(project) }}
+                    <p class="text-sm leading-relaxed text-gray-800">{{ project.description | default("", True) | truncate(500, True) }}</p>
+                    {% if project.keywords %}
+                        <p class="flex flex-wrap items-center gap-2 text-sm">
+                            <span class="font-medium text-blue-900">Keywords:</span>
+                            {% for keyword in project.keywords %}
+                                <span class="inline-flex items-center rounded bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-900">{{ keyword }}</span>
+                            {% endfor %}
+                        </p>
+                    {% endif %}
+                    {% if fair_evaluations_show and project.fair_evaluation %}
+                        <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=project.id) }}#fairplus-evaluation-fields"
+                           class="absolute right-3 top-3">
+                            <img alt="fairplus stamp"
+                                 title="Dataset processed by FAIRplus. See FAIRplus Evaluation tab for details."
+                                 src="/static/public/images/fairplus-stamp.png"
+                                 class="h-12 w-12"/>
+                        </a>
+                    {% endif %}
+                </div>
+                {% if project.start_date or project.website or project.display_name %}
+                    <div class="border-t border-gray-200 bg-gray-50 px-4 py-2">
+                        <ul class="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-gray-800">
                             {% if project.start_date %}
-                                <li><span
-                                        class="dataset-field-label">Start:</span> {{ project.start_date | date }}
-                                </li>
+                                <li><span class="font-medium text-blue-900">Start:</span> {{ project.start_date | date }}</li>
                             {% endif %}
                             {% if project.website %}
-                                <li><span class="dataset-field-label"><a
-                                        href="{{ project.website }}">Project website</a></span>
-
+                                <li>
+                                    <a href="{{ project.website }}" class="font-medium text-blue-900 underline hover:text-blue-700">Project website</a>
                                 </li>
                             {% endif %}
                             {% if project.display_name %}
-                                <li><span
-                                        class="dataset-field-label">Contact:</span> {{ project.display_name }}
-                                </li>
+                                <li><span class="font-medium text-blue-900">Contact:</span> {{ project.display_name }}</li>
                             {% endif %}
                         </ul>
                     </div>
-                </div>
-            </div>
-        </div>
-
-    {% endfor %}
-
+                {% endif %}
+            </article>
+        {% endfor %}
+    </div>
 {% endblock %}

@@ -1,34 +1,27 @@
 {% extends 'base_search.html' %}
+{% import 'macros.html' as macros %}
 {% set entity_controller = "organization_details" %}
 {% set entity_name = "organization" %}
 {% set search_controller = "entities_search" %}
 {% set entities = results.entities %}
 {% block description %}Organizations{% endblock %}
 
-
 {% block search_results %}
     {% set start_rank = (pagination.page - 1) * pagination.per_page %}
-    {% for organization in entities %}
-
-        <div class="panel panel-default panel-flat panel-dataset">
-
-            <div class="panel-body" style="position:relative">
-                <h3>
-                    <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=organization.id) }}">{{ organization.title| truncate(55, True) }}</a>
-                </h3>
-                <p>{{ organization.summary | default("", True)|truncate(500, True) }}</p>
-                <p style="position:absolute;top:0;right:0;padding:2px;"><span>{{ loop.index + start_rank }}</span></p>
-            </div>
-            <div class="panel-footer">
-                <div class="row">
-                    <div class="col-md-12">
-                        <ul class="dataset-card">
-                        </ul>
-                    </div>
+    <div class="space-y-4">
+        {% for organization in entities %}
+            <article class="relative rounded border border-gray-200 bg-white shadow-sm">
+                <div class="space-y-2 px-4 py-3">
+                    <h3 class="font-display text-lg font-semibold text-blue-900">
+                        <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=organization.id) }}"
+                           class="text-blue-900 hover:underline">
+                            {{ organization.title | truncate(55, True) }}
+                        </a>
+                    </h3>
+                    <p class="text-sm leading-relaxed text-gray-800">{{ organization.summary | default("", True) | truncate(500, True) }}</p>
+                    <span class="absolute right-3 top-3 text-xs text-gray-500">{{ loop.index + start_rank }}</span>
                 </div>
-            </div>
-        </div>
-
-    {% endfor %}
-
+            </article>
+        {% endfor %}
+    </div>
 {% endblock %}

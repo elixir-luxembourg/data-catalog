@@ -1,4 +1,5 @@
 {% extends 'base_search.html' %}
+{% import 'macros.html' as macros %}
 {% set entity_controller = "study_details" %}
 {% set entity_name = "study" %}
 {% set search_controller = "entities_search" %}
@@ -11,58 +12,56 @@
 <meta property="og:description" content="Browse studies available in the {{ config.get('TITLE', 'Data Catalogue') }}.">
 {% endblock %}
 
-
 {% block search_results %}
     {% set start_rank = (pagination.page - 1) * pagination.per_page %}
-    {% for study in entities %}
-
-        <div class="panel panel-default panel-flat panel-dataset">
-
-            <div class="panel-body" style="position:relative">
-                <h3>
-                    <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=study.id) }}">
-                        {{ study.title| default("", True)|truncate(55, True) }}
-                    </a>
-                    {{macros.small_id_row(study)}}
-                </h3>
-                {% if fair_evaluations_show and study.fair_evaluation %}
-                    <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=study.id) }}#fairplus-evaluation-fields"
-                       class="fairResultsStamp"><img alt='fairplus stamp'
-                                                     title="Dataset processed by FAIRplus. See FAIRplus Evaluation tab for details."
-                                                     src="/static/public/images/fairplus-stamp.png"/></a>
-                {% endif %}
-                <p class="search-description">{{ study.description | default("", True)|truncate(500, True) }}</p>
-            </div>
-            <div class="panel-footer">
-                <div class="row">
-                    <div class="col-md-12">
-                        <ul class="dataset-card">
+    <div class="space-y-4">
+        {% for study in entities %}
+            <article class="relative rounded border border-gray-200 bg-white shadow-sm">
+                <div class="space-y-2 px-4 py-3">
+                    <h3 class="font-display text-lg font-semibold text-blue-900">
+                        <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=study.id) }}"
+                           class="text-blue-900 hover:underline">
+                            {{ study.title | default("", True) | truncate(55, True) }}
+                        </a>
+                    </h3>
+                    {{ macros.small_id_row(study) }}
+                    {% if fair_evaluations_show and study.fair_evaluation %}
+                        <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=study.id) }}#fairplus-evaluation-fields"
+                           class="absolute right-3 top-3">
+                            <img alt="fairplus stamp"
+                                 title="Dataset processed by FAIRplus. See FAIRplus Evaluation tab for details."
+                                 src="/static/public/images/fairplus-stamp.png"
+                                 class="h-12 w-12"/>
+                        </a>
+                    {% endif %}
+                    <p class="text-sm leading-relaxed text-gray-800">{{ study.description | default("", True) | truncate(500, True) }}</p>
+                </div>
+                {% if study.keywords or study.types or study.category %}
+                    <div class="border-t border-gray-200 bg-gray-50 px-4 py-2">
+                        <ul class="flex flex-col gap-1 text-sm text-gray-800">
                             {% if study.keywords %}
-                                <li><span class="dataset-field-label">Keywords:</span>
+                                <li class="flex flex-wrap items-center gap-2">
+                                    <span class="font-medium text-blue-900">Keywords:</span>
                                     {% for keyword in study.keywords %}
-                                        <span class="label label-default">{{ keyword }}</span>
+                                        <span class="inline-flex items-center rounded bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-900">{{ keyword }}</span>
                                     {% endfor %}
                                 </li>
                             {% endif %}
                             {% if study.types %}
-                                <li>
-                                    <span class="dataset-field-label">Types:</span>
+                                <li class="flex flex-wrap items-center gap-2">
+                                    <span class="font-medium text-blue-900">Types:</span>
                                     {% for type in study.types %}
-                                        <span class="label label-default">{{ type | title }}</span>
+                                        <span class="inline-flex items-center rounded bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-900">{{ type | title }}</span>
                                     {% endfor %}
                                 </li>
                             {% endif %}
                             {% if study.category %}
-                                <li><span
-                                        class="dataset-field-label">Therapeutic area:</span> {{ study.therapeutic_area_standards_disease }}
-                                </li>
+                                <li><span class="font-medium text-blue-900">Therapeutic area:</span> {{ study.therapeutic_area_standards_disease }}</li>
                             {% endif %}
                         </ul>
                     </div>
-                </div>
-            </div>
-        </div>
-
-    {% endfor %}
-
+                {% endif %}
+            </article>
+        {% endfor %}
+    </div>
 {% endblock %}

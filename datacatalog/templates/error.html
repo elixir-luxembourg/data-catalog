@@ -1,22 +1,33 @@
-{% extends 'layout.html' %}
+{% extends 'base_layout.html' %}
+{% import 'macros.html' as macros %}
 
 {% block title %}{{ title | default('Error') }}{% endblock %}
 
 
-{% block content %}
-    <div class="well">
+{% block navbar %}
+    {% if not no_navbar %}
+        {% with active_page=active_page %}
+            {% include 'navbar.html' %}
+        {% endwith %}
+    {% endif %}
+{% endblock %}
 
-        <h1><i style="font-size: 200px;vertical-align: middle;" class="red material-icons">error</i>
-            {{ message }}
-        </h1>
+{% block content %}
+    <div class="mx-auto max-w-2xl rounded border border-gray-200 bg-gray-50 px-6 py-10 text-center">
+        <i data-lucide="octagon-alert" class="mx-auto h-24 w-24 text-red-900" aria-hidden="true"></i>
+        <h1 class="mt-4 font-display text-3xl font-semibold text-blue-900">{{ message }}</h1>
         {% if explanation %}
-            <p>{{ explanation }}</p>
+            <p class="mt-3 text-blue-900">{{ explanation }}</p>
         {% endif %}
         {% if show_home_link %}
-            <p class="text-center"><a href="/">Go to home page</a></p>
+            <p class="mt-6">
+                <a href="/" class="inline-flex items-center justify-center rounded bg-blue-900 px-4 py-2 font-medium text-white hover:bg-blue-800 focus:ring-2 focus:ring-blue-900 focus:ring-offset-2 focus:outline-none">
+                    Go to home page
+                </a>
+            </p>
         {% endif %}
         {% if redirect_to_login and not(current_user.is_authenticated) %}
-            <p class="text-center">Redirecting to login page</p>
+            <p class="mt-4 text-sm text-gray-600">Redirecting to login page</p>
         {% endif %}
     </div>
 {% endblock %}

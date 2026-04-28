@@ -1,4 +1,4 @@
-{% extends 'layout.html' %}
+{% extends 'base_layout.html' %}
 
 {% block meta %}
 {{ super() }}
@@ -6,64 +6,64 @@
 <meta property="og:description" content="The ELIXIR Luxembourg Data Catalogue is a unique collection of project-level metadata from large research initiatives in a diverse range of fields.">
 {% endblock %}
 
-
 {% block content %}
+<section class="space-y-10">
     <div class="text-center">
-        <h1>Welcome to</h1>
-        <img class="mainLogo" src="{{ config.get('URL_PREFIX', '') }}/static/public/images/datacatalog_logo.svg"
+        <h1 class="mb-4 font-display text-2xl font-semibold text-blue-900">Welcome to</h1>
+        <img class="mx-auto h-20 w-auto"
+             src="{{ config.get('URL_PREFIX', '') }}/static/public/images/datacatalog_logo.svg"
              alt="datacatalog logo"/>
     </div>
-    <div class="landing-cards">
-        <div>
-            <a title="Browse Projects" href="{{ url_for('entities_search', entity_name='project') }}">
-                <i class="material-icons text-primary">description</i>
-                <h3>
+
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <a href="{{ url_for('entities_search', entity_name='project') }}"
+           title="Browse Projects"
+           class="group block rounded border border-gray-200 bg-white p-6 shadow-sm transition hover:border-blue-900 hover:bg-sky-50">
+            <div class="mb-3 flex items-center gap-3 text-blue-900">
+                <i data-lucide="file-text" class="h-7 w-7"></i>
+                <h3 class="flex items-center gap-2 font-display text-xl font-semibold">
                     Projects
-                    <span class="badge badge-info">{{ counts_entities['project'] }}</span>
+                    <span class="inline-flex items-center rounded-full bg-blue-900 px-2 py-0.5 text-xs font-medium text-white">{{ counts_entities['project'] }}</span>
                 </h3>
-            </a>
-            <p>
-                The <strong>Project</strong> view presents high-level information about Data Catalog entries, such
-                as title, general research area, and publications, as well as funding and contributor contact
-                information.
+            </div>
+            <p class="text-sm leading-relaxed text-gray-800">
+                The <strong class="font-semibold text-blue-900">Project</strong> view presents high-level information about Data Catalog entries, such as title, general research area, and publications, as well as funding and contributor contact information.
             </p>
-        </div>
+        </a>
 
-        <div>
-            <a title="Browse Studies" href="{{ url_for('entities_search', entity_name='study') }}">
-                <i class="material-icons text-primary">biotech</i>
-                <h3>
+        <a href="{{ url_for('entities_search', entity_name='study') }}"
+           title="Browse Studies"
+           class="group block rounded border border-gray-200 bg-white p-6 shadow-sm transition hover:border-blue-900 hover:bg-sky-50">
+            <div class="mb-3 flex items-center gap-3 text-blue-900">
+                <i data-lucide="microscope" class="h-7 w-7"></i>
+                <h3 class="flex items-center gap-2 font-display text-xl font-semibold">
                     Studies
-                    <span class="badge badge-info">{{ counts_entities['study'] }}</span>
+                    <span class="inline-flex items-center rounded-full bg-blue-900 px-2 py-0.5 text-xs font-medium text-white">{{ counts_entities['study'] }}</span>
                 </h3>
-            </a>
-            <p>
-                The <strong>Study</strong> view presents a range of metadata describing the data acquisition process
-                such as sample and protocol information.
+            </div>
+            <p class="text-sm leading-relaxed text-gray-800">
+                The <strong class="font-semibold text-blue-900">Study</strong> view presents a range of metadata describing the data acquisition process such as sample and protocol information.
             </p>
-        </div>
-        <div>
-            <a title="Browse Datasets"
-               href=" {{ url_for('entities_search', entity_name='dataset') }} ">
-                <i class="material-icons text-primary">analytics</i>
-                <h3>
+        </a>
+
+        <a href="{{ url_for('entities_search', entity_name='dataset') }}"
+           title="Browse Datasets"
+           class="group block rounded border border-gray-200 bg-white p-6 shadow-sm transition hover:border-blue-900 hover:bg-sky-50">
+            <div class="mb-3 flex items-center gap-3 text-blue-900">
+                <i data-lucide="chart-bar" class="h-7 w-7"></i>
+                <h3 class="flex items-center gap-2 font-display text-xl font-semibold">
                     Datasets
-                    <span class="badge badge-info">{{ counts_entities['dataset'] }}</span>
+                    <span class="inline-flex items-center rounded-full bg-blue-900 px-2 py-0.5 text-xs font-medium text-white">{{ counts_entities['dataset'] }}</span>
                 </h3>
-            </a>
-            <p>
-                The <strong>Dataset</strong> view presents metadata about collections of data associated with projects,
-                including version numbers and creation dates, links to source data and general.
-
+            </div>
+            <p class="text-sm leading-relaxed text-gray-800">
+                The <strong class="font-semibold text-blue-900">Dataset</strong> view presents metadata about collections of data associated with projects, including version numbers and creation dates, links to source data and general.
             </p>
-        </div>
+        </a>
+    </div>
 
-    </div>
-    <div class="row landing-quote">
-        <blockquote class="blockquote">
-            The ELIXIR Luxembourg <strong>Data Catalogue</strong> is a unique collection of project-level metadata from large research
-            initiatives in a diverse range of fields, including clinical, molecular and observational studies. Its aim
-            is to improve the findability of these projects following FAIR data principles.
-        </blockquote>
-    </div>
+    <blockquote class="mx-auto max-w-3xl rounded border-l-4 border-blue-900 bg-sky-50 p-6 text-base leading-relaxed text-blue-900">
+        The ELIXIR Luxembourg <strong class="font-semibold">Data Catalogue</strong> is a unique collection of project-level metadata from large research initiatives in a diverse range of fields, including clinical, molecular and observational studies. Its aim is to improve the findability of these projects following FAIR data principles.
+    </blockquote>
+</section>
 {% endblock %}

@@ -16,6 +16,7 @@
 import React, {useMemo} from "react";
 import PropTypes from "prop-types";
 import ReactDOM from "react-dom";
+import {CircleCheck, CircleX, Hourglass, TriangleAlert, X} from "lucide-react";
 import ReactTable from "./ReactTable.jsx";
 
 let domContainer = document.querySelector("#applications-datatable");
@@ -30,25 +31,28 @@ function parseData(data){
 
 function DisplayTable() {
     const IconCell = ({value}) => {
-        const icon = {
-            "submitted": "hourglass",
-            "approved": "ok-circle",
-            "rejected": "remove-circle",
-            "closed": "remove-circle",
-            "revoked": "remove-circle",
-            "returned": "alert",
+        const Component = {
+            "submitted": Hourglass,
+            "approved": CircleCheck,
+            "rejected": CircleX,
+            "closed": CircleX,
+            "revoked": CircleX,
+            "returned": TriangleAlert,
         }[value];
         const color = {
-            "submitted": "info",
-            "approved": "success",
-            "returned": "warning"
-        }[value] || "default";
+            "submitted": "text-blue-900",
+            "approved": "text-blue-900",
+            "rejected": "text-red-900",
+            "closed": "text-red-900",
+            "revoked": "text-red-900",
+            "returned": "text-red-900",
+        }[value] || "text-gray-600";
 
-        const classString = "glyphicon glyphicon-" + icon + " text-" + color;
+        if (!Component) return value;
         return (
-            (icon)
-                ? <span title={value} style={{fontSize: "20px"}} className={classString}/>
-                : value
+            <span title={value} className="inline-flex items-center">
+                <Component className={`h-5 w-5 ${color}`} aria-hidden="true" />
+            </span>
         );
     };
     IconCell.propTypes = {
@@ -57,7 +61,7 @@ function DisplayTable() {
 
     const LinkCell = ( cell ) => {
         return (
-            <a href={cell.row.original["entity_url"]}>
+            <a href={cell.row.original["entity_url"]} className="font-medium text-blue-900 hover:underline">
                 {cell.value}
             </a>
         );
@@ -97,24 +101,35 @@ function DisplayTable() {
 
     const data = parseData(domContainer.getAttribute("data-applications"));
 
-    // TODO: Test once user actions are implemented
     const userActions = domContainer.getAttribute("data-actions-allowed");
-    const closeUrl = domContainer.getAttribute("data-close-url");
+    const closeUrlTemplate = domContainer.getAttribute("data-close-url-template");
 
-    if (userActions) {
+    if (userActions && closeUrlTemplate) {
+        const csrfToken = document.getElementById("csrf-token").getAttribute("content");
+        const onCancelClick = (applicationId) => (e) => {
+            e.preventDefault();
+            const url = closeUrlTemplate.replace("__APP_ID__", encodeURIComponent(applicationId));
+            fetch(url, {
+                method: "POST",
+                headers: {"X-CSRFToken": csrfToken},
+                credentials: "same-origin",
+            }).finally(() => location.reload());
+        };
         columns.push({
             Header: "Actions",
             accessor: "actions",
             disableGlobalFilter: true,
             disableSortBy: true,
-            Cell: () => {
+            Cell: (cell) => {
+                const applicationId = cell.row.original.id;
                 return (
                     <a
-                        className={"closeApplication"}
-                        data-close-url={closeUrl}
-                        href={""}
+                        className="inline-flex items-center text-red-900 hover:text-red-700"
+                        href="#"
+                        title="cancel my application"
+                        onClick={onCancelClick(applicationId)}
                     >
-                        <span title={"cancel my application"} className={"glyphicon glyphicon-remove text-danger"}/>
+                        <X className="h-5 w-5" aria-hidden="true" />
                     </a>
                 );
             },

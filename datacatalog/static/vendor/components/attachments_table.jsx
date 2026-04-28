@@ -16,6 +16,7 @@
 import React, {useMemo} from "react";
 import PropTypes from "prop-types";
 import ReactDOM from "react-dom";
+import {Download, File, FileArchive, FileImage, FileSpreadsheet, FileText, FileType} from "lucide-react";
 import ReactTable from "./ReactTable.jsx";
 
 let domContainer = document.querySelector("#attachments-datatable");
@@ -29,20 +30,20 @@ function parseData(data){
 
 function formatToIcon(format){
     if (format.includes("pdf"))
-        return "picture_as_pdf";
+        return FileText;
     else if (format.includes("zip") || format.includes("rar") || format.includes("7z"))
-        return "folder_zip";
+        return FileArchive;
     else if (format.includes("xls")
             || format.includes("csv")
             || format.includes("tab-separated-values")
             || format.includes("spreadsheet"))
-        return "table_chart";
+        return FileSpreadsheet;
     else if (format.includes("text") || format.includes("word") || format.includes("doc"))
-        return "text_snippet";
+        return FileType;
     else if (format.includes("image"))
-        return "image";
+        return FileImage;
     else
-        return "note";
+        return File;
 }
 
 function formatByteSize(bytes){
@@ -58,12 +59,15 @@ function formatByteSize(bytes){
 
 function DisplayError() {
     return(
-        <span>An error occurred while retrieving the attached files.</span>
+        <span className="text-sm text-red-900">An error occurred while retrieving the attached files.</span>
     );
 }
 
 function DisplayTable({dataObject}) {
-    const IconCell = ({value}) => <i className={"material-icons"}>{formatToIcon(value)}</i>;
+    const IconCell = ({value}) => {
+        const Component = formatToIcon(value);
+        return <Component className="h-5 w-5 text-blue-900" aria-hidden="true" />;
+    };
     IconCell.propTypes = {
         value: PropTypes.string,
     };
@@ -104,8 +108,10 @@ function DisplayTable({dataObject}) {
                     <a
                         href={cell.row.original.path}
                         download={cell.row.original.name}
+                        className="inline-flex items-center text-blue-900 hover:text-blue-700"
+                        title="Download"
                     >
-                        <i className={"material-icons attachment-download"}>download</i>
+                        <Download className="h-5 w-5" aria-hidden="true" />
                     </a>,
             },
         ]

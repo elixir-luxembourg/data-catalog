@@ -1,4 +1,5 @@
 {% extends 'base_search.html' %}
+{% import 'macros.html' as macros %}
 {% set entity_controller = "dataset_details" %}
 {% set entity_name = "dataset" %}
 {% set search_controller = "entities_search" %}
@@ -13,54 +14,54 @@
 
 {% block search_results %}
     {% set start_rank = (pagination.page - 1) * pagination.per_page %}
-    {% for dataset in entities %}
-
-        <div class="panel panel-default panel-flat panel-dataset">
-
-            <div class="panel-body" style="position:relative">
-                <h3>
-                    <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=dataset.id) }}">
-                        {{ dataset.title| truncate(55, True) }}
-                    </a>
-                    {{macros.small_id_row(dataset)}}
-                    {% if dataset.open_access_link %}
-                        <a href={{ dataset.open_access_link }}
-                                   class="btn" role="button" style="width:1px;padding:5px;font-size: 18px"><span
-                                class="glyphicon glyphicon-download"
-                                data-toggle="tooltip" title="download"></span></a>
+    <div class="space-y-4">
+        {% for dataset in entities %}
+            <article class="relative rounded border border-gray-200 bg-white shadow-sm">
+                <div class="space-y-2 px-4 py-3">
+                    <div class="flex items-start justify-between gap-3">
+                        <h3 class="font-display text-lg font-semibold text-blue-900">
+                            <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=dataset.id) }}"
+                               class="text-blue-900 hover:underline">
+                                {{ dataset.title | truncate(55, True) }}
+                            </a>
+                        </h3>
+                        {% if dataset.open_access_link %}
+                            <a href="{{ dataset.open_access_link }}"
+                               title="download"
+                               class="inline-flex items-center justify-center rounded border border-gray-200 px-2 py-1 text-blue-900 hover:bg-gray-100">
+                                <i data-lucide="download" class="h-4 w-4"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                    {{ macros.small_id_row(dataset) }}
+                    {% if fair_evaluations_show and dataset.fair_evaluation %}
+                        <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=dataset.id) }}#fairplus-evaluation-fields"
+                           class="absolute right-3 top-3">
+                            <img alt="fairplus stamp"
+                                 title="Dataset processed by FAIRplus. See FAIRplus Evaluation tab for details."
+                                 src="/static/public/images/fairplus-stamp.png"
+                                 class="h-12 w-12"/>
+                        </a>
                     {% endif %}
-                </h3>
-                {% if fair_evaluations_show and dataset.fair_evaluation %}
-                    <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=dataset.id) }}#fairplus-evaluation-fields"
-                       class="fairResultsStamp"><img alt='fairplus stamp'
-                                                     title="Dataset processed by FAIRplus. See FAIRplus Evaluation tab for details."
-                                                     src="/static/public/images/fairplus-stamp.png"/></a>
-                {% endif %}
-                <p class="search-description"></p>
-            </div>
-            <div class="panel-footer">
-                <div class="row">
-                    <div class="col-md-12">
-                        <ul class="dataset-card">
+                </div>
+                {% if dataset.released_on or dataset.tags %}
+                    <div class="border-t border-gray-200 bg-gray-50 px-4 py-2">
+                        <ul class="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-gray-800">
                             {% if dataset.released_on %}
-                                <li><span
-                                        class="dataset-field-label">Released on:</span> {{ dataset.released_on | date }}
-                                </li>
+                                <li><span class="font-medium text-blue-900">Released on:</span> {{ dataset.released_on | date }}</li>
                             {% endif %}
                             {% if dataset.tags %}
-                                <li><span class="dataset-field-label">Tags:</span>
+                                <li class="flex flex-wrap items-center gap-2">
+                                    <span class="font-medium text-blue-900">Tags:</span>
                                     {% for tag in dataset.tags %}
-                                        <span class="label label-default">{{ tag }}</span>
+                                        <span class="inline-flex items-center rounded bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-900">{{ tag }}</span>
                                     {% endfor %}
                                 </li>
                             {% endif %}
                         </ul>
                     </div>
-                </div>
-            </div>
-        </div>
-
-    {% endfor %}
-
+                {% endif %}
+            </article>
+        {% endfor %}
+    </div>
 {% endblock %}
-

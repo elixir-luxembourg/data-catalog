@@ -1,4 +1,4 @@
-{% extends 'layout.html' %}
+{% extends 'base_layout.html' %}
 {% set active_page = "help" %}
 
 {% block meta %}
@@ -10,76 +10,91 @@
 {% block title %}Help{% endblock %}
 
 {% block content %}
+<article class="mx-auto max-w-3xl space-y-6">
+    <h1 id="helpHeader" class="font-display text-3xl font-semibold text-blue-900">Frequently Asked Questions</h1>
+    <p class="text-base leading-relaxed text-gray-800">Here are some of the most frequently asked questions about the {{ config.get('TITLE', 'Data Catalogue') }} and how to use it. If you have a question that isn't answered here, please don't hesitate to
+        <a href="mailto:data-catalog@elixir-luxembourg.org" class="font-semibold text-blue-900 underline hover:text-blue-700">contact us.</a>
+    </p>
 
-    <div class="wrapper wrapper-text"><h1 id="helpHeader">Frequently Asked Questions</h1>
-        <p>Here are some of the most frequently asked questions about the {{ config.get('TITLE', 'Data Catalogue') }} and how to use it. If you
-            have a question that isn't answered here, please don't hesitate to <strong><a
-                    href="mailto:data-catalog@elixir-luxembourg.org">contact us.</a></strong></p>
-        <h2>What is the {{ config.get('TITLE', 'Data Catalogue') }}?</h2>
-        <p>For more information on the catalogue, see our <strong><a href="{{ url_for('about') }}">About page</a></strong>.
+    <section class="space-y-2">
+        <h2 class="font-display text-xl font-semibold text-blue-900">What is the {{ config.get('TITLE', 'Data Catalogue') }}?</h2>
+        <p class="text-base leading-relaxed text-gray-800">For more information on the catalogue, see our
+            <a href="{{ url_for('about') }}" class="font-semibold text-blue-900 underline hover:text-blue-700">About page</a>.
         </p>
+    </section>
 
-        <h2>Why does the catalogue look different to the last time I visited?</h2>
-        <p>We recently did some major redevelopment work, including creating a new user
-            interface, implementing a new data model based on the <strong><a
-                    href="https://github.com/datatagsuite/README">DATS model</a></strong> and recurating a lot of the
-            content. We are still in the process of adding some of the older projects into the new model. If you
-            urgently need access to any of the old catalogue entries, we have an <a
-                    href="https://datacatalog.elixir-luxembourg.org/old">archived version</a> of the old Data Catalog
-            available.</p>
-
-        <h2>What is the difference between "Project", "Study" and "Dataset"?</h2>
-        <p>The data model on which the catalogue distinguishes between these three categories:</p>
-        <p>
-            The <strong>Project</strong> view presents high-level information about catalogue entries, such
-            as title, general research area, and publications, as well as funding and contributor contact
-            information.
+    <section class="space-y-2">
+        <h2 class="font-display text-xl font-semibold text-blue-900">Why does the catalogue look different to the last time I visited?</h2>
+        <p class="text-base leading-relaxed text-gray-800">We recently did some major redevelopment work, including creating a new user interface, implementing a new data model based on the
+            <a href="https://github.com/datatagsuite/README" class="font-semibold text-blue-900 underline hover:text-blue-700">DATS model</a>
+            and recurating a lot of the content. We are still in the process of adding some of the older projects into the new model. If you urgently need access to any of the old catalogue entries, we have an
+            <a href="https://datacatalog.elixir-luxembourg.org/old" class="text-blue-900 underline hover:text-blue-700">archived version</a> of the old Data Catalog available.
         </p>
-        <p>
-            The <strong>Study</strong> view presents a range of metadata describing the data acquisition process
-            such as sample and protocol information.
+    </section>
+
+    <section class="space-y-2">
+        <h2 class="font-display text-xl font-semibold text-blue-900">What is the difference between "Project", "Study" and "Dataset"?</h2>
+        <p class="text-base leading-relaxed text-gray-800">The data model on which the catalogue distinguishes between these three categories:</p>
+        <p class="text-base leading-relaxed text-gray-800">The <strong class="font-semibold text-blue-900">Project</strong> view presents high-level information about catalogue entries, such as title, general research area, and publications, as well as funding and contributor contact information.</p>
+        <p class="text-base leading-relaxed text-gray-800">The <strong class="font-semibold text-blue-900">Study</strong> view presents a range of metadata describing the data acquisition process such as sample and protocol information.</p>
+        <p class="text-base leading-relaxed text-gray-800">The <strong class="font-semibold text-blue-900">Dataset</strong> view presents metadata about collections of data associated with projects, including version numbers and creation dates, links to source data and general.</p>
+        <p class="text-base leading-relaxed text-gray-800">Populating Study- and Dataset-level information for all projects is an ongoing process, so you may find empty place-holder pages for some of these.</p>
+    </section>
+
+    <section class="space-y-2">
+        <h2 class="font-display text-xl font-semibold text-blue-900">How can I search the catalogue?</h2>
+        <p class="text-base leading-relaxed text-gray-800">You can search each of the three aspects (Project, Study and Dataset) separately, using a number of factors including title, disease, species, keywords, data types etc. The search functionality is under active development as we work on providing an integrated experience across the entire catalogue.</p>
+    </section>
+
+    <section class="space-y-2">
+        <h2 class="font-display text-xl font-semibold text-blue-900">How can I request access to a dataset?</h2>
+        <p class="text-base leading-relaxed text-gray-800">On some Dataset pages, you will find a "Request access" button, which allows you to submit a data access request to the system. These datasets are hosted by
+            <a href="https://elixir-luxembourg.org/services/data-hosting/" class="text-blue-900 underline hover:text-blue-700">ELIXIR Luxembourg's data hosting service</a>
+            so we are able to process these access requests according to the data reuse conditions specified by the data owner. We are not able to provide or facilitate dataset access for projects not hosted at ELIXIR Luxembourg, except where the data is already available through a public data repository, in which case a direct link to the data is provided.
         </p>
-        <p>
-            The <strong>Dataset</strong> view presents metadata about collections of data associated with projects,
-            including version numbers and creation dates, links to source data and general.
+    </section>
+
+    <section class="space-y-2">
+        <h2 class="font-display text-xl font-semibold text-blue-900">What are the reuse conditions for the information displayed in the {{ config.get('TITLE', 'Data Catalogue') }}?</h2>
+        <p class="text-base leading-relaxed text-gray-800">All project-, study- and dataset-related information published in the catalogue is freely available for reuse under the
+            <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="text-blue-900 underline hover:text-blue-700">CC BY-NC-SA 4.0 license</a>.
+            The catalogue code base is licensed under the
+            <a href="https://www.gnu.org/licenses/agpl-3.0.en.html" class="text-blue-900 underline hover:text-blue-700">GNU Affero General Public License</a> (AGPL).
         </p>
-        <p>Populating Study- and
-            Dataset-level information for all projects is an ongoing process, so you may find empty place-holder pages
-            for some of these.</p>
+    </section>
 
-        <h2>How can I search the catalogue?</h2>
-        <p>You can search each of the three aspects (Project, Study and Dataset) separately, using a number of factors
-            including title, disease, species, keywords, data types etc. The search functionality is under active
-            development as we work on providing an integrated experience across the entire catalogue.</p>
-
-        <h2>How can I request access to a dataset?</h2>
-        <p>On some Dataset pages, you will find a "Request access" button, which allows you to submit a data access
-            request to the system. These datasets are hosted by <a href="https://elixir-luxembourg.org/services/data-hosting/">ELIXIR Luxembourg's data hosting service</a> so we are able to process these access requests according to the data reuse conditions specified by the data owner.
-            We are not able to provide or facilitate dataset access for projects not hosted at ELIXIR Luxembourg, except where the data is already available through a public data repository, in which case a direct link to the data is provided.</p>
-
-        <h2>What are the reuse conditions for the information displayed in the {{ config.get('TITLE', 'Data Catalogue') }}?</h2>
-        <p>All project-, study- and dataset-related information published in the catalogue is freely available for reuse under the <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0 license</a>. The catalogue code base is licensed under the <a href="https://www.gnu.org/licenses/agpl-3.0.en.html">GNU Affero General Public License
-</a> (AGPL).</p>
-
-        <h2>What does the "FAIRplus Evaluated" badge signify?</h2>
-        <p>The <strong><a href="https://fairplus-project.eu/">FAIRplus project</a></strong> works on developing tools
-            and guidelines for making life science data FAIR, using a range of IMI projects as data sources to showcase
-            and test its output. The "FAIRplus Evaluated" badge highlights projects which have been processed by the
-            FAIRplus project, undergoing at least one <a href="https://faircookbook.elixir-europe.org/content/recipes/introduction/fairification-process.html">"FAIRification cycle"</a>, including an evaluation of <a href="https://fairplus.github.io/Data-Maturity/">FAIR maturity</a> before
-            and after the FAIRification work. A link to the FAIRplus evaluation is available on relevant Dataset pages.
+    <section class="space-y-2">
+        <h2 class="font-display text-xl font-semibold text-blue-900">What does the "FAIRplus Evaluated" badge signify?</h2>
+        <p class="text-base leading-relaxed text-gray-800">The
+            <a href="https://fairplus-project.eu/" class="font-semibold text-blue-900 underline hover:text-blue-700">FAIRplus project</a>
+            works on developing tools and guidelines for making life science data FAIR, using a range of IMI projects as data sources to showcase and test its output. The "FAIRplus Evaluated" badge highlights projects which have been processed by the FAIRplus project, undergoing at least one
+            <a href="https://faircookbook.elixir-europe.org/content/recipes/introduction/fairification-process.html" class="text-blue-900 underline hover:text-blue-700">"FAIRification cycle"</a>,
+            including an evaluation of
+            <a href="https://fairplus.github.io/Data-Maturity/" class="text-blue-900 underline hover:text-blue-700">FAIR maturity</a>
+            before and after the FAIRification work. A link to the FAIRplus evaluation is available on relevant Dataset pages.
         </p>
+    </section>
 
-        <h2>How do I report a bug or request a new feature?</h2>
-        <p>Please submit any bug reports and feature requests to the <strong><a
-                href="https://github.com/elixir-luxembourg/data-catalog/issues">issue tracker</a></strong> on catalogue Github repo. We'd love to hear from you!</p>
+    <section class="space-y-2">
+        <h2 class="font-display text-xl font-semibold text-blue-900">How do I report a bug or request a new feature?</h2>
+        <p class="text-base leading-relaxed text-gray-800">Please submit any bug reports and feature requests to the
+            <a href="https://github.com/elixir-luxembourg/data-catalog/issues" class="font-semibold text-blue-900 underline hover:text-blue-700">issue tracker</a>
+            on catalogue Github repo. We'd love to hear from you!
+        </p>
+    </section>
 
-        <h2>I think my project should be in the {{ config.get('TITLE', 'Data Catalogue') }} but it isn't. How can I get it included?</h2>
-        <p>To talk to us about {{ config.get('TITLE', 'Data Catalogue') }} content, please drop us
-            <strong><a href="mailto:data-catalog@elixir-luxembourg.org">an email</a></strong>.</p>
+    <section class="space-y-2">
+        <h2 class="font-display text-xl font-semibold text-blue-900">I think my project should be in the {{ config.get('TITLE', 'Data Catalogue') }} but it isn't. How can I get it included?</h2>
+        <p class="text-base leading-relaxed text-gray-800">To talk to us about {{ config.get('TITLE', 'Data Catalogue') }} content, please drop us
+            <a href="mailto:data-catalog@elixir-luxembourg.org" class="font-semibold text-blue-900 underline hover:text-blue-700">an email</a>.
+        </p>
+    </section>
 
-        <h2>I have found a mistake in the metadata for my project. How can I get it fixed?</h2>
-        <p>To talk to us about {{ config.get('TITLE', 'Data Catalogue') }} content, please drop us
-            <strong><a href="mailto:data-catalog@elixir-luxembourg.org">an email</a></strong>.</p>
-    </div>
-
+    <section class="space-y-2">
+        <h2 class="font-display text-xl font-semibold text-blue-900">I have found a mistake in the metadata for my project. How can I get it fixed?</h2>
+        <p class="text-base leading-relaxed text-gray-800">To talk to us about {{ config.get('TITLE', 'Data Catalogue') }} content, please drop us
+            <a href="mailto:data-catalog@elixir-luxembourg.org" class="font-semibold text-blue-900 underline hover:text-blue-700">an email</a>.
+        </p>
+    </section>
+</article>
 {% endblock %}

@@ -725,6 +725,7 @@ def my_applications(entity_name):
     applications = json.dumps(
         [
             {
+                "id": a.id,
                 "ext_id": a.external_id,
                 "dataset": a.entity_title,
                 "state": a.state.value,

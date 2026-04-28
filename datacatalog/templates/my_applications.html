@@ -1,32 +1,38 @@
-{% extends 'layout.html' %}
+{% extends 'base_layout.html' %}
 
 {% block content %}
-    <div class="myApplications">
-        <h1>My data access requests</h1>
-        {% if entities_with_access %}
-            <h2>Accessible datasets</h2>
-            <div class="myAccesses">
+<section class="space-y-6">
+    <h1 class="font-display text-3xl font-semibold text-blue-900">My data access requests</h1>
+
+    {% if entities_with_access %}
+        <div class="space-y-3">
+            <h2 class="font-display text-xl font-semibold text-blue-900">Accessible datasets</h2>
+            <ul class="divide-y divide-gray-200 overflow-hidden rounded border border-gray-200 bg-white">
                 {% for entity in entities_with_access %}
-                    <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=entity.id) }}">
-                        <span class="access">{{ entity.title }}</span>
-                        <span class="backicon glyphicon glyphicon-ok-circle text-success"></span>
-                    </a>
+                    <li>
+                        <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=entity.id) }}"
+                           class="flex items-center justify-between gap-4 px-4 py-3 hover:bg-sky-50">
+                            <span class="text-sm font-medium text-blue-900">{{ entity.title }}</span>
+                            <i data-lucide="circle-check" class="h-5 w-5 text-blue-900"></i>
+                        </a>
+                    </li>
                 {% endfor %}
-            </div>
-            <h2>Pending and rejected data access requests</h2>
-        {% endif %}
-        {% if applications %}
-            <div id="applications-datatable"
-                 data-applications="{{ applications }}"
-                    {% if actions_allowed %}
-                 data-actions-allowed="true"
-                        {# TODO: This will not work when user_actions are made available #}
-                 data-close-url="{{ url_for('close_application', entity_name=entity_name, application_id=application.id) }}"
-                    {% endif %}
-            >
-            </div>
-        {% else %}
-            <p><strong>No data access requests found.</strong></p>
-        {% endif %}
-    </div>
+            </ul>
+            <h2 class="font-display text-xl font-semibold text-blue-900">Pending and rejected data access requests</h2>
+        </div>
+    {% endif %}
+
+    {% if applications %}
+        <div id="applications-datatable"
+             class="overflow-x-auto rounded border border-gray-200 bg-white"
+             data-applications="{{ applications }}"
+             {% if actions_allowed %}
+             data-actions-allowed="true"
+             data-close-url-template="{{ url_for('close_application', entity_name=entity_name, application_id='__APP_ID__') }}"
+             {% endif %}>
+        </div>
+    {% else %}
+        <p class="text-base text-gray-800"><strong class="font-semibold text-blue-900">No data access requests found.</strong></p>
+    {% endif %}
+</section>
 {% endblock %}
