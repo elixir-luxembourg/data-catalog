@@ -149,9 +149,9 @@ class Autocomplete extends Component {
         const {filtered, suggestionsTerms, totalTermsState, totalEntityTitleState} = this.state;
         const {entityLinkPattern} = this.props;
         if (e.keyCode === 13) { // enter key
-            e.preventDefault();
             const suggestionsCombined = suggestionsTerms.slice(0, totalTermsState).concat(filtered.slice(0, totalEntityTitleState));
-            if (suggestionsCombined.length > 0) {
+            if (suggestionsCombined.length > 0 && this.state.isShow) {
+                e.preventDefault();
                 this.inputRef.current.value = suggestionsCombined[this.state.active].title;
                 if (suggestionsCombined[this.state.active].title) {
                     this.inputRef.current.value = suggestionsCombined[this.state.active].title;
@@ -185,7 +185,8 @@ class Autocomplete extends Component {
 
         // Create entity header if there are entities left after filtering
         if (filtered.length > 0 && totalEntityTitleState > 0) {
-            autocompleteHeaderEntity = <div className={headerClass}>{entityName + "s"}</div>;
+            const entityPlural = entityName === "study" ? "studies" : entityName + "s";
+            autocompleteHeaderEntity = <div className={headerClass}>{entityPlural}</div>;
         }
 
         // Create keywords header if there are suggested terms

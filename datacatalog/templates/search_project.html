@@ -13,59 +13,69 @@
 {% endblock %}
 
 {% block search_results %}
-    {% set start_rank = (pagination.page - 1) * pagination.per_page %}
-    <div class="space-y-4">
-        {% for project in entities %}
-            <article class="relative rounded border border-gray-200 bg-white shadow-sm">
-                <div class="space-y-2 px-4 py-3">
-                    <h3 class="font-display text-lg font-semibold text-blue-900">
-                        <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=project.id) }}"
-                           class="text-blue-900 hover:underline">
-                            {% if project.project_name and project.project_name != project.title %}
-                                {{ project.project_name | truncate(55, True) }}&nbsp;-&nbsp;{{ project.title | truncate(55, True) }}
-                            {% else %}
-                                {{ project.title | truncate(55, True) }}
-                            {% endif %}
-                        </a>
-                    </h3>
-                    {{ macros.small_id_row(project) }}
-                    <p class="text-sm leading-relaxed text-gray-800">{{ project.description | default("", True) | truncate(500, True) }}</p>
-                    {% if project.keywords %}
-                        <p class="flex flex-wrap items-center gap-2 text-sm">
-                            <span class="font-medium text-blue-900">Keywords:</span>
-                            {% for keyword in project.keywords %}
-                                <span class="inline-flex items-center rounded bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-900">{{ keyword }}</span>
-                            {% endfor %}
-                        </p>
+    {% for project in entities %}
+        <article class="relative py-5 before:absolute before:-top-px before:left-0 before:h-px before:w-10 before:bg-amber-500 before:content-['']">
+            <div class="flex items-start justify-between gap-3">
+                <h2 class="font-display text-lg font-semibold leading-snug tracking-tight text-blue-900">
+                    <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=project.id) }}"
+                       class="hover:text-blue-800 hover:underline underline-offset-2">
+                        {% if project.project_name and project.project_name != project.title %}
+                            {{ project.project_name | truncate(40, True) }}<span class="text-gray-500">&nbsp;·&nbsp;</span>{{ project.title | truncate(60, True) }}
+                        {% else %}
+                            {{ project.title | truncate(80, True) }}
+                        {% endif %}
+                    </a>
+                </h2>
+                {% if fair_evaluations_show and project.fair_evaluation %}
+                    <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=project.id) }}#fairplus-evaluation-fields"
+                       title="Dataset processed by FAIRplus. See FAIRplus Evaluation tab for details."
+                       class="shrink-0">
+                        <img alt="fairplus stamp"
+                             src="/static/public/images/fairplus-stamp.png"
+                             class="h-8 w-8"/>
+                    </a>
+                {% endif %}
+            </div>
+
+            {% if project.description %}
+                <p class="mt-3 line-clamp-3 max-w-prose text-[15px] leading-relaxed text-gray-800">
+                    {{ project.description | truncate(500, True) }}
+                </p>
+            {% endif %}
+
+            {% if project.keywords %}
+                <div class="mt-3 flex flex-wrap items-baseline gap-1.5">
+                    <span class="mr-1 font-display text-xs font-semibold uppercase tracking-[0.08em] text-gray-600">Keywords</span>
+                    {% for keyword in project.keywords %}
+                        <span class="rounded-sm border border-gray-300 px-2 py-0.5 text-xs text-gray-700">{{ keyword }}</span>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% if project.start_date or project.website or project.display_name %}
+                <div class="mt-3 flex flex-wrap items-baseline gap-x-6 gap-y-1 text-sm">
+                    {% if project.start_date %}
+                        <span>
+                            <span class="font-display text-xs font-semibold uppercase tracking-[0.08em] text-gray-600">Start</span>
+                            <span class="ml-1.5 tabular-nums text-blue-900">{{ project.start_date | date }}</span>
+                        </span>
                     {% endif %}
-                    {% if fair_evaluations_show and project.fair_evaluation %}
-                        <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=project.id) }}#fairplus-evaluation-fields"
-                           class="absolute right-3 top-3">
-                            <img alt="fairplus stamp"
-                                 title="Dataset processed by FAIRplus. See FAIRplus Evaluation tab for details."
-                                 src="/static/public/images/fairplus-stamp.png"
-                                 class="h-12 w-12"/>
-                        </a>
+                    {% if project.website %}
+                        <span>
+                            <span class="font-display text-xs font-semibold uppercase tracking-[0.08em] text-gray-600">Website</span>
+                            <a href="{{ project.website }}" class="ml-1.5 text-blue-900 underline underline-offset-2 hover:text-blue-800">{{ project.website | truncate(40, True) }}</a>
+                        </span>
+                    {% endif %}
+                    {% if project.display_name %}
+                        <span>
+                            <span class="font-display text-xs font-semibold uppercase tracking-[0.08em] text-gray-600">Contact</span>
+                            <span class="ml-1.5 text-blue-900">{{ project.display_name }}</span>
+                        </span>
                     {% endif %}
                 </div>
-                {% if project.start_date or project.website or project.display_name %}
-                    <div class="border-t border-gray-200 bg-gray-50 px-4 py-2">
-                        <ul class="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-gray-800">
-                            {% if project.start_date %}
-                                <li><span class="font-medium text-blue-900">Start:</span> {{ project.start_date | date }}</li>
-                            {% endif %}
-                            {% if project.website %}
-                                <li>
-                                    <a href="{{ project.website }}" class="font-medium text-blue-900 underline hover:text-blue-700">Project website</a>
-                                </li>
-                            {% endif %}
-                            {% if project.display_name %}
-                                <li><span class="font-medium text-blue-900">Contact:</span> {{ project.display_name }}</li>
-                            {% endif %}
-                        </ul>
-                    </div>
-                {% endif %}
-            </article>
-        {% endfor %}
-    </div>
+            {% endif %}
+
+            {{ macros.small_id_row(project) }}
+        </article>
+    {% endfor %}
 {% endblock %}
