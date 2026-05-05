@@ -3,67 +3,87 @@
 {% block meta %}
 {{ super() }}
 <meta property="og:title" content="{{ config.get('TITLE', 'Data Catalogue') }}">
-<meta property="og:description" content="The ELIXIR Luxembourg Data Catalogue is a unique collection of project-level metadata from large research initiatives in a diverse range of fields.">
+<meta property="og:description" content="The ELIXIR Luxembourg Data Catalogue is a unique collection of project-level metadata from large research initiatives in a diverse range of fields, including clinical, molecular and observational studies. Its aim is to improve the findability of these projects following FAIR data principles.">
 {% endblock %}
 
 {% block content %}
-<section class="space-y-10">
-    <div class="text-center">
-        <h1 class="mb-4 font-display text-2xl font-semibold text-blue-900">Welcome to</h1>
-        <img class="mx-auto h-20 w-auto"
-             src="{{ config.get('URL_PREFIX', '') }}/static/public/images/datacatalog_logo.svg"
-             alt="datacatalog logo"/>
-    </div>
+<section class="space-y-8 py-8 lg:space-y-10 lg:py-10">
 
-    <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
-        <a href="{{ url_for('entities_search', entity_name='project') }}"
-           title="Browse Projects"
-           class="group block rounded border border-gray-200 bg-white p-6 shadow-sm transition hover:border-blue-900 hover:bg-sky-50">
-            <div class="mb-3 flex items-center gap-3 text-blue-900">
-                <i data-lucide="file-text" class="h-7 w-7"></i>
-                <h3 class="flex items-center gap-2 font-display text-xl font-semibold">
-                    Projects
-                    <span class="inline-flex items-center rounded-full bg-blue-900 px-2 py-0.5 text-xs font-medium text-white">{{ counts_entities['project'] }}</span>
-                </h3>
-            </div>
-            <p class="text-sm leading-relaxed text-gray-800">
-                The <strong class="font-semibold text-blue-900">Project</strong> view presents high-level information about Data Catalog entries, such as title, general research area, and publications, as well as funding and contributor contact information.
-            </p>
-        </a>
+  <div class="relative pb-8">
+    <img src="{{ url_for('static', filename='public/images/datacatalog_logo.svg') }}"
+         alt="LCSB Data Catalogue"
+         class="h-24 w-auto md:h-28 lg:h-32"/>
+  </div>
 
-        <a href="{{ url_for('entities_search', entity_name='study') }}"
-           title="Browse Studies"
-           class="group block rounded border border-gray-200 bg-white p-6 shadow-sm transition hover:border-blue-900 hover:bg-sky-50">
-            <div class="mb-3 flex items-center gap-3 text-blue-900">
-                <i data-lucide="microscope" class="h-7 w-7"></i>
-                <h3 class="flex items-center gap-2 font-display text-xl font-semibold">
-                    Studies
-                    <span class="inline-flex items-center rounded-full bg-blue-900 px-2 py-0.5 text-xs font-medium text-white">{{ counts_entities['study'] }}</span>
-                </h3>
-            </div>
-            <p class="text-sm leading-relaxed text-gray-800">
-                The <strong class="font-semibold text-blue-900">Study</strong> view presents a range of metadata describing the data acquisition process such as sample and protocol information.
-            </p>
-        </a>
+  <div class="grid items-start gap-8 lg:grid-cols-12 lg:gap-12">
 
-        <a href="{{ url_for('entities_search', entity_name='dataset') }}"
-           title="Browse Datasets"
-           class="group block rounded border border-gray-200 bg-white p-6 shadow-sm transition hover:border-blue-900 hover:bg-sky-50">
-            <div class="mb-3 flex items-center gap-3 text-blue-900">
-                <i data-lucide="chart-bar" class="h-7 w-7"></i>
-                <h3 class="flex items-center gap-2 font-display text-xl font-semibold">
-                    Datasets
-                    <span class="inline-flex items-center rounded-full bg-blue-900 px-2 py-0.5 text-xs font-medium text-white">{{ counts_entities['dataset'] }}</span>
-                </h3>
-            </div>
-            <p class="text-sm leading-relaxed text-gray-800">
-                The <strong class="font-semibold text-blue-900">Dataset</strong> view presents metadata about collections of data associated with projects, including version numbers and creation dates, links to source data and general.
-            </p>
-        </a>
-    </div>
+    <p class="text-pretty font-display text-lg font-medium leading-snug text-blue-900 md:text-xl lg:col-span-8 lg:text-2xl">
+      The ELIXIR Luxembourg Data Catalogue is a unique collection of project-level metadata from large research initiatives in a diverse range of fields, including clinical, molecular and observational studies. Its aim is to improve the findability of these projects following FAIR data principles.
+    </p>
 
-    <blockquote class="mx-auto max-w-3xl rounded border-l-4 border-blue-900 bg-sky-50 p-6 text-base leading-relaxed text-blue-900">
-        The ELIXIR Luxembourg <strong class="font-semibold">Data Catalogue</strong> is a unique collection of project-level metadata from large research initiatives in a diverse range of fields, including clinical, molecular and observational studies. Its aim is to improve the findability of these projects following FAIR data principles.
-    </blockquote>
+    <a href="{{ url_for('entities_search', entity_name='dataset') }}"
+       class="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-900 focus-visible:ring-inset lg:col-span-4">
+      <div class="flex items-baseline justify-between gap-4">
+        <h2 class="flex items-center gap-2 font-display text-2xl font-semibold leading-none text-blue-900 lg:text-3xl">
+          <i data-lucide="database" class="size-6 lg:size-7" stroke-width="1.5"></i>
+          <span>Datasets</span>
+        </h2>
+        <p class="font-display text-2xl font-bold leading-none tabular-nums text-blue-900 lg:text-3xl">
+          {{ counts_entities['dataset'] }}
+        </p>
+      </div>
+      <p class="mt-3 text-sm leading-snug text-gray-700">
+        The Dataset view presents metadata about data collections, including version numbers, creation dates, and links to source data.
+      </p>
+      <span class="mt-4 flex w-full items-center justify-between border-b-2 border-amber-500 bg-blue-900 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-white transition-colors group-hover:bg-blue-950">
+        <span>Search datasets</span>
+        <span aria-hidden="true" class="text-amber-500 text-base transition-transform group-hover:translate-x-1">&rarr;</span>
+      </span>
+    </a>
+
+  </div>
+
+  <div class="border-t border-blue-900">
+
+    <a href="{{ url_for('entities_search', entity_name='project') }}"
+       class="group relative block border-b border-gray-200 py-4 transition-colors hover:bg-gray-50 focus-visible:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-900 focus-visible:ring-inset before:absolute before:-top-px before:left-0 before:h-px before:w-10 before:bg-amber-500 before:content-['']">
+      <div class="grid grid-cols-[1fr_auto] items-baseline gap-x-4 gap-y-2 lg:grid-cols-[10rem_5rem_1fr_6rem] lg:gap-x-8">
+        <h2 class="flex items-center gap-2 font-display text-xl font-semibold text-blue-900 lg:text-2xl">
+          <i data-lucide="file-text" class="size-5 lg:size-6" stroke-width="1.5"></i>
+          <span class="transition-all group-hover:underline group-hover:underline-offset-4">Projects</span>
+        </h2>
+        <span class="font-display text-2xl font-semibold tabular-nums text-blue-900 lg:text-3xl lg:text-right">
+          {{ counts_entities['project'] }}
+        </span>
+        <p class="col-span-2 text-sm leading-relaxed text-gray-700 lg:col-span-1 lg:line-clamp-2">
+          The Project view presents high-level information about Data Catalog entries, such as title, research area, publications, funding, and contributor contacts.
+        </p>
+        <span class="col-span-2 text-right text-xs font-medium uppercase tracking-wider text-blue-900 group-hover:underline lg:col-span-1">
+          Browse <span aria-hidden="true">&rarr;</span>
+        </span>
+      </div>
+    </a>
+
+    <a href="{{ url_for('entities_search', entity_name='study') }}"
+       class="group relative block py-4 transition-colors hover:bg-gray-50 focus-visible:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-900 focus-visible:ring-inset before:absolute before:-top-px before:left-0 before:h-px before:w-10 before:bg-amber-500 before:content-['']">
+      <div class="grid grid-cols-[1fr_auto] items-baseline gap-x-4 gap-y-2 lg:grid-cols-[10rem_5rem_1fr_6rem] lg:gap-x-8">
+        <h2 class="flex items-center gap-2 font-display text-xl font-semibold text-blue-900 lg:text-2xl">
+          <i data-lucide="microscope" class="size-5 lg:size-6" stroke-width="1.5"></i>
+          <span class="transition-all group-hover:underline group-hover:underline-offset-4">Studies</span>
+        </h2>
+        <span class="font-display text-2xl font-semibold tabular-nums text-blue-900 lg:text-3xl lg:text-right">
+          {{ counts_entities['study'] }}
+        </span>
+        <p class="col-span-2 text-sm leading-relaxed text-gray-700 lg:col-span-1 lg:line-clamp-2">
+          The Study view presents metadata describing the data acquisition process, such as samples and protocols.
+        </p>
+        <span class="col-span-2 text-right text-xs font-medium uppercase tracking-wider text-blue-900 group-hover:underline lg:col-span-1">
+          Browse <span aria-hidden="true">&rarr;</span>
+        </span>
+      </div>
+    </a>
+
+  </div>
+
 </section>
 {% endblock %}
