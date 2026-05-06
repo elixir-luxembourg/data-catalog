@@ -216,7 +216,7 @@
         {% endblock %}
 
         <div class="mx-auto grid w-full max-w-7xl grid-cols-1 gap-3 px-4 py-5 text-xs text-white/70 sm:grid-cols-3 sm:items-center sm:px-6 lg:px-8">
-          <a href="https://www.elixir-luxembourg.org"
+          <a href="{{ url_for('home') }}"
              class="inline-flex shrink-0 items-center gap-3 justify-self-center opacity-95 transition-opacity hover:opacity-100 sm:justify-self-start">
             <img class="h-7 w-auto brightness-0 invert"
                  src="{{ url_for('static', filename='public/images/Elixir_LU.svg') }}"
