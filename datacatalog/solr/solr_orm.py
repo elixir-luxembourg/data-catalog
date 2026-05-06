@@ -31,7 +31,7 @@ import json
 import logging
 import re
 
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from typing import Type, Dict, List, Tuple, Optional, Union, Iterable
 
 import pysolr
@@ -511,25 +511,18 @@ class SolrAutomaticQuery(SolrQuery):
             self.__class__.DEFAULT_SORT = default_sort or "title"
 
 
-class SolrDatetimeEncoder(json.JSONEncoder):
-    """
-    JSON encoder that serializes datetime/date values for Solr's ``pdate``.
+def _encode_solr_json_value(value):
+    """Serialize date/datetime to Solr ``pdate`` (UTC, ``Z``-suffixed)."""
+    if isinstance(value, datetime):
+        if value.utcoffset() is not None:
+            value = value.astimezone(timezone.utc).replace(tzinfo=None)
+        return value.isoformat(timespec="milliseconds") + "Z"
+    if isinstance(value, date):
+        return f"{value.isoformat()}T00:00:00Z"
+    raise TypeError(f"{type(value).__name__} is not JSON serializable")
 
-    pysolr 3.9+ posts documents through json.JSONEncoder, which has no
-    datetime support; the pre-3.9 XML path used pysolr._from_python. This
-    class replicates that conversion so behaviour is unchanged on the JSON
-    update handler.
-    """
 
-    def default(self, o):
-        if isinstance(o, datetime):
-            offset = o.utcoffset()
-            if offset:
-                o = o - offset
-            return o.replace(tzinfo=None).isoformat() + "Z"
-        if isinstance(o, date):
-            return "%sT00:00:00Z" % o.isoformat()
-        return super().default(o)
+_SOLR_JSON_ENCODER = json.JSONEncoder(default=_encode_solr_json_value)
 
 
 class SolrORM(object):
@@ -548,9 +541,7 @@ class SolrORM(object):
         """
         self.url = url
         self.collection = collection
-        self.indexer = Solr(
-            "{}/{}".format(url, collection), encoder=SolrDatetimeEncoder()
-        )
+        self.indexer = Solr("{}/{}".format(url, collection), encoder=_SOLR_JSON_ENCODER)
         self.indexer_schema = SolrSchemaAdmin(
             "{}/{}/schema".format(self.url, collection)
         )

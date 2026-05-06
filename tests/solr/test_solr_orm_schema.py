@@ -15,12 +15,34 @@
 #
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+import json
+from datetime import date, datetime, timedelta, timezone
+
+import pytest
 import requests
 
 from datacatalog import app
+from datacatalog.solr.solr_orm import _SOLR_JSON_ENCODER
 from tests.base_test import BaseTest
 
 __author__ = "Nirmeen Sallam"
+
+
+def test_solr_json_encoder():
+    def encode(value):
+        return json.loads(_SOLR_JSON_ENCODER.encode({"v": value}))["v"]
+
+    assert encode(datetime(2025, 6, 1, 12, 30, 45, 123456)) == "2025-06-01T12:30:45.123Z"
+    assert (
+        encode(datetime(2025, 6, 2, 8, tzinfo=timezone(timedelta(hours=2))))
+        == "2025-06-02T06:00:00.000Z"
+    )
+    assert encode(date(2025, 6, 3)) == "2025-06-03T00:00:00Z"
+    with pytest.raises(TypeError, match="set is not JSON serializable"):
+        encode({1})
+    # Without _SOLR_JSON_ENCODER, pysolr's default fails on datetime.
+    with pytest.raises(TypeError, match="datetime is not JSON serializable"):
+        json.JSONEncoder().encode(datetime(2025, 6, 1))
 
 
 class TestModels(BaseTest):
