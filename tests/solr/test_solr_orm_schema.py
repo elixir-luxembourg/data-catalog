@@ -32,7 +32,9 @@ def test_solr_json_encoder():
     def encode(value):
         return json.loads(_SOLR_JSON_ENCODER.encode({"v": value}))["v"]
 
-    assert encode(datetime(2025, 6, 1, 12, 30, 45, 123456)) == "2025-06-01T12:30:45.123Z"
+    assert (
+        encode(datetime(2025, 6, 1, 12, 30, 45, 123456)) == "2025-06-01T12:30:45.123Z"
+    )
     assert (
         encode(datetime(2025, 6, 2, 8, tzinfo=timezone(timedelta(hours=2))))
         == "2025-06-02T06:00:00.000Z"
