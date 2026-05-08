@@ -16,7 +16,7 @@
     {% for dataset in entities %}
         <article class="relative py-5 before:absolute before:-top-px before:left-0 before:h-px before:w-10 before:bg-amber-500 before:content-['']">
             <div class="flex items-start justify-between gap-3">
-                <h2 class="font-display text-lg font-semibold leading-snug tracking-tight text-blue-900">
+                <h2 class="font-display text-xl font-semibold leading-snug tracking-tight text-blue-900 lg:text-2xl">
                     <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=dataset.id) }}"
                        class="hover:text-blue-800 hover:underline underline-offset-2">
                         {{ dataset.title | truncate(80, True) }}
@@ -35,7 +35,7 @@
                         <a href="{{ dataset.open_access_link }}"
                            title="Download"
                            aria-label="Download dataset"
-                           class="inline-flex h-8 w-8 items-center justify-center rounded-sm border border-gray-300 text-blue-900 transition-colors hover:border-blue-900 hover:bg-gray-50">
+                           class="inline-flex h-8 w-8 items-center justify-center rounded-sm border border-gray-200 text-blue-900 transition-colors hover:border-blue-900 hover:bg-gray-50">
                             <i data-lucide="download" class="h-4 w-4"></i>
                         </a>
                     {% endif %}
@@ -43,7 +43,7 @@
             </div>
 
             {% if dataset.released_on or dataset.tags %}
-                <div class="mt-3 flex flex-wrap items-baseline gap-x-6 gap-y-2 text-sm">
+                <div class="mt-3 flex flex-wrap items-baseline gap-x-6 gap-y-2 text-sm lg:text-base">
                     {% if dataset.released_on %}
                         <span>
                             <span class="font-display text-xs font-semibold uppercase tracking-[0.15em] text-gray-600">Released</span>
@@ -54,7 +54,7 @@
                         <span class="flex flex-wrap items-baseline gap-1.5">
                             <span class="font-display text-xs font-semibold uppercase tracking-[0.15em] text-gray-600">Tags</span>
                             {% for tag in dataset.tags %}
-                                <span class="rounded-sm border border-gray-300 px-2 py-0.5 text-xs text-gray-700">{{ tag }}</span>
+                                <span class="rounded-sm border border-gray-200 px-2 py-0.5 text-xs text-gray-700">{{ tag }}</span>
                             {% endfor %}
                         </span>
                     {% endif %}

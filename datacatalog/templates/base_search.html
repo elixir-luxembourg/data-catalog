@@ -16,11 +16,9 @@
 {% macro facet_row(href, selected, label, count) %}
     <a href="{{ href }}"
        class="group -mx-2 flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors {% if selected %}bg-sky-50 text-blue-900 hover:bg-sky-100{% else %}text-blue-900 hover:bg-gray-50{% endif %}">
-        <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border transition-colors {% if selected %}border-blue-900 bg-blue-900{% else %}border-gray-300 bg-white group-hover:border-blue-900{% endif %}">
+        <span class="flex h-4 w-4 shrink-0 items-center justify-center rounded-sm border transition-colors {% if selected %}border-blue-900 bg-blue-900{% else %}border-gray-200 bg-white group-hover:border-blue-900{% endif %}">
             {% if selected %}
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="h-3 w-3 text-white">
-                    <path fill-rule="evenodd" d="M16.704 5.29a1 1 0 0 1 .006 1.414l-7.5 7.6a1 1 0 0 1-1.42.006l-3.5-3.5a1 1 0 1 1 1.414-1.414l2.79 2.79 6.793-6.89a1 1 0 0 1 1.417-.006Z" clip-rule="evenodd"/>
-                </svg>
+                <i data-lucide="check" class="h-3 w-3 text-white" aria-hidden="true"></i>
             {% endif %}
         </span>
         <span class="min-w-0 flex-1 truncate" title="{{ label }}">{{ label }}</span>
@@ -114,9 +112,7 @@
                 <details class="group lg:hidden">
                     <summary class="relative flex cursor-pointer items-center justify-between border-b border-gray-200 pb-2 font-display text-sm font-semibold uppercase tracking-[0.15em] text-blue-900 after:absolute after:-bottom-px after:left-0 after:h-px after:w-10 after:bg-amber-500 after:content-['']">
                         Filters
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" class="h-4 w-4 transition-transform group-open:rotate-180">
-                            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.06l3.71-3.83a.75.75 0 1 1 1.08 1.04l-4.25 4.39a.75.75 0 0 1-1.08 0L5.21 8.27a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd"/>
-                        </svg>
+                        <i data-lucide="chevron-down" class="h-4 w-4 transition-transform group-open:rotate-180" aria-hidden="true"></i>
                     </summary>
                     <div class="mt-4">
                         {{ render_all_facets() }}
@@ -129,8 +125,9 @@
         </aside>
 
         <div class="order-1 lg:order-none lg:col-start-2 lg:row-start-1">
-            <div class="relative mb-4 flex h-9 items-end border-b border-gray-200 pb-2 after:absolute after:-bottom-px after:left-0 after:h-px after:w-10 after:bg-amber-500 after:content-['']">
-                <h1 id="title-home" class="font-display text-2xl font-semibold leading-none tracking-tight text-blue-900">
+            {{ macros.eyebrow("Search") }}
+            <div class="relative mb-4 mt-5 flex items-end border-b border-gray-200 pb-2 after:absolute after:-bottom-px after:left-0 after:h-px after:w-10 after:bg-amber-500 after:content-['']">
+                <h1 id="title-home" class="font-display text-3xl font-semibold leading-none tracking-tight text-blue-900 lg:text-4xl">
                     Search {{ entity_plural_name }}
                 </h1>
             </div>
@@ -163,7 +160,7 @@
                                     <span class="text-gray-600">{{ facet.label }}</span>
                                     <span class="font-medium">{{ facet_value_cleaned }}</span>
                                     <span aria-hidden="true" class="ml-0.5 inline-flex h-4 w-4 items-center justify-center text-gray-500 group-hover:text-red-900">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-3 w-3"><path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z"/></svg>
+                                        <i data-lucide="x" class="h-3 w-3" aria-hidden="true"></i>
                                     </span>
                                 </a>
                             {% endfor %}
@@ -176,7 +173,7 @@
                 {% endif %}
 
                 {% if search_examples %}
-                    <p class="mt-4 text-sm leading-relaxed text-gray-800">
+                    <p class="mt-4 text-sm leading-relaxed text-gray-800 lg:text-base">
                         <span class="mr-2 font-display text-xs font-semibold uppercase tracking-[0.15em] text-gray-500">Try</span>
                         {% for search_example in search_examples %}
                             <a href="{{ url_for(search_controller, entity_name=entity_name, query=search_example) }}"
@@ -226,9 +223,7 @@
 
             {% if results.hits == 0 %}
                 <div class="px-6 py-16 text-center">
-                    <svg class="mx-auto h-10 w-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                    </svg>
+                    <i data-lucide="search" class="mx-auto h-10 w-10 text-gray-400" aria-hidden="true"></i>
                     <h3 class="mt-4 font-display text-lg font-semibold tracking-tight text-blue-900">No {{ entity_plural_name | lower }} match your search</h3>
                     <p class="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-gray-800">
                         {% if active_count.value > 0 %}Try a different query, or <a href="{{ clear_ns.url }}" class="text-blue-900 underline underline-offset-2 hover:text-blue-800">clear your filters</a>.{% else %}Try a different query.{% endif %}

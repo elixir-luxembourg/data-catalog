@@ -2,6 +2,9 @@
 {% import 'macros.html' as macros %}
 {% set entity_name = "dataset" %}
 {% set entity = dataset %}
+{% set study = dataset.study_entity %}
+{% set project = study.project_entity if study else dataset.project_entity %}
+{% set is_deprecated = dataset.deprecated == "Deprecated" %}
 
 {% block jsonld %}
 {{ super() }}
@@ -66,247 +69,429 @@
 {% endblock %}
 
 {% block content %}
-<section class="relative space-y-6 rounded border border-gray-200 bg-white p-6 shadow-sm">
-    {% if dataset.deprecated == "Deprecated" %}
-        <span class="absolute right-0 top-0 rounded-bl bg-red-900 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">Deprecated</span>
-    {% else %}
-        {% if fair_evaluations_show and dataset.fair_evaluation %}
-            <a href="#fairplus-evaluation-fields" class="absolute right-3 top-3" data-expand="fairplus-evaluation-fields">
-                <img alt="fairplus stamp"
-                     title="Dataset processed by FAIRplus. See FAIRplus Evaluation tab for details."
-                     src="/static/public/images/fairplus-stamp.png" class="h-12 w-12"/>
-            </a>
+{%- set glance_items = [] -%}
+{%- if not is_deprecated -%}
+  {%- if dataset.version -%}
+    {%- set _ = glance_items.append({'label': 'Version', 'value': dataset.version}) -%}
+  {%- endif -%}
+  {%- if dataset.released_on -%}
+    {%- set _ = glance_items.append({'label': 'Released', 'value': dataset.released_on | date}) -%}
+  {%- elif dataset.dataset_created -%}
+    {%- set _ = glance_items.append({'label': 'Created', 'value': dataset.dataset_created | date}) -%}
+  {%- endif -%}
+  {%- if dataset.dataset_modified -%}
+    {%- set _ = glance_items.append({'label': 'Updated', 'value': dataset.dataset_modified | date}) -%}
+  {%- endif -%}
+  {%- if dataset.number_of_files -%}
+    {%- set _ = glance_items.append({'label': 'Files', 'value': dataset.number_of_files}) -%}
+  {%- elif dataset.size -%}
+    {%- set _ = glance_items.append({'label': 'Size', 'value': dataset.size}) -%}
+  {%- endif -%}
+{%- endif -%}
+<article>
+  <div class="grid grid-cols-1 gap-x-10 gap-y-8 pb-10 lg:grid-cols-[18rem_minmax(0,1fr)] lg:grid-rows-[auto_1fr] lg:pb-14">
+
+    <header class="order-1 lg:order-none lg:col-start-2 lg:row-start-1">
+    <p class="flex flex-wrap items-center gap-x-3 gap-y-2">
+      <span aria-hidden="true" class="inline-block h-px w-10 bg-amber-500"></span>
+      <span class="font-display text-xs font-semibold uppercase tracking-[0.25em] text-blue-900">Dataset</span>
+      {% if project %}
+        <span aria-hidden="true" class="text-gray-300">/</span>
+        <a href="{{ url_for('entity_details', entity_name='project', entity_id=project.id) }}"
+           class="text-sm font-medium text-blue-900 underline decoration-amber-500 decoration-2 underline-offset-4 hover:text-blue-800">
+          {{ project.title | truncate(60, True) }}
+        </a>
+      {% endif %}
+      {% if is_deprecated %}
+        <span aria-hidden="true" class="text-gray-300">/</span>
+        <span class="inline-flex items-center border border-red-900 px-2 py-0.5 font-display text-xs font-semibold uppercase tracking-[0.15em] text-red-900">Deprecated</span>
+      {% endif %}
+    </p>
+
+    <div class="mt-4 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div class="min-w-0 flex-1 space-y-3">
+        <h1 class="font-display text-4xl font-semibold tracking-tight text-blue-900 lg:text-6xl">{{ dataset.title }}</h1>
+        <p class="font-mono text-[11px] uppercase tracking-[0.15em] text-gray-500">{{ dataset.id }}</p>
+        {% if dataset.description %}
+          <p class="max-w-prose text-lg leading-snug text-blue-900 lg:text-xl">{{ dataset.description }}</p>
         {% endif %}
+      </div>
+
+      {% if not is_deprecated and fair_evaluations_show and dataset.fair_evaluation %}
+        <a href="#fairplus-evaluation-fields" data-expand="fairplus-evaluation-fields" class="shrink-0">
+          <img alt="FAIRplus stamp"
+               title="Dataset processed by FAIRplus. See FAIRplus Evaluation tab for details."
+               src="/static/public/images/fairplus-stamp.png"
+               class="h-12 w-12"/>
+        </a>
+      {% endif %}
+    </div>
+
+    {% if dataset.tags %}
+      <div class="mt-4 flex flex-wrap items-baseline gap-x-2 gap-y-1.5">
+        <span class="mr-1 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Tags</span>
+        {{ macros.split_labels(dataset.tags) }}
+      </div>
     {% endif %}
+    </header>
 
-    {% if dataset.released_on %}
-        <div class="text-sm text-gray-600">Released on {{ dataset.released_on | date }}</div>
-    {% endif %}
+    <aside class="order-2 space-y-6 lg:order-none lg:col-start-1 lg:row-span-2 lg:row-start-1">
+      {% if glance_items %}
+        <section class="relative border-t border-gray-200 pt-5">
+          <span aria-hidden="true" class="absolute left-0 top-0 h-px w-12 bg-amber-500"></span>
+          <h2 class="font-display text-xs font-semibold uppercase tracking-[0.25em] text-blue-900">At a glance</h2>
+          <dl class="mt-3 divide-y divide-gray-100">
+            {% for item in glance_items %}
+              <div class="flex items-baseline justify-between gap-4 py-2.5 first:pt-0">
+                <dt class="font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">{{ item.label }}</dt>
+                <dd class="min-w-0 text-right font-display text-sm font-semibold leading-snug text-blue-900">{{ item.value }}</dd>
+              </div>
+            {% endfor %}
+          </dl>
+        </section>
+      {% endif %}
 
-    <h1 class="font-display text-3xl font-semibold text-blue-900">{{ dataset.title }}</h1>
+      {% if not is_deprecated %}
+        <section class="relative border-t border-gray-200 pt-5">
+          <span aria-hidden="true" class="absolute left-0 top-0 h-px w-12 bg-amber-500"></span>
+          <h2 class="font-display text-xs font-semibold uppercase tracking-[0.25em] text-blue-900">Access</h2>
+          <div class="mt-3 flex flex-col gap-2">
+            {% if has_access.value == 'approved' %}
+              <span class="inline-flex items-center justify-center gap-2 border border-blue-900 bg-sky-50 px-3 py-2 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-blue-900"
+                    title="you were granted access to this dataset">
+                <i data-lucide="circle-check" class="h-4 w-4"></i>
+                <span>Access granted</span>
+              </span>
+            {% endif %}
 
-    {% if dataset.deprecated == "Deprecated" %}
-        {{ macros.start_entity_info() }}
-        {{ macros.entity_info_row("Accession number", dataset.id) }}
-        {{ macros.entity_info_row("Date of Deprecation", dataset.deprecation_date | date) }}
-        {{ macros.entity_info_deprecated("Deprecation Notes", dataset.deprecation_notes) }}
-        {{ macros.entity_info_row("Description", dataset.description | default("", True)) }}
-        {{ macros.end_entity_info() }}
-    {% else %}
-        {{ macros.start_entity_info() }}
-        {{ macros.entity_info_row("Accession number", dataset.id) }}
-        {{ macros.entity_info_row("Description", dataset.description | default("", True)) }}
-        {{ macros.end_entity_info() }}
-
-        {% if has_access.value == 'approved' %}
-            <div class="inline-flex items-center gap-2 rounded border border-blue-900 bg-sky-50 px-3 py-2 text-sm font-medium text-blue-900">
-                <i data-lucide="circle-check" class="h-5 w-5"></i>
-                <span title="you were granted access to this dataset">Data Access Granted</span>
-            </div>
-        {% endif %}
-
-        <div class="flex flex-wrap items-center gap-3">
             {% if dataset.dataset_link_href %}
-                <a href="{{ dataset.dataset_link_href }}"
-                   class="inline-flex items-center gap-2 rounded bg-blue-900 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus:ring-2 focus:ring-blue-900 focus:ring-offset-2 focus:outline-none">
-                    <i data-lucide="download" class="h-4 w-4"></i>
-                    Access Data
-                </a>
+              {{ macros.btn_primary(dataset.dataset_link_href, "Access data", icon="download") }}
             {% else %}
-                {% if has_access.value == 'approved' %}
-                    <div class="flex flex-wrap items-center gap-3">
-                        {% set storages_templates = dataset.storages | storage_templates %}
-                        {% for storage, storage_template in storages_templates %}
-                            {% include "storages/%s.html" % storage_template %}
-                        {% else %}
-                            <p class="text-sm text-gray-800">
-                                Please
-                                <a href="mailto:{{ config.get('CONTACT_ACCESS_RECIPIENT') }}?body={{ config.get('CONTACT_ACCESS_BODY') | urlencode }}&subject={{ dataset.title ~ ' - access to data' | urlencode }}"
-                                   class="font-semibold text-blue-900 underline hover:text-blue-700">contact our data stewards</a>
-                                to get access to the data.
-                            </p>
-                        {% endfor %}
-                    </div>
-                {% elif has_access.value == 'submitted' %}
-                    <div class="inline-flex items-center gap-2 rounded border border-gray-300 bg-gray-50 px-3 py-2 text-sm font-medium text-gray-700">
-                        <i data-lucide="hourglass" class="h-5 w-5"></i>
-                        <span title="you have already requested access to this dataset">Data Access Requested</span>
-                    </div>
-                {% elif dataset.hosted %}
-                    <a href="{{ url_for('request_access', entity_name='dataset', entity_id=dataset.id) }}"
-                       class="inline-flex items-center gap-2 rounded bg-blue-900 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus:ring-2 focus:ring-blue-900 focus:ring-offset-2 focus:outline-none">
-                        <i data-lucide="clipboard-check" class="h-4 w-4"></i>
-                        Request Data Access
-                    </a>
-                {% endif %}
+              {% if has_access.value == 'approved' %}
+                {% set storages_templates = dataset.storages | storage_templates %}
+                {% for storage, storage_template in storages_templates %}
+                  {% include "storages/%s.html" % storage_template %}
+                {% else %}
+                  <p class="text-sm leading-relaxed text-gray-800">
+                    Please
+                    <a href="mailto:{{ config.get('CONTACT_ACCESS_RECIPIENT') }}?body={{ config.get('CONTACT_ACCESS_BODY') | urlencode }}&subject={{ dataset.title ~ ' - access to data' | urlencode }}"
+                       class="text-blue-900 underline decoration-amber-500 decoration-2 underline-offset-4 hover:text-blue-800">contact our data stewards</a>
+                    to get access.
+                  </p>
+                {% endfor %}
+              {% elif has_access.value == 'submitted' %}
+                <span class="inline-flex items-center justify-center gap-2 border border-gray-200 bg-gray-50 px-3 py-2 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-700"
+                      title="you have already requested access to this dataset">
+                  <i data-lucide="hourglass" class="h-4 w-4"></i>
+                  <span>Access requested</span>
+                </span>
+              {% elif dataset.hosted %}
+                {{ macros.btn_primary(url_for('request_access', entity_name='dataset', entity_id=dataset.id), "Request access", icon="clipboard-check") }}
+              {% endif %}
             {% endif %}
 
             <button type="button"
                     id="open-citation-modal"
-                    class="inline-flex items-center gap-2 rounded border border-blue-900 bg-white px-4 py-2 text-sm font-medium text-blue-900 hover:bg-gray-100 focus:ring-2 focus:ring-blue-900 focus:ring-offset-2 focus:outline-none">
-                <i data-lucide="quote" class="h-4 w-4"></i>
-                Cite
+                    class="inline-flex items-center justify-center gap-2 border border-blue-900 bg-white px-3 py-2 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-blue-900 transition-colors hover:bg-blue-900 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-2">
+              <i data-lucide="quote" class="h-4 w-4"></i>
+              <span>Cite</span>
             </button>
 
             {% if config.get('ALLOW_ENTITY_EXPORT', False) %}
-                <a href="{{ url_for('export_dats_entity', entity_name='dataset', entity_id=dataset.id) }}"
-                   class="inline-flex items-center gap-2 rounded border border-blue-900 bg-white px-4 py-2 text-sm font-medium text-blue-900 hover:bg-gray-100 focus:ring-2 focus:ring-blue-900 focus:ring-offset-2 focus:outline-none">
-                    <i data-lucide="download" class="h-4 w-4"></i>
-                    Export Metadata as DATS
-                </a>
+              {{ macros.btn_secondary(url_for('export_dats_entity', entity_name='dataset', entity_id=dataset.id), "Export as DATS", icon="download") }}
             {% endif %}
-        </div>
-    {% endif %}
+          </div>
+        </section>
+      {% endif %}
 
-    {% if dataset.tags %}
-        <p class="flex flex-wrap items-center gap-2 text-sm">
-            <span class="font-medium text-blue-900">tags:</span>
-            {{ macros.split_labels(dataset.tags) }}
-        </p>
-    {% endif %}
-
-    <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <div>
-            {{ macros.start_panel("Project", "project", True) }}
-            {% set study = dataset.study_entity %}
-            {% set project = study.project_entity if study else dataset.project_entity %}
-            {% if project %}
-                {{ macros.show_field_link(project.title, "Project Title", url_for('entity_details', entity_name='project', entity_id=project.id)) }}
-                {% if project.website %}
-                    {{ macros.show_field_link(project.website, "Project website", project.website) }}
-                {% endif %}
-                {% if project.contact_entities %}
-                    {{ macros.show_field_list(project.contact_entities, "Contact Person(s)", reference_list=True) }}
-                {% endif %}
+      {% if project %}
+        <section class="relative border-t border-gray-200 pt-5">
+          <span aria-hidden="true" class="absolute left-0 top-0 h-px w-12 bg-amber-500"></span>
+          <h2 class="font-display text-xs font-semibold uppercase tracking-[0.25em] text-blue-900">Project</h2>
+          <a href="{{ url_for('entity_details', entity_name='project', entity_id=project.id) }}"
+             class="mt-3 block font-display text-base font-semibold leading-snug tracking-tight text-blue-900 underline decoration-amber-500 decoration-2 underline-offset-4 hover:text-blue-800">
+            {{ project.title }}
+          </a>
+          <dl class="mt-3 space-y-2.5">
+            {% if project.website %}
+              <div>
+                <dt class="font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Website</dt>
+                <dd class="mt-1 break-words text-sm leading-relaxed">
+                  <a href="{{ project.website }}" class="text-blue-900 underline underline-offset-2 hover:text-blue-800">{{ project.website | truncate(50, True) }}</a>
+                </dd>
+              </div>
             {% endif %}
-            {{ macros.end_panel() }}
-        </div>
-        <div>
-            {{ macros.start_panel("Studies", "studies", True) }}
-            {{ macros.show_field_link(study.title, "Study title", url_for('entity_details', entity_name='study', entity_id=study.id)) }}
-            {{ macros.end_panel() }}
-        </div>
-    </div>
+            {% if project.contact_entities %}
+              <div>
+                <dt class="font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Contact{% if project.contact_entities | length != 1 %}s{% endif %}</dt>
+                <dd class="mt-1 text-sm leading-relaxed text-blue-900">{{ project.contact_entities | join(', ') }}</dd>
+              </div>
+            {% endif %}
+          </dl>
+        </section>
+      {% endif %}
 
-    <div class="space-y-4">
-        {{ macros.start_panel("General Dataset Information", "general", True) }}
-        {{ macros.show_field_text(dataset.version, "Version") }}
-        {{ macros.show_field_text(dataset.dataset_created | date, "Created on", facet_url=facets_url.dataset_created) }}
-        {{ macros.show_field_text(dataset.dataset_modified | date, "Updated on", facet_url=facets_url.dataset_modified) }}
+      {% if study %}
+        <section class="relative border-t border-gray-200 pt-5">
+          <span aria-hidden="true" class="absolute left-0 top-0 h-px w-12 bg-amber-500"></span>
+          <h2 class="font-display text-xs font-semibold uppercase tracking-[0.25em] text-blue-900">Study</h2>
+          <a href="{{ url_for('entity_details', entity_name='study', entity_id=study.id) }}"
+             class="mt-3 block font-display text-base font-semibold leading-snug tracking-tight text-blue-900 underline decoration-amber-500 decoration-2 underline-offset-4 hover:text-blue-800">
+            {{ study.title }}
+          </a>
+          <dl class="mt-3 space-y-2.5">
+            {% if study.primary_purpose %}
+              <div>
+                <dt class="font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Primary purpose</dt>
+                <dd class="mt-1 text-sm leading-relaxed text-blue-900">{{ study.primary_purpose }}</dd>
+              </div>
+            {% endif %}
+            {% if study.organisms %}
+              <div>
+                <dt class="font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Organism{% if study.organisms | length != 1 %}s{% endif %}</dt>
+                <dd class="mt-1 text-sm leading-relaxed text-blue-900">{{ study.organisms | join(', ') }}</dd>
+              </div>
+            {% endif %}
+          </dl>
+        </section>
+      {% endif %}
+    </aside>
+
+    <div class="order-3 space-y-2 lg:order-none lg:col-start-2 lg:row-start-2 lg:mt-2">
+      {% if is_deprecated %}
+        <section class="mb-6 border-y border-red-900 bg-red-50 p-5 lg:p-6">
+          <p class="font-display text-xs font-semibold uppercase tracking-[0.25em] text-red-900">Deprecation notice</p>
+          <dl class="mt-3 space-y-2.5">
+            {% if dataset.deprecation_date %}
+              <div>
+                <dt class="font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-red-900">Deprecated on</dt>
+                <dd class="mt-1 text-sm leading-relaxed text-red-900 lg:text-base">{{ dataset.deprecation_date | date }}</dd>
+              </div>
+            {% endif %}
+            {% if dataset.deprecation_notes %}
+              <div>
+                <dt class="font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-red-900">Notes</dt>
+                <dd class="mt-1 text-sm font-semibold leading-relaxed text-red-900 lg:text-base">{{ dataset.deprecation_notes | safe }}</dd>
+              </div>
+            {% endif %}
+          </dl>
+        </section>
+      {% endif %}
+      {% if not is_deprecated and (dataset.version or dataset.dataset_created or dataset.dataset_modified or dataset.data_standards or dataset.data_types or dataset.samples_type or study.samples_type or dataset.samples_number or dataset.disease or dataset.treatment_category or dataset.treatment_name) %}
+        {{ macros.start_panel("General information", "general", expanded=True) }}
+        <div class="mb-4 flex flex-wrap gap-x-12 gap-y-4">
+          {% if dataset.version %}
+            <div>
+              <dt class="font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Version</dt>
+              <dd class="mt-1.5 font-display text-base font-semibold leading-snug text-blue-900">{{ dataset.version }}</dd>
+            </div>
+          {% endif %}
+          {% if dataset.dataset_created %}
+            <div>
+              <dt class="font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Created on</dt>
+              <dd class="mt-1.5 font-display text-base font-semibold leading-snug text-blue-900">
+                {% if facets_url.dataset_created %}
+                  <a href="{{ facets_url.dataset_created }}{{ dataset.dataset_created | date | urlencode }}" class="underline underline-offset-2 hover:text-blue-800">{{ dataset.dataset_created | date }}</a>
+                {% else %}
+                  {{ dataset.dataset_created | date }}
+                {% endif %}
+              </dd>
+            </div>
+          {% endif %}
+          {% if dataset.dataset_modified %}
+            <div>
+              <dt class="font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Updated on</dt>
+              <dd class="mt-1.5 font-display text-base font-semibold leading-snug text-blue-900">
+                {% if facets_url.dataset_modified %}
+                  <a href="{{ facets_url.dataset_modified }}{{ dataset.dataset_modified | date | urlencode }}" class="underline underline-offset-2 hover:text-blue-800">{{ dataset.dataset_modified | date }}</a>
+                {% else %}
+                  {{ dataset.dataset_modified | date }}
+                {% endif %}
+              </dd>
+            </div>
+          {% endif %}
+        </div>
         {{ macros.show_field_list(dataset.data_standards, "Data standards", facet_url=facets_url.data_standards) }}
         {{ macros.show_field_list(dataset.data_types, "Data types", facet_url=facets_url.data_types) }}
         {% if dataset.samples_type %}
-            {{ macros.show_field_text(dataset.samples_type, "Type of Samples Collected", list=True, facet_url=facets_url.samples_type) }}
+          {{ macros.show_field_text(dataset.samples_type, "Type of samples collected", list=True, facet_url=facets_url.samples_type) }}
         {% else %}
-            {{ macros.show_field_text(study.samples_type, "Type of Samples Collected", list=True) }}
+          {{ macros.show_field_text(study.samples_type, "Type of samples collected", list=True) }}
         {% endif %}
-        {{ macros.show_field_text(dataset.samples_number, "Number of Samples Collected", facet_url=facets_url.samples_number) }}
+        {{ macros.show_field_text(dataset.samples_number, "Number of samples collected", facet_url=facets_url.samples_number) }}
         {{ macros.show_field_list(dataset.disease, "Diseases", facet_url=facets_url.disease) }}
         {{ macros.show_field_list(dataset.treatment_category, "Treatment or experiment categories", facet_url=facets_url.treatment_category) }}
         {{ macros.show_field_list(dataset.treatment_name, "Treatment or experiment names", facet_url=facets_url.treatment_name) }}
         {{ macros.end_panel() }}
 
         {% if dataset.checksum or dataset.checksum_algorithm or dataset.file_formats or dataset.size or dataset.number_of_files %}
-            {{ macros.start_panel("Technical Information", "contacts") }}
-            {{ macros.show_field_text(dataset.size, "Size") }}
-            {{ macros.show_field_text(dataset.file_formats, "Dataset file formats", list=True) }}
-            {{ macros.show_field_text(dataset.number_of_files, "Number of files") }}
-            {% if dataset.checksum %}
-                {{ macros.show_field_text(dataset.checksum, "Checksum") }}
-            {% endif %}
-            {{ macros.show_field_text(dataset.checksum_algorithm, "Checksum Algorithm") }}
-            {{ macros.end_panel() }}
+          {{ macros.start_panel("Technical information", "technical") }}
+          {{ macros.show_field_text(dataset.size, "Size") }}
+          {{ macros.show_field_text(dataset.file_formats, "File formats", list=True) }}
+          {{ macros.show_field_text(dataset.number_of_files, "Number of files") }}
+          {% if dataset.checksum %}
+            {{ macros.show_field_text(dataset.checksum, "Checksum") }}
+          {% endif %}
+          {{ macros.show_field_text(dataset.checksum_algorithm, "Checksum algorithm") }}
+          {{ macros.end_panel() }}
         {% endif %}
 
         {% if dataset.dataset_owner or dataset.dataset_contact %}
-            {{ macros.start_panel("Dataset contacts", "contacts") }}
-            {{ macros.show_field_text(dataset.dataset_owner, "Data owner") }}
-            {{ macros.show_field_text(dataset.dataset_contact, "Main contact") }}
-            {{ macros.show_field_text(dataset.dataset_email, "Email") }}
-            {{ macros.show_field_text(dataset.dataset_affiliation, "Affiliation") }}
-            {{ macros.end_panel() }}
+          {{ macros.start_panel("Dataset contacts", "contacts") }}
+          {{ macros.show_field_text(dataset.dataset_owner, "Data owner") }}
+          {{ macros.show_field_text(dataset.dataset_contact, "Main contact") }}
+          {{ macros.show_field_text(dataset.dataset_email, "Email") }}
+          {{ macros.show_field_text(dataset.dataset_affiliation, "Affiliation") }}
+          {{ macros.end_panel() }}
         {% endif %}
 
         {% if attachments_exist %}
-            {{ macros.start_panel("Attached files", listType="") }}
-            <div id="attachments-datatable" data-url="{{ attachment_url }}"></div>
-            {{ macros.end_panel(listType="") }}
+          {{ macros.start_panel("Attached files", "attachments", listType="") }}
+          <div id="attachments-datatable" data-url="{{ attachment_url }}"></div>
+          {{ macros.end_panel(listType="") }}
         {% endif %}
 
         {% if fair_evaluations_show and dataset.fair_evaluation %}
-            {{ macros.start_panel("FAIRplus Evaluation", "fairplus-evaluation") }}
-            {{ macros.start_table() }}
-            {{ macros.table_row(["FAIR maturity level", "Pre-FAIRification Assessment", "Post-FAIRification Assessment"], header=True, links=["", dataset.fair_assessment_link_pre, dataset.fair_assessment_link_post]) }}
-            {{ macros.table_row(["Overall", dataset.fair_score_overall_pre, dataset.fair_score_overall_post], bold=True) }}
-            {{ macros.table_row(["Representation & Format", dataset.fair_score_representation_pre, dataset.fair_score_representation_post]) }}
-            {{ macros.table_row(["Content", dataset.fair_score_content_pre, dataset.fair_score_content_post]) }}
-            {{ macros.table_row(["Hosting", dataset.fair_score_hosting_pre, dataset.fair_score_hosting_post]) }}
-            {% if dataset.fair_indicators_href_pre == dataset.fair_indicators_href_post %}
-                {{ macros.table_row(["FAIR maturity indicators", dataset.fair_indicators_post], links=["", dataset.fair_indicators_href_post], merge=True) }}
-            {% else %}
-                {{ macros.table_row(["FAIR maturity indicators", dataset.fair_indicators_pre, dataset.fair_indicators_post], links=["", dataset.fair_indicators_href_pre, dataset.fair_indicators_href_post]) }}
-            {% endif %}
-            {{ macros.end_table() }}
-            {{ macros.end_panel() }}
+          {{ macros.start_panel("FAIRplus evaluation", "fairplus-evaluation", listType="") }}
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 text-sm">
+              <thead>
+                <tr class="text-left">
+                  <th class="py-2.5 pr-3 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">FAIR maturity level</th>
+                  <th class="px-3 py-2.5 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">
+                    {% if dataset.fair_assessment_link_pre %}
+                      <a href="{{ dataset.fair_assessment_link_pre }}" class="text-blue-900 underline underline-offset-2 hover:text-blue-800">Pre-FAIRification</a>
+                    {% else %}
+                      Pre-FAIRification
+                    {% endif %}
+                  </th>
+                  <th class="py-2.5 pl-3 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">
+                    {% if dataset.fair_assessment_link_post %}
+                      <a href="{{ dataset.fair_assessment_link_post }}" class="text-blue-900 underline underline-offset-2 hover:text-blue-800">Post-FAIRification</a>
+                    {% else %}
+                      Post-FAIRification
+                    {% endif %}
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                <tr>
+                  <td class="py-2.5 pr-3 font-display font-semibold text-blue-900">Overall</td>
+                  <td class="px-3 py-2.5 font-display font-semibold text-blue-900">{{ dataset.fair_score_overall_pre or '—' }}</td>
+                  <td class="py-2.5 pl-3 font-display font-semibold text-blue-900">{{ dataset.fair_score_overall_post or '—' }}</td>
+                </tr>
+                <tr>
+                  <td class="py-2.5 pr-3 text-gray-700">Representation &amp; format</td>
+                  <td class="px-3 py-2.5 text-blue-900">{{ dataset.fair_score_representation_pre or '—' }}</td>
+                  <td class="py-2.5 pl-3 text-blue-900">{{ dataset.fair_score_representation_post or '—' }}</td>
+                </tr>
+                <tr>
+                  <td class="py-2.5 pr-3 text-gray-700">Content</td>
+                  <td class="px-3 py-2.5 text-blue-900">{{ dataset.fair_score_content_pre or '—' }}</td>
+                  <td class="py-2.5 pl-3 text-blue-900">{{ dataset.fair_score_content_post or '—' }}</td>
+                </tr>
+                <tr>
+                  <td class="py-2.5 pr-3 text-gray-700">Hosting</td>
+                  <td class="px-3 py-2.5 text-blue-900">{{ dataset.fair_score_hosting_pre or '—' }}</td>
+                  <td class="py-2.5 pl-3 text-blue-900">{{ dataset.fair_score_hosting_post or '—' }}</td>
+                </tr>
+                <tr>
+                  <td class="py-2.5 pr-3 text-gray-700">FAIR maturity indicators</td>
+                  {% if dataset.fair_indicators_href_pre == dataset.fair_indicators_href_post %}
+                    <td class="px-3 py-2.5 text-blue-900" colspan="2">
+                      {% if dataset.fair_indicators_href_post %}
+                        <a href="{{ dataset.fair_indicators_href_post }}" class="text-blue-900 underline underline-offset-2 hover:text-blue-800">{{ dataset.fair_indicators_post }}</a>
+                      {% else %}
+                        {{ dataset.fair_indicators_post or '—' }}
+                      {% endif %}
+                    </td>
+                  {% else %}
+                    <td class="px-3 py-2.5 text-blue-900">
+                      {% if dataset.fair_indicators_href_pre %}
+                        <a href="{{ dataset.fair_indicators_href_pre }}" class="text-blue-900 underline underline-offset-2 hover:text-blue-800">{{ dataset.fair_indicators_pre }}</a>
+                      {% else %}
+                        {{ dataset.fair_indicators_pre or '—' }}
+                      {% endif %}
+                    </td>
+                    <td class="py-2.5 pl-3 text-blue-900">
+                      {% if dataset.fair_indicators_href_post %}
+                        <a href="{{ dataset.fair_indicators_href_post }}" class="text-blue-900 underline underline-offset-2 hover:text-blue-800">{{ dataset.fair_indicators_post }}</a>
+                      {% else %}
+                        {{ dataset.fair_indicators_post or '—' }}
+                      {% endif %}
+                    </td>
+                  {% endif %}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          {{ macros.end_panel(listType="") }}
         {% endif %}
 
         {% if dataset.use_conditions %}
-            {% set use_conditions_by_type, icons = dataset.use_conditions_by_type %}
-            {{ macros.start_panel("Use conditions", "use-conditions") }}
+          {% set use_conditions_by_type, icons = dataset.use_conditions_by_type %}
+          {{ macros.start_panel("Use conditions", "use-conditions", listType="") }}
+          <div class="space-y-6">
             {% for condition_type in use_conditions_by_type %}
-                <h4 class="mt-4 flex items-center gap-2 font-display text-base font-semibold text-blue-900">
-                    <i data-lucide="{{ icons[condition_type][0] }}" class="h-5 w-5 {{ icons[condition_type][1] }}"></i>
-                    <span>{{ icons[condition_type][2] }}</span>
-                </h4>
-                <div class="mt-2 overflow-x-auto rounded border border-gray-200">
-                    <table class="min-w-full divide-y divide-gray-200 text-sm">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-3 py-2 text-left font-semibold text-blue-900">Use Condition</th>
-                                <th class="px-3 py-2 text-left font-semibold text-blue-900">Remarks</th>
-                                <th class="px-3 py-2 text-left font-semibold text-blue-900">Category (GA4GH)</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white">
-                            {% for condition in use_conditions_by_type[condition_type] %}
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-3 py-2 text-gray-800">{{ condition['use_condition_note'] }}</td>
-                                    <td class="px-3 py-2 text-gray-800">{{ condition['use_class_note'] }}</td>
-                                    <td class="px-3 py-2 text-gray-800">{{ condition['use_class_label'] }} ({{ condition["use_class"] }})</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+              <div>
+                <h3 class="flex items-center gap-2 font-display text-sm font-semibold leading-snug text-blue-900 lg:text-base">
+                  <i data-lucide="{{ icons[condition_type][0] }}" class="h-4 w-4 {{ icons[condition_type][1] }}"></i>
+                  <span>{{ icons[condition_type][2] }}</span>
+                </h3>
+                <div class="mt-2.5 overflow-x-auto">
+                  <table class="min-w-full divide-y divide-gray-200 text-sm">
+                    <thead>
+                      <tr class="text-left">
+                        <th class="py-2.5 pr-3 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Use condition</th>
+                        <th class="px-3 py-2.5 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Remarks</th>
+                        <th class="py-2.5 pl-3 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Category (GA4GH)</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                      {% for condition in use_conditions_by_type[condition_type] %}
+                        <tr class="transition-colors hover:bg-gray-50">
+                          <td class="py-2.5 pr-3 text-blue-900">{{ condition['use_condition_note'] }}</td>
+                          <td class="px-3 py-2.5 text-gray-800">{{ condition['use_class_note'] }}</td>
+                          <td class="py-2.5 pl-3 text-gray-800">{{ condition['use_class_label'] }} ({{ condition['use_class'] }})</td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
                 </div>
+              </div>
             {% endfor %}
-            {{ macros.end_panel() }}
+          </div>
+          {{ macros.end_panel(listType="") }}
         {% endif %}
+      {% endif %}
     </div>
-</section>
 
-<dialog id="citationModal" class="rounded border border-gray-200 bg-white p-0 shadow-xl backdrop:bg-black/50">
-    <div class="w-full max-w-2xl">
-        <div class="flex items-center justify-between border-b border-gray-200 px-4 py-3">
-            <h4 class="font-display text-lg font-semibold text-blue-900">Cite this dataset</h4>
+  </div>
+</article>
+
+<dialog id="citationModal" class="fixed inset-0 m-auto h-fit w-[calc(100%-2rem)] max-w-2xl border border-gray-200 bg-white p-0 shadow-xl backdrop:bg-black/60">
+    <div>
+        <div class="flex items-center justify-between border-b border-gray-200 px-5 py-3">
+            <h4 class="font-display text-lg font-semibold leading-snug text-blue-900">Cite this dataset</h4>
             <button type="button" id="close-citation-modal" aria-label="Close"
-                    class="inline-flex items-center justify-center rounded p-1 text-blue-900 hover:bg-gray-100">
+                    class="inline-flex items-center justify-center p-1 text-blue-900 transition-colors hover:bg-gray-100">
                 <i data-lucide="x" class="h-5 w-5"></i>
             </button>
         </div>
-        <div class="space-y-3 px-4 py-3">
-            <p class="text-sm text-gray-600">APA citation format. Copy the citation below and paste it into your reference manager or document.</p>
+        <div class="space-y-3 px-5 py-4">
+            <p class="text-sm leading-relaxed text-gray-700">APA citation format. Copy the citation below and paste it into your reference manager or document.</p>
             <blockquote id="citation-text"
-                        class="rounded border-l-4 border-blue-900 bg-sky-50 px-4 py-3 text-sm text-blue-900">
-                ELIXIR Luxembourg. ({{ dataset.dataset_created.year if dataset.dataset_created else '' }}). {{ dataset.title }} ({{ dataset.version }}) [Data set]. {{ url_for('entity_details', entity_name='dataset', entity_id=dataset.id, _external=True) }}
+                        class="border border-sky-300 bg-sky-50 px-4 py-3 text-sm leading-relaxed text-blue-900">
+                ELIXIR Luxembourg. ({{ dataset.dataset_created.year if dataset.dataset_created else 'n.d.' }}). {{ dataset.title }}{% if dataset.version %} ({{ dataset.version }}){% endif %} [Data set]. {{ url_for('entity_details', entity_name='dataset', entity_id=dataset.id, _external=True) }}
             </blockquote>
         </div>
-        <div class="flex items-center justify-end gap-2 border-t border-gray-200 px-4 py-3">
+        <div class="flex items-center justify-end gap-2 border-t border-gray-200 px-5 py-3">
             <button type="button" id="cancel-citation-modal"
-                    class="inline-flex items-center rounded border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-blue-900 hover:bg-gray-100">
+                    class="inline-flex items-center justify-center gap-2 border border-blue-900 bg-white px-3 py-2 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-blue-900 transition-colors hover:bg-blue-900 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-2">
                 Close
             </button>
             <button type="button" id="copy-btn"
-                    class="inline-flex items-center gap-2 rounded bg-blue-900 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800">
+                    class="inline-flex items-center justify-center gap-2 bg-blue-900 px-4 py-2 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-white transition-colors hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-2">
                 <i data-lucide="copy" class="h-4 w-4"></i>
                 <span>Copy to clipboard</span>
             </button>

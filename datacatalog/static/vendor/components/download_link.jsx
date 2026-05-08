@@ -130,7 +130,7 @@ class DownloadLink extends Component {
                             </div>
                             <div className="flex justify-end border-t border-gray-200 bg-gray-50 px-5 py-3">
                                 <button onClick={this.closeModal.bind(this)}
-                                    className="inline-flex items-center rounded border border-blue-900 bg-blue-900 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-1">
+                                    className="inline-flex items-center justify-center gap-2 border border-blue-900 bg-white px-3 py-2 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-blue-900 transition-colors hover:bg-blue-900 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-2">
                                     Close
                                 </button>
                             </div>
@@ -138,9 +138,9 @@ class DownloadLink extends Component {
                     </div>
                 )}
                 <a href="#" onClick={this.onDownloadClicked.bind(this)}
-                    className="inline-flex items-center gap-2 rounded border border-blue-900 bg-white px-4 py-2 text-sm font-medium text-blue-900 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-1">
+                    className="flex w-full items-center justify-center gap-2 border border-blue-900 bg-white px-3 py-2 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-blue-900 transition-colors hover:bg-blue-900 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-2">
                     {loading ? <Spinner /> : <Download className="h-4 w-4" aria-hidden="true" />}
-                    Download Data
+                    <span>Download data</span>
                 </a>
                 {!hideAlert && error && <Alert message={error} removeAlert={() => this.setState({hideAlert: true})}/>}
             </>

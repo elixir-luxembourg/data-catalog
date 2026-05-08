@@ -1,10 +1,7 @@
+{% import 'macros.html' as macros %}
 <div class="flex items-center gap-2">
-    <span class="inline-flex h-9 w-9 items-center justify-center rounded border border-gray-300 bg-gray-50 text-blue-900">
+    <span class="inline-flex h-9 w-9 items-center justify-center rounded border border-gray-200 bg-gray-50 text-blue-900">
         <i data-lucide="eye" class="h-4 w-4"></i>
     </span>
-    <a href="{{ storage.location }}"
-       title="{{ storage.location }}"
-       class="inline-flex items-center rounded bg-blue-900 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 focus:ring-2 focus:ring-blue-900 focus:ring-offset-2 focus:outline-none">
-        Access Data
-    </a>
+    {{ macros.btn_primary(storage.location, "Access Data", title=storage.location) }}
 </div>

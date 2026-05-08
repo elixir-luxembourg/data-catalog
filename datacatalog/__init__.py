@@ -367,18 +367,24 @@ def _jinja2_filter_date(date: datetime) -> Optional[str]:
 
 
 @app.template_filter("yesno")
-def _jinja2_filter_yesno(bool_flag: str) -> str:
+def _jinja2_filter_yesno(bool_flag) -> str:
     """
     Jinja filter to convert a boolean to yes or no string
     @param bool_flag: boolean to convert to string
     @return: yes or no
     """
+    if isinstance(bool_flag, bool):
+        return "yes" if bool_flag else "no"
     return {"true": "yes", "false": "no"}.get(bool_flag, "no")
 
 
 @app.template_filter("boolean")
-def _jinja2_filter_boolean(value: str) -> bool:
-    return value.lower() in ["true", "false"]
+def _jinja2_filter_boolean(value) -> bool:
+    if isinstance(value, bool):
+        return True
+    if isinstance(value, str):
+        return value.lower() in ["true", "false"]
+    return False
 
 
 @app.template_filter()

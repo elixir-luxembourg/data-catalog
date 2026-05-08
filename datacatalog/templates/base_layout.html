@@ -108,6 +108,23 @@
         --color-amber-500: #f6931d;
       }
 
+      @layer base {
+        button:not(:disabled),
+        [type="button"]:not(:disabled),
+        [type="submit"]:not(:disabled),
+        [type="reset"]:not(:disabled),
+        [role="button"]:not(:disabled),
+        summary {
+          cursor: pointer;
+        }
+        button:disabled,
+        [type="button"]:disabled,
+        [type="submit"]:disabled,
+        [type="reset"]:disabled {
+          cursor: not-allowed;
+        }
+      }
+
       @font-face {
         font-family: "Barlow";
         font-style: normal;
@@ -185,7 +202,7 @@
   {% endblock %}
 
   {% block container %}
-    <main class="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8" id="main-container">
+    <main class="mx-auto w-full max-w-7xl flex-1 px-4 pb-6 pt-8 sm:px-6 lg:px-8 lg:pt-12" id="main-container">
       {{ macros.show_flashes() }}
       {% block content %}{% endblock %}
     </main>
@@ -199,7 +216,7 @@
         {% block footerlogos %}
           <div class="bg-white">
             <div class="mx-auto flex w-full max-w-7xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:gap-6 sm:px-6 lg:px-8">
-              <span class="shrink-0 font-display text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-500">
+              <span class="shrink-0 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">
                 Partners
               </span>
               <ul class="grid grid-cols-3 items-center gap-x-6 gap-y-3 sm:flex sm:flex-1 sm:flex-wrap sm:justify-end">
@@ -222,7 +239,7 @@
                  src="{{ url_for('static', filename='public/images/Elixir_LU.svg') }}"
                  alt="ELIXIR Luxembourg"/>
             <span class="hidden h-5 w-px bg-white/20 sm:block" aria-hidden="true"></span>
-            <span class="hidden font-display text-xs font-semibold uppercase tracking-[0.08em] text-white sm:inline">
+            <span class="hidden font-display text-xs font-semibold uppercase tracking-[0.15em] text-white sm:inline">
               Data Catalogue
             </span>
           </a>

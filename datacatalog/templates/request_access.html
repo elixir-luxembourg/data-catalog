@@ -11,19 +11,30 @@
 {% block title %}{% endblock %}
 
 {% block content %}
-<section class="mx-auto max-w-3xl">
-    <div class="rounded border border-gray-200 bg-gray-50 p-6 shadow-sm">
-        <h2 class="mb-4 font-display text-2xl font-semibold text-blue-900">Request access to {{ entity_title }}</h2>
+<div class="space-y-8 pb-10 lg:space-y-10 lg:pb-14">
 
-        <form action="{{ url_submit }}" method="post" enctype="multipart/form-data" class="space-y-4">
-            {% block form %}
-                {{ macros.quick_form(form, include_form_tag=False) }}
-            {% endblock %}
-        </form>
+    <header>
+        {{ macros.eyebrow("Access request") }}
+        <h1 class="mt-5 font-display text-4xl font-semibold tracking-tight text-blue-900 lg:text-6xl">
+            Request access to {{ entity_title }}.
+        </h1>
+        <p class="mt-4 max-w-prose text-sm leading-relaxed text-gray-800 lg:text-base">
+            Fields marked <span class="text-red-900">*</span> are mandatory.
+        </p>
+    </header>
 
-        {% block extra_form_content %}{% endblock %}
+    <section class="relative">
+        <span aria-hidden="true" class="absolute left-0 top-0 h-px w-12 bg-amber-500"></span>
+        <div class="border-t border-gray-200 pt-5 lg:pt-6">
+            <form action="{{ url_submit }}" method="post" enctype="multipart/form-data" class="space-y-4">
+                {% block form %}
+                    {{ macros.quick_form(form, include_form_tag=False) }}
+                {% endblock %}
+            </form>
 
-        <p class="mt-4 text-sm text-gray-700"><span class="text-red-900">*</span> mandatory fields</p>
-    </div>
-</section>
+            {% block extra_form_content %}{% endblock %}
+        </div>
+    </section>
+
+</div>
 {% endblock %}
