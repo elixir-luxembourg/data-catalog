@@ -71,17 +71,13 @@
     <header class="order-1 lg:order-none lg:col-start-2 lg:row-start-1">
     <p class="flex flex-wrap items-center gap-x-3 gap-y-2">
       <span aria-hidden="true" class="inline-block h-px w-10 bg-amber-500"></span>
-      <span class="font-display text-xs font-semibold uppercase tracking-[0.25em] text-blue-900">Project</span>
-      {% if project.project_name %}
-        <span aria-hidden="true" class="text-gray-300">/</span>
-        <span class="font-display text-xs font-semibold uppercase tracking-[0.15em] text-gray-500">{{ project.project_name }}</span>
-      {% endif %}
+      <span class="font-display text-sm font-semibold text-blue-900">Project</span>
     </p>
 
     <div class="mt-4 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
       <div class="min-w-0 flex-1 space-y-3">
         <h1 class="font-display text-4xl font-semibold tracking-tight text-blue-900 lg:text-6xl">{{ project.title }}</h1>
-        <p class="font-mono text-[11px] uppercase tracking-[0.15em] text-gray-500">{{ project.id }}</p>
+        <p class="select-all break-all font-mono text-xs text-gray-500">{{ project.id }}</p>
         {% if project.description %}
           <p class="max-w-prose text-lg leading-snug text-blue-900 lg:text-xl">{{ project.description }}</p>
         {% endif %}
@@ -104,7 +100,7 @@
 
     {% if project.keywords %}
       <div class="mt-4 flex flex-wrap items-baseline gap-x-2 gap-y-1.5">
-        <span class="mr-1 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Keywords</span>
+        <span class="mr-1 text-xs font-medium text-gray-500">Keywords</span>
         {{ macros.split_labels(project.keywords, facet_url=facets_url.keywords) }}
       </div>
     {% endif %}
@@ -114,12 +110,12 @@
       {% if glance_items %}
         <section class="relative border-t border-gray-200 pt-5">
           <span aria-hidden="true" class="absolute left-0 top-0 h-px w-12 bg-amber-500"></span>
-          <h2 class="font-display text-xs font-semibold uppercase tracking-[0.25em] text-blue-900">At a glance</h2>
+          <h2 class="font-display text-base font-semibold text-blue-900">At a glance</h2>
           <dl class="mt-3 divide-y divide-gray-100">
             {% for item in glance_items %}
               <div class="flex items-baseline justify-between gap-4 py-2.5 first:pt-0">
-                <dt class="font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">{{ item.label }}</dt>
-                <dd class="min-w-0 text-right font-display text-sm font-semibold leading-snug text-blue-900 lg:text-base">{{ item.value }}</dd>
+                <dt class="text-xs font-medium text-gray-500">{{ item.label }}</dt>
+                <dd class="min-w-0 text-right text-sm font-semibold text-blue-900 lg:text-base">{{ item.value }}</dd>
               </div>
             {% endfor %}
           </dl>
@@ -129,11 +125,11 @@
       {% if project.website or project.funded_by or project.types %}
         <section class="relative border-t border-gray-200 pt-5">
           <span aria-hidden="true" class="absolute left-0 top-0 h-px w-12 bg-amber-500"></span>
-          <h2 class="font-display text-xs font-semibold uppercase tracking-[0.25em] text-blue-900">About the project</h2>
+          <h2 class="font-display text-base font-semibold text-blue-900">About the project</h2>
           <dl class="mt-3 space-y-3">
             {% if project.website %}
               <div>
-                <dt class="font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Website</dt>
+                <dt class="text-xs font-medium text-gray-500">Website</dt>
                 <dd class="mt-1 break-words text-sm leading-relaxed lg:text-base">
                   <a href="{{ project.website }}" class="text-blue-900 underline underline-offset-2 hover:text-blue-800">{{ project.website | truncate(60, True) }}</a>
                 </dd>
@@ -141,13 +137,13 @@
             {% endif %}
             {% if project.funded_by %}
               <div>
-                <dt class="font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Funding</dt>
+                <dt class="text-xs font-medium text-gray-500">Funding</dt>
                 <dd class="mt-1 text-sm leading-relaxed text-blue-900 lg:text-base">{{ project.funded_by }}</dd>
               </div>
             {% endif %}
             {% if project.types %}
               <div>
-                <dt class="font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Types</dt>
+                <dt class="text-xs font-medium text-gray-500">Types</dt>
                 <dd class="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-1.5">
                   {{ macros.split_labels(project.types, facet_url=facets_url.types) }}
                 </dd>
@@ -165,16 +161,16 @@
           <span aria-hidden="true" class="absolute left-0 top-0 h-px w-12 bg-amber-500"></span>
           <div class="flex items-baseline justify-between gap-3 border-t border-gray-200 pt-5 lg:pt-6">
             <h2 class="font-display text-xl font-semibold leading-tight tracking-tight text-blue-900 lg:text-2xl">Studies</h2>
-            <span class="font-display text-[11px] font-semibold tabular-nums tracking-[0.15em] text-gray-500">{{ project.studies_entities | length }}</span>
+            <span class="text-xs font-semibold tabular-nums text-gray-500">{{ project.studies_entities | length }}</span>
           </div>
           <div class="mt-4 overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200 text-sm lg:text-base">
               <thead>
                 <tr class="text-left">
-                  <th class="py-2.5 pr-3 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Title</th>
-                  <th class="px-3 py-2.5 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Primary purpose</th>
-                  <th class="px-3 py-2.5 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Study type</th>
-                  <th class="py-2.5 pl-3 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Organism</th>
+                  <th class="py-2.5 pr-3 text-xs font-medium text-gray-500">Title</th>
+                  <th class="px-3 py-2.5 text-xs font-medium text-gray-500">Primary purpose</th>
+                  <th class="px-3 py-2.5 text-xs font-medium text-gray-500">Study type</th>
+                  <th class="py-2.5 pl-3 text-xs font-medium text-gray-500">Organism</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-100">
@@ -182,7 +178,7 @@
                   <tr class="transition-colors hover:bg-gray-50">
                     <td class="py-2.5 pr-3">
                       <a href="{{ url_for('entity_details', entity_name='study', entity_id=study.id) }}"
-                         class="font-display font-semibold text-blue-900 underline decoration-amber-500 decoration-2 underline-offset-4 hover:text-blue-800">{{ study.title }}</a>
+                         class="font-semibold text-blue-900 hover:text-blue-800 hover:underline underline-offset-2">{{ study.title }}</a>
                     </td>
                     <td class="px-3 py-2.5 text-gray-800">{{ study.primary_purpose }}</td>
                     <td class="px-3 py-2.5 text-gray-800">
@@ -205,7 +201,7 @@
           <div class="flex items-baseline justify-between gap-3 border-t border-gray-200 pt-5 lg:pt-6">
             <h2 class="font-display text-xl font-semibold leading-tight tracking-tight text-blue-900 lg:text-2xl">Datasets</h2>
             {% if study_datasets %}
-              <span class="font-display text-[11px] font-semibold tabular-nums tracking-[0.15em] text-gray-500">{{ study_datasets | length }}</span>
+              <span class="text-xs font-semibold tabular-nums text-gray-500">{{ study_datasets | length }}</span>
             {% endif %}
           </div>
           {% if study_datasets %}
@@ -213,22 +209,22 @@
               <table class="min-w-full divide-y divide-gray-200 text-sm lg:text-base">
                 <thead>
                   <tr class="text-left">
-                    <th class="py-2.5 pr-3 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Accession</th>
-                    <th class="px-3 py-2.5 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Title</th>
-                    <th class="px-3 py-2.5 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Created</th>
-                    <th class="px-3 py-2.5 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Study</th>
-                    <th class="py-2.5 pl-3 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">{{ config.get('HOSTED_STRING') }}</th>
+                    <th class="py-2.5 pr-3 text-xs font-medium text-gray-500">Accession</th>
+                    <th class="px-3 py-2.5 text-xs font-medium text-gray-500">Title</th>
+                    <th class="px-3 py-2.5 text-xs font-medium text-gray-500">Created</th>
+                    <th class="px-3 py-2.5 text-xs font-medium text-gray-500">Study</th>
+                    <th class="py-2.5 pl-3 text-xs font-medium text-gray-500">{{ config.get('HOSTED_STRING') }}</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                   {% for dataset in study_datasets %}
                     <tr class="transition-colors hover:bg-gray-50">
-                      <td class="py-2.5 pr-3 font-mono text-[11px] uppercase tracking-[0.15em] text-gray-500">{{ dataset.dataset_id }}</td>
+                      <td class="py-2.5 pr-3 font-mono text-xs text-gray-500">{{ dataset.dataset_id }}</td>
                       <td class="px-3 py-2.5">
                         <a href="{{ url_for('entity_details', entity_name='dataset', entity_id=dataset.dataset_id) }}"
-                           class="font-display font-semibold text-blue-900 underline decoration-amber-500 decoration-2 underline-offset-4 hover:text-blue-800">{{ dataset.title }}</a>
+                           class="font-semibold text-blue-900 hover:text-blue-800 hover:underline underline-offset-2">{{ dataset.title }}</a>
                         {% if dataset.is_deprecated %}
-                          <span class="ml-2 inline-flex items-center border border-red-900 px-2 py-0.5 font-display text-xs font-semibold uppercase tracking-[0.15em] text-red-900">Deprecated</span>
+                          <span class="ml-2 inline-flex items-center border border-red-900 px-2 py-0.5 text-xs font-medium text-red-900">Deprecated</span>
                         {% endif %}
                       </td>
                       <td class="px-3 py-2.5 text-gray-800">{{ dataset.create_date }}</td>
@@ -269,12 +265,12 @@
           <span aria-hidden="true" class="absolute left-0 top-0 h-px w-12 bg-amber-500"></span>
           <div class="flex items-baseline justify-between gap-3 border-t border-gray-200 pt-5 lg:pt-6">
             <h2 class="font-display text-xl font-semibold leading-tight tracking-tight text-blue-900 lg:text-2xl">Publications</h2>
-            <span class="font-display text-[11px] font-semibold tabular-nums tracking-[0.15em] text-gray-500">{{ project.reference_publications | length }}</span>
+            <span class="text-xs font-semibold tabular-nums text-gray-500">{{ project.reference_publications | length }}</span>
           </div>
           <ol class="mt-4 divide-y divide-gray-100">
             {% for pub in project.reference_publications %}
               <li class="flex gap-4 py-3 text-sm leading-relaxed text-blue-900 first:pt-0 lg:text-base">
-                <span class="shrink-0 font-display text-[11px] font-semibold tabular-nums tracking-[0.15em] text-gray-500" aria-hidden="true">{{ '%02d' | format(loop.index) }}</span>
+                <span class="shrink-0 text-xs font-semibold tabular-nums text-gray-500" aria-hidden="true">{{ '%02d' | format(loop.index) }}</span>
                 <span class="min-w-0 break-words">{{ pub | urlize }}</span>
               </li>
             {% endfor %}

@@ -54,6 +54,10 @@
   </script>
   {% endblock %}
   {% block css %}
+  <link rel="preload" href="{{ url_for('static', filename='public/fonts/barlow-400.woff2') }}" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="{{ url_for('static', filename='public/fonts/barlow-500.woff2') }}" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="{{ url_for('static', filename='public/fonts/barlow-600.woff2') }}" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="{{ url_for('static', filename='public/fonts/barlow-condensed-600.woff2') }}" as="font" type="font/woff2" crossorigin />
   <script src="{{ url_for('static', filename='vendor/tailwindcss/browser.js') }}"></script>
   <style type="text/tailwindcss">
     @theme static {
@@ -216,7 +220,7 @@
         {% block footerlogos %}
           <div class="bg-white">
             <div class="mx-auto flex w-full max-w-7xl flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:gap-6 sm:px-6 lg:px-8">
-              <span class="shrink-0 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">
+              <span class="shrink-0 text-xs font-medium text-gray-500">
                 Partners
               </span>
               <ul class="grid grid-cols-3 items-center gap-x-6 gap-y-3 sm:flex sm:flex-1 sm:flex-wrap sm:justify-end">
@@ -239,7 +243,7 @@
                  src="{{ url_for('static', filename='public/images/Elixir_LU.svg') }}"
                  alt="ELIXIR Luxembourg"/>
             <span class="hidden h-5 w-px bg-white/20 sm:block" aria-hidden="true"></span>
-            <span class="hidden font-display text-xs font-semibold uppercase tracking-[0.15em] text-white sm:inline">
+            <span class="hidden font-display text-sm font-semibold text-white sm:inline">
               Data Catalogue
             </span>
           </a>

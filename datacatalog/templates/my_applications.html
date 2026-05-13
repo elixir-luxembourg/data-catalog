@@ -37,7 +37,7 @@
       <div class="flex items-baseline justify-between gap-3 border-t border-gray-200 pt-5 lg:pt-6">
         <h2 class="font-display text-xl font-semibold leading-tight tracking-tight text-blue-900 lg:text-2xl">Granted access</h2>
         {% if has_access %}
-          <span class="font-display text-[11px] font-semibold tabular-nums tracking-[0.15em] text-gray-500">{{ entities_with_access | length }}</span>
+          <span class="text-xs font-semibold tabular-nums text-gray-500">{{ entities_with_access | length }}</span>
         {% endif %}
       </div>
       {% if has_access %}
@@ -46,8 +46,8 @@
             <li>
               <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=entity.id) }}"
                  class="group flex items-baseline gap-4 py-3 transition-colors first:pt-0">
-                <span aria-hidden="true" class="shrink-0 font-display text-[11px] font-semibold tabular-nums tracking-[0.15em] text-gray-500">{{ '%02d' | format(loop.index) }}</span>
-                <span class="min-w-0 flex-1 font-display text-base font-semibold leading-snug text-blue-900 underline decoration-amber-500 decoration-2 underline-offset-4 group-hover:text-blue-800 lg:text-lg">{{ entity.title }}</span>
+                <span aria-hidden="true" class="shrink-0 text-xs font-semibold tabular-nums text-gray-500">{{ '%02d' | format(loop.index) }}</span>
+                <span class="min-w-0 flex-1 text-base font-semibold leading-snug text-blue-900 underline decoration-amber-500 decoration-2 underline-offset-4 group-hover:text-blue-800 lg:text-lg">{{ entity.title }}</span>
               </a>
             </li>
           {% endfor %}

@@ -132,7 +132,7 @@
 
 {% macro show_field(value, label, link=None, long=False, list=False, reference_list=False, facet_url=None) %}
     {% if value is not none and value != '' %}
-        <dt class="mt-2.5 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">{{ label }}</dt>
+        <dt class="mt-2.5 text-xs font-medium text-gray-500">{{ label }}</dt>
         <dd class="mt-1 text-sm leading-relaxed text-blue-900 lg:text-base">
             {% if not long %}
                 {% if link %}
@@ -171,7 +171,7 @@
 
 {% macro show_field_list_entities_inline(entities, label, entity_name) %}
     {% if entities %}
-        <dt class="mt-2.5 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">{{ label }}</dt>
+        <dt class="mt-2.5 text-xs font-medium text-gray-500">{{ label }}</dt>
         <dd class="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-sm leading-relaxed lg:text-base">
             {% for entity in entities %}
                 {% set link = url_for('entity_details', entity_name=entity_name, entity_id=entity.id) %}
@@ -211,12 +211,15 @@
 {% macro form_group(field) -%}
     <div class="mb-4">
         <label for="{{ field.id }}" class="mb-1 block text-sm font-medium text-blue-900 [&_a]:underline [&_a]:underline-offset-2 [&_a]:decoration-amber-500 [&_a]:decoration-2 [&_a]:hover:text-blue-800">
-            {{ field.label.text | safe }}{% if field.flags.required %}<span class="ml-0.5 text-red-900">*</span>{% endif %}
+            {{ field.label.text | safe }}{% if field.flags.required %}<span aria-hidden="true" class="ml-0.5 text-red-900">*</span>{% endif %}
         </label>
         {% if field.errors %}
             {{ field(class_="block w-full rounded border border-red-900 bg-white px-3 py-2 text-blue-900 shadow-sm focus:border-red-900 focus:ring-1 focus:ring-red-900 focus:outline-none") }}
         {% else %}
             {{ field(class_="block w-full rounded border border-gray-300 bg-white px-3 py-2 text-blue-900 shadow-sm focus:border-blue-900 focus:ring-1 focus:ring-blue-900 focus:outline-none") }}
+        {% endif %}
+        {% if field.description %}
+            <p class="mt-1 text-xs leading-relaxed text-gray-500">{{ field.description | safe }}</p>
         {% endif %}
         {% if field.errors and field.type != 'RecaptchaField' %}
             <div class="mt-1 text-sm text-red-900">
@@ -255,28 +258,36 @@
         {% if field.type in ('HiddenField', 'CSRFTokenField') %}
             {{ field() }}
         {% elif field.type == 'SeparatorText' %}
-            <h3 class="mt-6 mb-2 font-display text-xl font-semibold text-blue-900 [&_a]:underline [&_a]:underline-offset-2 [&_a]:decoration-amber-500 [&_a]:decoration-2 [&_a]:hover:text-blue-800">{{ field.label.text | safe }}</h3>
+            <div class="relative mt-10 mb-4 first:mt-2">
+                <span aria-hidden="true" class="absolute left-0 top-0 h-px w-12 bg-amber-500"></span>
+                <h3 class="border-t border-gray-200 pt-5 font-display text-xl font-semibold text-blue-900 lg:text-2xl [&_a]:underline [&_a]:underline-offset-2 [&_a]:decoration-amber-500 [&_a]:decoration-2 [&_a]:hover:text-blue-800">{{ field.label.text | safe }}</h3>
+            </div>
         {% elif field.type == 'SubmitField' %}
             {% if show_submit %}
                 <div class="mt-6 flex justify-end">
-                    {{ field(class_="inline-flex items-center justify-center gap-2 bg-blue-900 px-4 py-2 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-white transition-colors hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-2") }}
+                    {{ field(class_="inline-flex items-center justify-center gap-2 bg-blue-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-2") }}
                 </div>
             {% endif %}
         {% elif field.type == 'MultiCheckboxField' %}
             <div class="mb-4">
-                <label for="{{ field.id }}" class="mb-1 block text-sm font-medium text-blue-900 [&_a]:underline [&_a]:underline-offset-2 [&_a]:decoration-amber-500 [&_a]:decoration-2 [&_a]:hover:text-blue-800">
-                    {{ field.label.text | safe }}{% if field.flags.required %}<span class="ml-0.5 text-red-900">*</span>{% endif %}
+                <label for="{{ field.id }}" class="mb-2 block text-sm font-medium text-blue-900 [&_a]:underline [&_a]:underline-offset-2 [&_a]:decoration-amber-500 [&_a]:decoration-2 [&_a]:hover:text-blue-800">
+                    {{ field.label.text | safe }}{% if field.flags.required %}<span aria-hidden="true" class="ml-0.5 text-red-900">*</span>{% endif %}
                 </label>
-                {% for choice in field.choices %}
-                    <div class="flex items-start gap-2">
-                        <input id="{{ field.name ~ '-' ~ loop0 }}" name="{{ field.name }}"
-                               type="checkbox" value="{{ choice[0] }}"
-                               class="mt-1 h-4 w-4 rounded border-gray-300 text-blue-900 focus:ring-blue-900"/>
-                        <label for="{{ field.name }}" class="text-sm text-blue-900 [&_a]:underline [&_a]:underline-offset-2 [&_a]:decoration-amber-500 [&_a]:decoration-2 [&_a]:hover:text-blue-800">
-                            {{ choice[1] | safe }}
-                        </label>
-                    </div>
-                {% endfor %}
+                <div class="grid grid-cols-1 gap-x-4 gap-y-1.5 sm:grid-cols-2 md:grid-cols-3">
+                    {% for choice in field.choices %}
+                        <div class="flex items-start gap-2">
+                            <input id="{{ field.name ~ '-' ~ loop0 }}" name="{{ field.name }}"
+                                   type="checkbox" value="{{ choice[0] }}"
+                                   class="mt-1 h-4 w-4 rounded border-gray-300 text-blue-900 focus:ring-blue-900"/>
+                            <label for="{{ field.name }}" class="text-sm text-blue-900 [&_a]:underline [&_a]:underline-offset-2 [&_a]:decoration-amber-500 [&_a]:decoration-2 [&_a]:hover:text-blue-800">
+                                {{ choice[1] | safe }}
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% if field.description %}
+                    <p class="mt-2 text-xs leading-relaxed text-gray-500">{{ field.description | safe }}</p>
+                {% endif %}
             </div>
         {% elif field.type == 'BooleanField' %}
             <div class="mb-4 {% if field.render_kw['compact'] %}mb-2{% endif %}">
@@ -285,16 +296,19 @@
         {% elif field.type == 'TextAreaField' %}
             <div class="mb-4">
                 <label for="{{ field.id }}" class="mb-1 block text-sm font-medium text-blue-900 [&_a]:underline [&_a]:underline-offset-2 [&_a]:decoration-amber-500 [&_a]:decoration-2 [&_a]:hover:text-blue-800">
-                    {{ field.label.text | safe }}{% if field.flags.required %}<span class="ml-0.5 text-red-900">*</span>{% endif %}
+                    {{ field.label.text | safe }}{% if field.flags.required %}<span aria-hidden="true" class="ml-0.5 text-red-900">*</span>{% endif %}
                 </label>
                 {{ field(class_="block w-full rounded border border-gray-300 bg-white px-3 py-2 text-blue-900 shadow-sm focus:border-blue-900 focus:ring-1 focus:ring-blue-900 focus:outline-none", rows='4', cols='15') }}
+                {% if field.description %}
+                    <p class="mt-1 text-xs leading-relaxed text-gray-500">{{ field.description | safe }}</p>
+                {% endif %}
             </div>
         {% elif field.type == 'FileField' %}
             <div class="mb-4">
                 <label for="{{ field.id }}" class="mb-2 block text-sm font-medium text-blue-900 [&_a]:underline [&_a]:underline-offset-2 [&_a]:decoration-amber-500 [&_a]:decoration-2 [&_a]:hover:text-blue-800">
-                    {{ field.label.text | safe }}{% if field.flags.required %}<span class="ml-0.5 text-red-900">*</span>{% endif %}
+                    {{ field.label.text | safe }}{% if field.flags.required %}<span aria-hidden="true" class="ml-0.5 text-red-900">*</span>{% endif %}
                 </label>
-                <input class="block w-full cursor-pointer rounded border border-gray-300 bg-white p-2 text-sm text-gray-700 shadow-sm file:mr-4 file:cursor-pointer file:border file:border-blue-900 file:bg-white file:px-4 file:py-2 file:font-display file:text-[11px] file:font-semibold file:uppercase file:tracking-[0.15em] file:text-blue-900 file:transition-colors hover:file:bg-blue-900 hover:file:text-white focus:border-blue-900 focus:outline-none focus:ring-1 focus:ring-blue-900"
+                <input class="block w-full cursor-pointer rounded border border-gray-300 bg-white p-2 text-sm text-gray-700 shadow-sm file:mr-4 file:cursor-pointer file:border file:border-blue-900 file:bg-white file:px-4 file:py-2 file:text-sm file:font-semibold file:text-blue-900 file:transition-colors hover:file:bg-blue-900 hover:file:text-white focus:border-blue-900 focus:outline-none focus:ring-1 focus:ring-blue-900"
                        id="{{ field.id }}" name="{{ field.id }}" type="file">
             </div>
         {% elif field.render_kw and 'label' in field.render_kw %}
@@ -302,12 +316,15 @@
                 <p class="text-blue-900 [&_a]:underline [&_a]:underline-offset-2 [&_a]:decoration-amber-500 [&_a]:decoration-2 [&_a]:hover:text-blue-800">{{ field.label.text | safe | urlize }}</p>
             </div>
         {% elif field.render_kw and 'header' in field.render_kw %}
-            <h2 class="mt-6 mb-3 font-display text-2xl font-semibold text-blue-900 [&_a]:underline [&_a]:underline-offset-2 [&_a]:decoration-amber-500 [&_a]:decoration-2 [&_a]:hover:text-blue-800">{{ field.label.text | safe }}</h2>
+            <div class="relative mt-10 mb-4 first:mt-2">
+                <span aria-hidden="true" class="absolute left-0 top-0 h-px w-12 bg-amber-500"></span>
+                <h2 class="border-t border-gray-200 pt-5 font-display text-2xl font-semibold text-blue-900 lg:text-3xl [&_a]:underline [&_a]:underline-offset-2 [&_a]:decoration-amber-500 [&_a]:decoration-2 [&_a]:hover:text-blue-800">{{ field.label.text | safe }}</h2>
+            </div>
         {% elif field.type == 'FieldList' %}
             <div class="mb-5 space-y-4">
                 {% if field.label.text %}
-                    <p class="font-display text-xs font-semibold uppercase tracking-[0.15em] text-gray-600 [&_a]:underline [&_a]:underline-offset-2 [&_a]:decoration-amber-500 [&_a]:decoration-2 [&_a]:hover:text-blue-800">
-                        {{ field.label.text | safe }}{% if field.flags.required %}<span class="ml-0.5 text-red-900">*</span>{% endif %}
+                    <p class="text-xs font-medium text-gray-600 [&_a]:underline [&_a]:underline-offset-2 [&_a]:decoration-amber-500 [&_a]:decoration-2 [&_a]:hover:text-blue-800">
+                        {{ field.label.text | safe }}{% if field.flags.required %}<span aria-hidden="true" class="ml-0.5 text-red-900">*</span>{% endif %}
                     </p>
                 {% endif %}
                 {% for entry in field.entries %}
@@ -344,8 +361,8 @@
 {% endmacro %}
 
 
-{% macro start_panel(label, id, expanded=False, buttons=None, listType='dl') %}
-    <details id="{{ id }}-fields" class="group relative scroll-mt-8 border-t border-gray-200 py-5 lg:py-6" {% if expanded %}open{% endif %}>
+{% macro start_panel(label, id, expanded=True, buttons=None, listType='dl') %}
+    <details id="{{ id }}-fields" class="group relative scroll-mt-8 py-5 lg:py-6" {% if expanded %}open{% endif %}>
         <span aria-hidden="true" class="pointer-events-none absolute left-0 top-5 h-px w-12 bg-amber-500 lg:top-6"></span>
         <summary id="{{ id }}-heading" class="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
             <h2 class="font-display text-xl font-semibold leading-tight tracking-tight text-blue-900 lg:text-2xl">{{ label }}</h2>
@@ -353,7 +370,7 @@
                 {% if buttons %}
                     {% for (glyph, label, url) in buttons %}
                         <a href="{{ url }}" title="{{ label }}" aria-label="{{ label }}"
-                           class="inline-flex items-center gap-1.5 border border-blue-900 bg-white px-3 py-1.5 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-blue-900 transition-colors hover:bg-blue-900 hover:text-white">
+                           class="inline-flex items-center gap-1.5 border border-blue-900 bg-white px-3 py-1.5 text-sm font-semibold text-blue-900 transition-colors hover:bg-blue-900 hover:text-white">
                             {% if glyph %}<i data-lucide="{{ glyph }}" class="h-3.5 w-3.5"></i>{% endif %}
                             <span>{{ label }}</span>
                         </a>
@@ -415,7 +432,7 @@
 {% macro entity_info_row(name, value, link=None, facet_url=None, list=False) %}
     {%- if value %}
     <div class="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[12rem_minmax(0,1fr)] sm:gap-6">
-        <dt class="font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">{{ name }}</dt>
+        <dt class="text-xs font-medium text-gray-500">{{ name }}</dt>
         <dd class="text-sm leading-relaxed text-blue-900 lg:text-base">
             {% if link %}
                 <a href="{{ link }}" class="break-words text-blue-900 underline underline-offset-2 hover:text-blue-800">{{ value }}</a>
@@ -444,7 +461,7 @@
 {% macro entity_info_deprecated(name, value) %}
     {%- if value %}
     <div class="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[12rem_minmax(0,1fr)] sm:gap-6">
-        <dt class="font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-red-900">{{ name }}</dt>
+        <dt class="text-xs font-medium text-red-900">{{ name }}</dt>
         <dd class="text-sm font-semibold leading-relaxed text-red-900 lg:text-base">
             {{ value | safe }}
         </dd>
@@ -453,21 +470,21 @@
 {% endmacro %}
 
 {% macro eyebrow(label) %}
-    <p class="flex items-center gap-3 font-display text-xs font-semibold uppercase tracking-[0.25em] text-blue-900">
+    <p class="flex items-center gap-3 font-display text-sm font-semibold text-blue-900">
         <span aria-hidden="true" class="inline-block h-px w-10 bg-amber-500"></span>
         <span>{{ label }}</span>
     </p>
 {% endmacro %}
 
 {% macro btn_primary(href, label, icon=None, full_width=False, title=None) %}
-    <a href="{{ href }}"{% if title %} title="{{ title }}"{% endif %} class="inline-flex {% if full_width %}w-full {% endif %}items-center justify-center gap-2 bg-blue-900 px-4 py-2 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-white transition-colors hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-2">
+    <a href="{{ href }}"{% if title %} title="{{ title }}"{% endif %} class="inline-flex {% if full_width %}w-full {% endif %}items-center justify-center gap-2 bg-blue-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-2">
         {% if icon %}<i data-lucide="{{ icon }}" class="h-4 w-4" aria-hidden="true"></i>{% endif %}
         <span>{{ label }}</span>
     </a>
 {% endmacro %}
 
 {% macro btn_secondary(href, label, icon=None, title=None) %}
-    <a href="{{ href }}"{% if title %} title="{{ title }}"{% endif %} class="inline-flex items-center justify-center gap-2 border border-blue-900 bg-white px-4 py-2 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-blue-900 transition-colors hover:bg-blue-900 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-2">
+    <a href="{{ href }}"{% if title %} title="{{ title }}"{% endif %} class="inline-flex items-center justify-center gap-2 border border-blue-900 bg-white px-4 py-2 text-sm font-semibold text-blue-900 transition-colors hover:bg-blue-900 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-2">
         {% if icon %}<i data-lucide="{{ icon }}" class="h-4 w-4" aria-hidden="true"></i>{% endif %}
         <span>{{ label }}</span>
     </a>

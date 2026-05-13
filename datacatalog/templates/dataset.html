@@ -94,24 +94,13 @@
     <header class="order-1 lg:order-none lg:col-start-2 lg:row-start-1">
     <p class="flex flex-wrap items-center gap-x-3 gap-y-2">
       <span aria-hidden="true" class="inline-block h-px w-10 bg-amber-500"></span>
-      <span class="font-display text-xs font-semibold uppercase tracking-[0.25em] text-blue-900">Dataset</span>
-      {% if project %}
-        <span aria-hidden="true" class="text-gray-300">/</span>
-        <a href="{{ url_for('entity_details', entity_name='project', entity_id=project.id) }}"
-           class="text-sm font-medium text-blue-900 underline decoration-amber-500 decoration-2 underline-offset-4 hover:text-blue-800">
-          {{ project.title | truncate(60, True) }}
-        </a>
-      {% endif %}
-      {% if is_deprecated %}
-        <span aria-hidden="true" class="text-gray-300">/</span>
-        <span class="inline-flex items-center border border-red-900 px-2 py-0.5 font-display text-xs font-semibold uppercase tracking-[0.15em] text-red-900">Deprecated</span>
-      {% endif %}
+      <span class="font-display text-sm font-semibold text-blue-900">Dataset</span>
     </p>
 
     <div class="mt-4 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
       <div class="min-w-0 flex-1 space-y-3">
         <h1 class="font-display text-4xl font-semibold tracking-tight text-blue-900 lg:text-6xl">{{ dataset.title }}</h1>
-        <p class="font-mono text-[11px] uppercase tracking-[0.15em] text-gray-500">{{ dataset.id }}</p>
+        <p class="select-all break-all font-mono text-xs text-gray-500">{{ dataset.id }}</p>
         {% if dataset.description %}
           <p class="max-w-prose text-lg leading-snug text-blue-900 lg:text-xl">{{ dataset.description }}</p>
         {% endif %}
@@ -129,7 +118,7 @@
 
     {% if dataset.tags %}
       <div class="mt-4 flex flex-wrap items-baseline gap-x-2 gap-y-1.5">
-        <span class="mr-1 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Tags</span>
+        <span class="mr-1 text-xs font-medium text-gray-500">Tags</span>
         {{ macros.split_labels(dataset.tags) }}
       </div>
     {% endif %}
@@ -139,12 +128,12 @@
       {% if glance_items %}
         <section class="relative border-t border-gray-200 pt-5">
           <span aria-hidden="true" class="absolute left-0 top-0 h-px w-12 bg-amber-500"></span>
-          <h2 class="font-display text-xs font-semibold uppercase tracking-[0.25em] text-blue-900">At a glance</h2>
+          <h2 class="font-display text-base font-semibold text-blue-900">At a glance</h2>
           <dl class="mt-3 divide-y divide-gray-100">
             {% for item in glance_items %}
               <div class="flex items-baseline justify-between gap-4 py-2.5 first:pt-0">
-                <dt class="font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">{{ item.label }}</dt>
-                <dd class="min-w-0 text-right font-display text-sm font-semibold leading-snug text-blue-900 lg:text-base">{{ item.value }}</dd>
+                <dt class="text-xs font-medium text-gray-500">{{ item.label }}</dt>
+                <dd class="min-w-0 text-right text-sm font-semibold text-blue-900 lg:text-base">{{ item.value }}</dd>
               </div>
             {% endfor %}
           </dl>
@@ -154,12 +143,12 @@
       {% if not is_deprecated %}
         <section class="relative border-t border-gray-200 pt-5">
           <span aria-hidden="true" class="absolute left-0 top-0 h-px w-12 bg-amber-500"></span>
-          <h2 class="font-display text-xs font-semibold uppercase tracking-[0.25em] text-blue-900">Access</h2>
+          <h2 class="font-display text-base font-semibold text-blue-900">Access</h2>
           <div class="mt-3 flex flex-col gap-2">
             {% if has_access.value == 'approved' %}
-              <span class="inline-flex items-center justify-center gap-2 border border-blue-900 bg-sky-50 px-3 py-2 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-blue-900"
+              <span class="inline-flex w-fit items-center gap-1.5 border border-blue-900 bg-sky-50 px-2.5 py-1 text-xs font-medium text-blue-900"
                     title="you were granted access to this dataset">
-                <i data-lucide="circle-check" class="h-4 w-4"></i>
+                <i data-lucide="circle-check" class="h-3.5 w-3.5"></i>
                 <span>Access granted</span>
               </span>
             {% endif %}
@@ -180,9 +169,9 @@
                   </p>
                 {% endfor %}
               {% elif has_access.value == 'submitted' %}
-                <span class="inline-flex items-center justify-center gap-2 border border-gray-200 bg-gray-50 px-3 py-2 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-700"
+                <span class="inline-flex w-fit items-center gap-1.5 border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-700"
                       title="you have already requested access to this dataset">
-                  <i data-lucide="hourglass" class="h-4 w-4"></i>
+                  <i data-lucide="hourglass" class="h-3.5 w-3.5"></i>
                   <span>Access requested</span>
                 </span>
               {% elif dataset.hosted %}
@@ -192,7 +181,7 @@
 
             <button type="button"
                     id="open-citation-modal"
-                    class="inline-flex items-center justify-center gap-2 border border-blue-900 bg-white px-3 py-2 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-blue-900 transition-colors hover:bg-blue-900 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-2">
+                    class="inline-flex items-center justify-center gap-2 border border-blue-900 bg-white px-3 py-2 text-sm font-semibold text-blue-900 transition-colors hover:bg-blue-900 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-2">
               <i data-lucide="quote" class="h-4 w-4"></i>
               <span>Cite</span>
             </button>
@@ -207,15 +196,15 @@
       {% if project %}
         <section class="relative border-t border-gray-200 pt-5">
           <span aria-hidden="true" class="absolute left-0 top-0 h-px w-12 bg-amber-500"></span>
-          <h2 class="font-display text-xs font-semibold uppercase tracking-[0.25em] text-blue-900">Project</h2>
+          <h2 class="font-display text-base font-semibold text-blue-900">Project</h2>
           <a href="{{ url_for('entity_details', entity_name='project', entity_id=project.id) }}"
-             class="mt-3 block font-display text-base font-semibold leading-snug tracking-tight text-blue-900 underline decoration-amber-500 decoration-2 underline-offset-4 hover:text-blue-800">
+             class="mt-3 block text-base font-semibold text-blue-900 hover:text-blue-800 hover:underline underline-offset-2">
             {{ project.title }}
           </a>
           <dl class="mt-3 space-y-2.5">
             {% if project.website %}
               <div>
-                <dt class="font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Website</dt>
+                <dt class="text-xs font-medium text-gray-500">Website</dt>
                 <dd class="mt-1 break-words text-sm leading-relaxed lg:text-base">
                   <a href="{{ project.website }}" class="text-blue-900 underline underline-offset-2 hover:text-blue-800">{{ project.website | truncate(50, True) }}</a>
                 </dd>
@@ -223,7 +212,7 @@
             {% endif %}
             {% if project.contact_entities %}
               <div>
-                <dt class="font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Contact{% if project.contact_entities | length != 1 %}s{% endif %}</dt>
+                <dt class="text-xs font-medium text-gray-500">Contact{% if project.contact_entities | length != 1 %}s{% endif %}</dt>
                 <dd class="mt-1 text-sm leading-relaxed text-blue-900 lg:text-base">{{ project.contact_entities | join(', ') }}</dd>
               </div>
             {% endif %}
@@ -234,21 +223,21 @@
       {% if study %}
         <section class="relative border-t border-gray-200 pt-5">
           <span aria-hidden="true" class="absolute left-0 top-0 h-px w-12 bg-amber-500"></span>
-          <h2 class="font-display text-xs font-semibold uppercase tracking-[0.25em] text-blue-900">Study</h2>
+          <h2 class="font-display text-base font-semibold text-blue-900">Study</h2>
           <a href="{{ url_for('entity_details', entity_name='study', entity_id=study.id) }}"
-             class="mt-3 block font-display text-base font-semibold leading-snug tracking-tight text-blue-900 underline decoration-amber-500 decoration-2 underline-offset-4 hover:text-blue-800">
+             class="mt-3 block text-base font-semibold text-blue-900 hover:text-blue-800 hover:underline underline-offset-2">
             {{ study.title }}
           </a>
           <dl class="mt-3 space-y-2.5">
             {% if study.primary_purpose %}
               <div>
-                <dt class="font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Primary purpose</dt>
+                <dt class="text-xs font-medium text-gray-500">Primary purpose</dt>
                 <dd class="mt-1 text-sm leading-relaxed text-blue-900 lg:text-base">{{ study.primary_purpose }}</dd>
               </div>
             {% endif %}
             {% if study.organisms %}
               <div>
-                <dt class="font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Organism{% if study.organisms | length != 1 %}s{% endif %}</dt>
+                <dt class="text-xs font-medium text-gray-500">Organism{% if study.organisms | length != 1 %}s{% endif %}</dt>
                 <dd class="mt-1 text-sm leading-relaxed text-blue-900 lg:text-base">{{ study.organisms | join(', ') }}</dd>
               </div>
             {% endif %}
@@ -260,17 +249,17 @@
     <div class="order-3 space-y-2 lg:order-none lg:col-start-2 lg:row-start-2 lg:mt-2">
       {% if is_deprecated %}
         <section class="mb-6 border-y border-red-900 bg-red-50 p-5 lg:p-6">
-          <p class="font-display text-xs font-semibold uppercase tracking-[0.25em] text-red-900">Deprecation notice</p>
+          <p class="font-display text-base font-semibold text-red-900">Deprecation notice</p>
           <dl class="mt-3 space-y-2.5">
             {% if dataset.deprecation_date %}
               <div>
-                <dt class="font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-red-900">Deprecated on</dt>
+                <dt class="text-xs font-medium text-red-900">Deprecated on</dt>
                 <dd class="mt-1 text-sm leading-relaxed text-red-900 lg:text-base">{{ dataset.deprecation_date | date }}</dd>
               </div>
             {% endif %}
             {% if dataset.deprecation_notes %}
               <div>
-                <dt class="font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-red-900">Notes</dt>
+                <dt class="text-xs font-medium text-red-900">Notes</dt>
                 <dd class="mt-1 text-sm font-semibold leading-relaxed text-red-900 lg:text-base">{{ dataset.deprecation_notes | safe }}</dd>
               </div>
             {% endif %}
@@ -282,14 +271,14 @@
         <div class="mb-4 flex flex-wrap gap-x-12 gap-y-4">
           {% if dataset.version %}
             <div>
-              <dt class="font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Version</dt>
-              <dd class="mt-1.5 font-display text-base font-semibold leading-snug text-blue-900">{{ dataset.version }}</dd>
+              <dt class="text-xs font-medium text-gray-500">Version</dt>
+              <dd class="mt-1.5 text-base font-semibold text-blue-900">{{ dataset.version }}</dd>
             </div>
           {% endif %}
           {% if dataset.dataset_created %}
             <div>
-              <dt class="font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Created on</dt>
-              <dd class="mt-1.5 font-display text-base font-semibold leading-snug text-blue-900">
+              <dt class="text-xs font-medium text-gray-500">Created on</dt>
+              <dd class="mt-1.5 text-base font-semibold text-blue-900">
                 {% if facets_url.dataset_created %}
                   <a href="{{ facets_url.dataset_created }}{{ dataset.dataset_created | date | urlencode }}" class="underline underline-offset-2 hover:text-blue-800">{{ dataset.dataset_created | date }}</a>
                 {% else %}
@@ -300,8 +289,8 @@
           {% endif %}
           {% if dataset.dataset_modified %}
             <div>
-              <dt class="font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Updated on</dt>
-              <dd class="mt-1.5 font-display text-base font-semibold leading-snug text-blue-900">
+              <dt class="text-xs font-medium text-gray-500">Updated on</dt>
+              <dd class="mt-1.5 text-base font-semibold text-blue-900">
                 {% if facets_url.dataset_modified %}
                   <a href="{{ facets_url.dataset_modified }}{{ dataset.dataset_modified | date | urlencode }}" class="underline underline-offset-2 hover:text-blue-800">{{ dataset.dataset_modified | date }}</a>
                 {% else %}
@@ -357,15 +346,15 @@
             <table class="min-w-full divide-y divide-gray-200 text-sm lg:text-base">
               <thead>
                 <tr class="text-left">
-                  <th class="py-2.5 pr-3 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">FAIR maturity level</th>
-                  <th class="px-3 py-2.5 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">
+                  <th class="py-2.5 pr-3 text-xs font-medium text-gray-500">FAIR maturity level</th>
+                  <th class="px-3 py-2.5 text-xs font-medium text-gray-500">
                     {% if dataset.fair_assessment_link_pre %}
                       <a href="{{ dataset.fair_assessment_link_pre }}" class="text-blue-900 underline underline-offset-2 hover:text-blue-800">Pre-FAIRification</a>
                     {% else %}
                       Pre-FAIRification
                     {% endif %}
                   </th>
-                  <th class="py-2.5 pl-3 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">
+                  <th class="py-2.5 pl-3 text-xs font-medium text-gray-500">
                     {% if dataset.fair_assessment_link_post %}
                       <a href="{{ dataset.fair_assessment_link_post }}" class="text-blue-900 underline underline-offset-2 hover:text-blue-800">Post-FAIRification</a>
                     {% else %}
@@ -376,9 +365,9 @@
               </thead>
               <tbody class="divide-y divide-gray-100">
                 <tr>
-                  <td class="py-2.5 pr-3 font-display font-semibold text-blue-900">Overall</td>
-                  <td class="px-3 py-2.5 font-display font-semibold text-blue-900">{{ dataset.fair_score_overall_pre or '—' }}</td>
-                  <td class="py-2.5 pl-3 font-display font-semibold text-blue-900">{{ dataset.fair_score_overall_post or '—' }}</td>
+                  <td class="py-2.5 pr-3 font-semibold text-blue-900">Overall</td>
+                  <td class="px-3 py-2.5 font-semibold text-blue-900">{{ dataset.fair_score_overall_pre or '—' }}</td>
+                  <td class="py-2.5 pl-3 font-semibold text-blue-900">{{ dataset.fair_score_overall_post or '—' }}</td>
                 </tr>
                 <tr>
                   <td class="py-2.5 pr-3 text-gray-700">Representation &amp; format</td>
@@ -434,7 +423,7 @@
           <div class="space-y-6">
             {% for condition_type in use_conditions_by_type %}
               <div>
-                <h3 class="flex items-center gap-2 font-display text-sm font-semibold leading-snug text-blue-900 lg:text-base">
+                <h3 class="flex items-center gap-2 text-sm font-semibold text-blue-900 lg:text-base">
                   <i data-lucide="{{ icons[condition_type][0] }}" class="h-4 w-4 {{ icons[condition_type][1] }}"></i>
                   <span>{{ icons[condition_type][2] }}</span>
                 </h3>
@@ -442,9 +431,9 @@
                   <table class="min-w-full divide-y divide-gray-200 text-sm lg:text-base">
                     <thead>
                       <tr class="text-left">
-                        <th class="py-2.5 pr-3 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Use condition</th>
-                        <th class="px-3 py-2.5 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Remarks</th>
-                        <th class="py-2.5 pl-3 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Category (GA4GH)</th>
+                        <th class="py-2.5 pr-3 text-xs font-medium text-gray-500">Use condition</th>
+                        <th class="px-3 py-2.5 text-xs font-medium text-gray-500">Remarks</th>
+                        <th class="py-2.5 pl-3 text-xs font-medium text-gray-500">Category (GA4GH)</th>
                       </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
@@ -480,21 +469,17 @@
         </div>
         <div class="space-y-3 px-5 py-4">
             <p class="text-sm leading-relaxed text-gray-700 lg:text-base">APA citation format. Copy the citation below and paste it into your reference manager or document.</p>
-            <blockquote id="citation-text"
-                        class="border border-sky-300 bg-sky-50 px-4 py-3 text-sm leading-relaxed text-blue-900 lg:text-base">
-                ELIXIR Luxembourg. ({{ dataset.dataset_created.year if dataset.dataset_created else 'n.d.' }}). {{ dataset.title }}{% if dataset.version %} ({{ dataset.version }}){% endif %} [Data set]. {{ url_for('entity_details', entity_name='dataset', entity_id=dataset.id, _external=True) }}
-            </blockquote>
-        </div>
-        <div class="flex items-center justify-end gap-2 border-t border-gray-200 px-5 py-3">
-            <button type="button" id="cancel-citation-modal"
-                    class="inline-flex items-center justify-center gap-2 border border-blue-900 bg-white px-3 py-2 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-blue-900 transition-colors hover:bg-blue-900 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-2">
-                Close
-            </button>
-            <button type="button" id="copy-btn"
-                    class="inline-flex items-center justify-center gap-2 bg-blue-900 px-4 py-2 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-white transition-colors hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-2">
-                <i data-lucide="copy" class="h-4 w-4"></i>
-                <span>Copy to clipboard</span>
-            </button>
+            <div class="relative">
+                <blockquote id="citation-text"
+                            class="border border-sky-300 bg-sky-50 px-4 py-3 pr-12 text-sm leading-relaxed text-blue-900 lg:text-base">
+                    ELIXIR Luxembourg. ({{ dataset.dataset_created.year if dataset.dataset_created else 'n.d.' }}). {{ dataset.title }}{% if dataset.version %} ({{ dataset.version }}){% endif %} [Data set]. {{ url_for('entity_details', entity_name='dataset', entity_id=dataset.id, _external=True) }}
+                </blockquote>
+                <button type="button" id="copy-btn" aria-label="Copy citation"
+                        class="absolute right-2 top-2 inline-flex items-center justify-center gap-1.5 border border-sky-300 bg-white px-2 py-1 text-xs font-medium text-blue-900 transition-colors hover:border-blue-900 hover:bg-blue-900 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-2">
+                    <i data-lucide="copy" class="h-3.5 w-3.5"></i>
+                    <span class="sr-only">Copy</span>
+                </button>
+            </div>
         </div>
     </div>
 </dialog>
@@ -507,16 +492,23 @@
         const dialog = document.getElementById('citationModal');
         const open = document.getElementById('open-citation-modal');
         const close = document.getElementById('close-citation-modal');
-        const cancel = document.getElementById('cancel-citation-modal');
         const copy = document.getElementById('copy-btn');
         if (open && dialog) open.addEventListener('click', () => dialog.showModal());
         if (close) close.addEventListener('click', () => dialog.close());
-        if (cancel) cancel.addEventListener('click', () => dialog.close());
         if (copy) copy.addEventListener('click', (e) => {
-            const label = e.currentTarget.querySelector('span');
+            const icon = e.currentTarget.querySelector('[data-lucide]');
             navigator.clipboard.writeText(document.getElementById('citation-text').textContent.trim());
-            label.textContent = 'Copied!';
-            setTimeout(() => label.textContent = 'Copy to clipboard', 2000);
+            if (icon) {
+                icon.setAttribute('data-lucide', 'check');
+                lucide.createIcons();
+                setTimeout(() => {
+                    const current = e.currentTarget.querySelector('[data-lucide]');
+                    if (current) {
+                        current.setAttribute('data-lucide', 'copy');
+                        lucide.createIcons();
+                    }
+                }, 2000);
+            }
         });
 
         document.querySelectorAll('[data-expand]').forEach((el) => {
