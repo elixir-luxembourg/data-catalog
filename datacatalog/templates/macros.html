@@ -23,7 +23,7 @@
 
 
 {% macro split_labels(list, type="primary", facet_url=None) %}
-    {% for value in list %}
+    {% for value in list or [] %}
         {% if ":" in value and "://" not in value %}
             {{ split_value(value) }}
         {% elif "://" in value %}
@@ -382,7 +382,7 @@
 
 
 {% macro start_table() %}
-    <table class="min-w-full border-collapse text-sm">
+    <table class="min-w-full border-collapse text-sm lg:text-base">
     <tbody>
 {% endmacro %}
 

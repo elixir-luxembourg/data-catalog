@@ -144,7 +144,7 @@
             {% for item in glance_items %}
               <div class="flex items-baseline justify-between gap-4 py-2.5 first:pt-0">
                 <dt class="font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">{{ item.label }}</dt>
-                <dd class="min-w-0 text-right font-display text-sm font-semibold leading-snug text-blue-900">{{ item.value }}</dd>
+                <dd class="min-w-0 text-right font-display text-sm font-semibold leading-snug text-blue-900 lg:text-base">{{ item.value }}</dd>
               </div>
             {% endfor %}
           </dl>
@@ -172,7 +172,7 @@
                 {% for storage, storage_template in storages_templates %}
                   {% include "storages/%s.html" % storage_template %}
                 {% else %}
-                  <p class="text-sm leading-relaxed text-gray-800">
+                  <p class="text-sm leading-relaxed text-gray-800 lg:text-base">
                     Please
                     <a href="mailto:{{ config.get('CONTACT_ACCESS_RECIPIENT') }}?body={{ config.get('CONTACT_ACCESS_BODY') | urlencode }}&subject={{ dataset.title ~ ' - access to data' | urlencode }}"
                        class="text-blue-900 underline decoration-amber-500 decoration-2 underline-offset-4 hover:text-blue-800">contact our data stewards</a>
@@ -216,7 +216,7 @@
             {% if project.website %}
               <div>
                 <dt class="font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Website</dt>
-                <dd class="mt-1 break-words text-sm leading-relaxed">
+                <dd class="mt-1 break-words text-sm leading-relaxed lg:text-base">
                   <a href="{{ project.website }}" class="text-blue-900 underline underline-offset-2 hover:text-blue-800">{{ project.website | truncate(50, True) }}</a>
                 </dd>
               </div>
@@ -224,7 +224,7 @@
             {% if project.contact_entities %}
               <div>
                 <dt class="font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Contact{% if project.contact_entities | length != 1 %}s{% endif %}</dt>
-                <dd class="mt-1 text-sm leading-relaxed text-blue-900">{{ project.contact_entities | join(', ') }}</dd>
+                <dd class="mt-1 text-sm leading-relaxed text-blue-900 lg:text-base">{{ project.contact_entities | join(', ') }}</dd>
               </div>
             {% endif %}
           </dl>
@@ -243,13 +243,13 @@
             {% if study.primary_purpose %}
               <div>
                 <dt class="font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Primary purpose</dt>
-                <dd class="mt-1 text-sm leading-relaxed text-blue-900">{{ study.primary_purpose }}</dd>
+                <dd class="mt-1 text-sm leading-relaxed text-blue-900 lg:text-base">{{ study.primary_purpose }}</dd>
               </div>
             {% endif %}
             {% if study.organisms %}
               <div>
                 <dt class="font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Organism{% if study.organisms | length != 1 %}s{% endif %}</dt>
-                <dd class="mt-1 text-sm leading-relaxed text-blue-900">{{ study.organisms | join(', ') }}</dd>
+                <dd class="mt-1 text-sm leading-relaxed text-blue-900 lg:text-base">{{ study.organisms | join(', ') }}</dd>
               </div>
             {% endif %}
           </dl>
@@ -354,7 +354,7 @@
         {% if fair_evaluations_show and dataset.fair_evaluation %}
           {{ macros.start_panel("FAIRplus evaluation", "fairplus-evaluation", listType="") }}
           <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200 text-sm">
+            <table class="min-w-full divide-y divide-gray-200 text-sm lg:text-base">
               <thead>
                 <tr class="text-left">
                   <th class="py-2.5 pr-3 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">FAIR maturity level</th>
@@ -439,7 +439,7 @@
                   <span>{{ icons[condition_type][2] }}</span>
                 </h3>
                 <div class="mt-2.5 overflow-x-auto">
-                  <table class="min-w-full divide-y divide-gray-200 text-sm">
+                  <table class="min-w-full divide-y divide-gray-200 text-sm lg:text-base">
                     <thead>
                       <tr class="text-left">
                         <th class="py-2.5 pr-3 font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Use condition</th>
@@ -479,9 +479,9 @@
             </button>
         </div>
         <div class="space-y-3 px-5 py-4">
-            <p class="text-sm leading-relaxed text-gray-700">APA citation format. Copy the citation below and paste it into your reference manager or document.</p>
+            <p class="text-sm leading-relaxed text-gray-700 lg:text-base">APA citation format. Copy the citation below and paste it into your reference manager or document.</p>
             <blockquote id="citation-text"
-                        class="border border-sky-300 bg-sky-50 px-4 py-3 text-sm leading-relaxed text-blue-900">
+                        class="border border-sky-300 bg-sky-50 px-4 py-3 text-sm leading-relaxed text-blue-900 lg:text-base">
                 ELIXIR Luxembourg. ({{ dataset.dataset_created.year if dataset.dataset_created else 'n.d.' }}). {{ dataset.title }}{% if dataset.version %} ({{ dataset.version }}){% endif %} [Data set]. {{ url_for('entity_details', entity_name='dataset', entity_id=dataset.id, _external=True) }}
             </blockquote>
         </div>
