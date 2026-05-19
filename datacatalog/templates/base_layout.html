@@ -192,6 +192,43 @@
           format("woff2");
       }
     </style>
+    <style>
+      body.bg-white::before,
+      body.bg-white::after {
+        content: "";
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        width: max(0px, calc((100vw - 80rem) / 2));
+        z-index: -1;
+        pointer-events: none;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none' stroke='%23d6d3d1' stroke-width='1'><path d='M0 0v3M0 8v4M0 17v3M0 0h3M8 0h4M17 0h3'/></svg>");
+        background-size: 20px 20px;
+      }
+      body.bg-white::before {
+        left: 0;
+        -webkit-mask-image: radial-gradient(ellipse 110% 90% at 0% 50%, #000 65%, transparent 98%);
+        mask-image: radial-gradient(ellipse 110% 90% at 0% 50%, #000 65%, transparent 98%);
+      }
+      body.bg-white::after {
+        right: 0;
+        -webkit-mask-image: radial-gradient(ellipse 110% 90% at 100% 50%, #000 65%, transparent 98%);
+        mask-image: radial-gradient(ellipse 110% 90% at 100% 50%, #000 65%, transparent 98%);
+      }
+      body.bg-white > nav.bg-white,
+      body.bg-white > footer > section.bg-white,
+      body.bg-white > footer > .bg-blue-950 {
+        background-color: transparent;
+        border-color: transparent;
+      }
+      body.bg-white > nav.bg-white > div.mx-auto,
+      body.bg-white > footer > section.bg-white > div.mx-auto {
+        background-color: #ffffff;
+      }
+      body.bg-white > footer > .bg-blue-950 > div.mx-auto {
+        background-color: #142f3f;
+      }
+    </style>
   {% endblock %} {% endblock %}
 </head>
 
