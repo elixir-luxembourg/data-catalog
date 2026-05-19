@@ -69,8 +69,7 @@
   <div class="grid grid-cols-1 gap-x-10 gap-y-8 pb-10 lg:grid-cols-[18rem_minmax(0,1fr)] lg:grid-rows-[auto_1fr] lg:pb-14">
 
     <header class="order-1 lg:order-none lg:col-start-2 lg:row-start-1">
-    <p class="flex flex-wrap items-center gap-x-3 gap-y-2">
-      <span aria-hidden="true" class="inline-block h-px w-10 bg-amber-500"></span>
+    <p>
       <span class="font-display text-sm font-semibold text-blue-900">Project</span>
     </p>
 
@@ -109,7 +108,6 @@
     <aside class="order-2 space-y-6 lg:order-none lg:col-start-1 lg:row-span-2 lg:row-start-1">
       {% if glance_items %}
         <section class="relative border-t border-gray-200 pt-5">
-          <span aria-hidden="true" class="absolute left-0 top-0 h-px w-12 bg-amber-500"></span>
           <h2 class="font-display text-base font-semibold text-blue-900">At a glance</h2>
           <dl class="mt-3 divide-y divide-gray-100">
             {% for item in glance_items %}
@@ -124,7 +122,6 @@
 
       {% if project.website or project.funded_by or project.types %}
         <section class="relative border-t border-gray-200 pt-5">
-          <span aria-hidden="true" class="absolute left-0 top-0 h-px w-12 bg-amber-500"></span>
           <h2 class="font-display text-base font-semibold text-blue-900">About the project</h2>
           <dl class="mt-3 space-y-3">
             {% if project.website %}
@@ -158,7 +155,6 @@
     <div class="order-3 space-y-8 lg:order-none lg:col-start-2 lg:row-start-2 lg:mt-2">
       {% if project.studies_entities %}
         <section class="relative">
-          <span aria-hidden="true" class="absolute left-0 top-0 h-px w-12 bg-amber-500"></span>
           <div class="flex items-baseline justify-between gap-3 border-t border-gray-200 pt-5 lg:pt-6">
             <h2 class="font-display text-xl font-semibold leading-tight tracking-tight text-blue-900 lg:text-2xl">Studies</h2>
             <span class="text-xs font-semibold tabular-nums text-gray-500">{{ project.studies_entities | length }}</span>
@@ -197,7 +193,6 @@
 
       {% if study_datasets or has_deprecated_datasets %}
         <section class="relative">
-          <span aria-hidden="true" class="absolute left-0 top-0 h-px w-12 bg-amber-500"></span>
           <div class="flex items-baseline justify-between gap-3 border-t border-gray-200 pt-5 lg:pt-6">
             <h2 class="font-display text-xl font-semibold leading-tight tracking-tight text-blue-900 lg:text-2xl">Datasets</h2>
             {% if study_datasets %}
@@ -262,7 +257,6 @@
 
       {% if project.reference_publications %}
         <section class="relative">
-          <span aria-hidden="true" class="absolute left-0 top-0 h-px w-12 bg-amber-500"></span>
           <div class="flex items-baseline justify-between gap-3 border-t border-gray-200 pt-5 lg:pt-6">
             <h2 class="font-display text-xl font-semibold leading-tight tracking-tight text-blue-900 lg:text-2xl">Publications</h2>
             <span class="text-xs font-semibold tabular-nums text-gray-500">{{ project.reference_publications | length }}</span>

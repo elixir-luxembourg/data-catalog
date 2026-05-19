@@ -14,8 +14,7 @@
 <div class="space-y-12 pb-12 lg:space-y-16 lg:pb-20">
 
   <header class="border-b border-blue-900 pb-10">
-    {{ macros.eyebrow("Help & FAQ") }}
-    <h1 id="helpHeader" class="mt-5 font-display text-4xl font-semibold tracking-tight text-blue-900 lg:text-6xl">
+    <h1 id="helpHeader" class="font-display text-4xl font-semibold tracking-tight text-blue-900 lg:text-6xl">
       Frequently asked questions
     </h1>
     <p class="mt-6 max-w-3xl text-lg leading-snug text-blue-900 lg:text-xl">
@@ -57,7 +56,6 @@
       <ol class="divide-y divide-gray-200">
 
         <li id="what-is" class="relative scroll-mt-8 py-8 lg:py-10">
-          <span aria-hidden="true" class="absolute -top-px left-0 h-0.5 w-12 bg-amber-500"></span>
           <h2 class="font-display text-2xl font-semibold leading-tight text-blue-900 lg:text-3xl">What is the {{ config.get('TITLE', 'Data Catalogue') }}?</h2>
           <p class="mt-3 text-sm leading-relaxed text-gray-800 lg:text-base">For more information on the catalogue, see our
             <a href="{{ url_for('about') }}" class="font-semibold text-blue-900 underline decoration-amber-500 decoration-2 underline-offset-4 hover:text-blue-950">About page</a>.
@@ -65,7 +63,6 @@
         </li>
 
         <li id="looks-different" class="relative scroll-mt-8 py-8 lg:py-10">
-          <span aria-hidden="true" class="absolute -top-px left-0 h-0.5 w-12 bg-amber-500"></span>
 <h2 class="font-display text-2xl font-semibold leading-tight text-blue-900 lg:text-3xl">Why does the catalogue look different to the last time I visited?</h2>
           <p class="mt-3 text-sm leading-relaxed text-gray-800 lg:text-base">We recently did some major redevelopment work, including creating a new user interface, implementing a new data model based on the
             <a href="https://github.com/datatagsuite/README" class="font-semibold text-blue-900 underline decoration-amber-500 decoration-2 underline-offset-4 hover:text-blue-950">DATS model</a>
@@ -75,7 +72,6 @@
         </li>
 
         <li id="project-study-dataset" class="relative scroll-mt-8 py-8 lg:py-10">
-          <span aria-hidden="true" class="absolute -top-px left-0 h-0.5 w-12 bg-amber-500"></span>
 <h2 class="font-display text-2xl font-semibold leading-tight text-blue-900 lg:text-3xl">What is the difference between &ldquo;Project&rdquo;, &ldquo;Study&rdquo; and &ldquo;Dataset&rdquo;?</h2>
           <p class="mt-3 text-sm leading-relaxed text-gray-800 lg:text-base">The data model on which the catalogue distinguishes between these three categories:</p>
           <p class="mt-3 text-sm leading-relaxed text-gray-800 lg:text-base">The <strong>Project</strong> view presents high-level information about catalogue entries, such as title, general research area, and publications, as well as funding and contributor contact information.</p>
@@ -85,13 +81,11 @@
         </li>
 
         <li id="how-search" class="relative scroll-mt-8 py-8 lg:py-10">
-          <span aria-hidden="true" class="absolute -top-px left-0 h-0.5 w-12 bg-amber-500"></span>
 <h2 class="font-display text-2xl font-semibold leading-tight text-blue-900 lg:text-3xl">How can I search the catalogue?</h2>
           <p class="mt-3 text-sm leading-relaxed text-gray-800 lg:text-base">You can search each of the three aspects (Project, Study and Dataset) separately, using a number of factors including title, disease, species, keywords, data types etc. The search functionality is under active development as we work on providing an integrated experience across the entire catalogue.</p>
         </li>
 
         <li id="request-access" class="relative scroll-mt-8 py-8 lg:py-10">
-          <span aria-hidden="true" class="absolute -top-px left-0 h-0.5 w-12 bg-amber-500"></span>
 <h2 class="font-display text-2xl font-semibold leading-tight text-blue-900 lg:text-3xl">How can I request access to a dataset?</h2>
           <p class="mt-3 text-sm leading-relaxed text-gray-800 lg:text-base">On some Dataset pages, you will find a "Request access" button, which allows you to submit a data access request to the system. These datasets are hosted by
             <a href="https://elixir-luxembourg.org/services/data-hosting/" class="text-blue-900 underline underline-offset-2 hover:text-blue-950">ELIXIR Luxembourg's data hosting service</a>
@@ -100,7 +94,6 @@
         </li>
 
         <li id="reuse-conditions" class="relative scroll-mt-8 py-8 lg:py-10">
-          <span aria-hidden="true" class="absolute -top-px left-0 h-0.5 w-12 bg-amber-500"></span>
 <h2 class="font-display text-2xl font-semibold leading-tight text-blue-900 lg:text-3xl">What are the reuse conditions for the information displayed in the {{ config.get('TITLE', 'Data Catalogue') }}?</h2>
           <p class="mt-3 text-sm leading-relaxed text-gray-800 lg:text-base">All project-, study- and dataset-related information published in the catalogue is freely available for reuse under the
             <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="text-blue-900 underline underline-offset-2 hover:text-blue-950">CC BY-NC-SA 4.0 license</a>.
@@ -110,7 +103,6 @@
         </li>
 
         <li id="fairplus-badge" class="relative scroll-mt-8 py-8 lg:py-10">
-          <span aria-hidden="true" class="absolute -top-px left-0 h-0.5 w-12 bg-amber-500"></span>
 <h2 class="font-display text-2xl font-semibold leading-tight text-blue-900 lg:text-3xl">What does the &ldquo;FAIRplus Evaluated&rdquo; badge signify?</h2>
           <p class="mt-3 text-sm leading-relaxed text-gray-800 lg:text-base">The
             <a href="https://fairplus-project.eu/" class="font-semibold text-blue-900 underline decoration-amber-500 decoration-2 underline-offset-4 hover:text-blue-950">FAIRplus project</a>
@@ -123,7 +115,6 @@
         </li>
 
         <li id="report-bug" class="relative scroll-mt-8 py-8 lg:py-10">
-          <span aria-hidden="true" class="absolute -top-px left-0 h-0.5 w-12 bg-amber-500"></span>
 <h2 class="font-display text-2xl font-semibold leading-tight text-blue-900 lg:text-3xl">How do I report a bug or request a new feature?</h2>
           <p class="mt-3 text-sm leading-relaxed text-gray-800 lg:text-base">Please submit any bug reports and feature requests to the
             <a href="https://github.com/elixir-luxembourg/data-catalog/issues" class="font-semibold text-blue-900 underline decoration-amber-500 decoration-2 underline-offset-4 hover:text-blue-950">issue tracker</a>
@@ -132,7 +123,6 @@
         </li>
 
         <li id="include-project" class="relative scroll-mt-8 py-8 lg:py-10">
-          <span aria-hidden="true" class="absolute -top-px left-0 h-0.5 w-12 bg-amber-500"></span>
 <h2 class="font-display text-2xl font-semibold leading-tight text-blue-900 lg:text-3xl">I think my project should be in the {{ config.get('TITLE', 'Data Catalogue') }} but it isn't. How can I get it included?</h2>
           <p class="mt-3 text-sm leading-relaxed text-gray-800 lg:text-base">To talk to us about {{ config.get('TITLE', 'Data Catalogue') }} content, please drop us
             <a href="mailto:data-catalog@elixir-luxembourg.org" class="font-semibold text-blue-900 underline decoration-amber-500 decoration-2 underline-offset-4 hover:text-blue-950">an email</a>.
@@ -140,7 +130,6 @@
         </li>
 
         <li id="fix-metadata" class="relative scroll-mt-8 py-8 lg:py-10">
-          <span aria-hidden="true" class="absolute -top-px left-0 h-0.5 w-12 bg-amber-500"></span>
 <h2 class="font-display text-2xl font-semibold leading-tight text-blue-900 lg:text-3xl">I have found a mistake in the metadata for my project. How can I get it fixed?</h2>
           <p class="mt-3 text-sm leading-relaxed text-gray-800 lg:text-base">To talk to us about {{ config.get('TITLE', 'Data Catalogue') }} content, please drop us
             <a href="mailto:data-catalog@elixir-luxembourg.org" class="font-semibold text-blue-900 underline decoration-amber-500 decoration-2 underline-offset-4 hover:text-blue-950">an email</a>.

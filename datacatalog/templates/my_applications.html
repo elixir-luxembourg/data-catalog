@@ -14,15 +14,13 @@
 <div class="space-y-8 pb-10 lg:space-y-10 lg:pb-14">
 
   <header>
-    {{ macros.eyebrow("Your " ~ entity_name ~ " access") }}
-    <h1 class="mt-5 font-display text-4xl font-semibold tracking-tight text-blue-900 lg:text-6xl">
+    <h1 class="font-display text-4xl font-semibold tracking-tight text-blue-900 lg:text-6xl">
       My data access requests.
     </h1>
   </header>
 
   {% if not has_access and not has_requests %}
     <section class="relative border-t border-gray-200 pt-6 lg:pt-8">
-      <span aria-hidden="true" class="absolute left-0 top-0 h-px w-12 bg-amber-500"></span>
       <h2 class="font-display text-lg font-semibold tracking-tight text-blue-900">Nothing here yet</h2>
       <p class="mt-3 max-w-prose text-sm leading-relaxed text-gray-800 lg:text-base">
         You have not been granted access to any {{ entity_name }} and have no pending requests. Browse the
@@ -33,7 +31,6 @@
     </section>
   {% else %}
     <section class="relative">
-      <span aria-hidden="true" class="absolute left-0 top-0 h-px w-12 bg-amber-500"></span>
       <div class="flex items-baseline justify-between gap-3 border-t border-gray-200 pt-5 lg:pt-6">
         <h2 class="font-display text-xl font-semibold leading-tight tracking-tight text-blue-900 lg:text-2xl">Granted access</h2>
         {% if has_access %}
@@ -60,7 +57,6 @@
     </section>
 
     <section class="relative">
-      <span aria-hidden="true" class="absolute left-0 top-0 h-px w-12 bg-amber-500"></span>
       <div class="flex items-baseline justify-between gap-3 border-t border-gray-200 pt-5 lg:pt-6">
         <h2 class="font-display text-xl font-semibold leading-tight tracking-tight text-blue-900 lg:text-2xl">Pending and past requests</h2>
       </div>

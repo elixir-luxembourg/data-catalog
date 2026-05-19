@@ -14,8 +14,7 @@
 <div class="space-y-12 pb-12 lg:space-y-16 lg:pb-20">
 
   <section>
-    {{ macros.eyebrow("About the catalogue") }}
-    <h1 id="aboutHeader" class="mt-5 font-display text-4xl font-semibold tracking-tight text-blue-900 lg:text-6xl">
+    <h1 id="aboutHeader" class="font-display text-4xl font-semibold tracking-tight text-blue-900 lg:text-6xl">
       {{ config.get('TITLE', 'Data Catalogue') }}
     </h1>
     <p class="mt-6 max-w-2xl text-lg leading-snug text-blue-900 lg:text-xl">
@@ -34,14 +33,12 @@
   <div class="grid gap-px bg-blue-100 sm:grid-cols-2 lg:grid-cols-3">
     {% for title, body in sections %}
     <article class="relative bg-white p-6 lg:p-8">
-      <span aria-hidden="true" class="absolute left-0 top-0 h-px w-12 bg-amber-500"></span>
       <h2 class="font-display text-2xl font-semibold leading-tight text-blue-900 lg:text-3xl">{{ title }}</h2>
       <p class="mt-4 text-sm leading-relaxed text-gray-800 lg:text-base">{{ body }}</p>
     </article>
     {% endfor %}
 
     <article class="relative flex flex-col justify-between bg-blue-900 p-6 text-white lg:p-8">
-      <span aria-hidden="true" class="absolute left-0 top-0 h-px w-12 bg-amber-500"></span>
       <div>
         <h2 class="font-display text-2xl font-semibold leading-tight lg:text-3xl">Citation &amp; acknowledgement</h2>
         <p class="mt-4 text-sm leading-relaxed text-white/85 lg:text-base">

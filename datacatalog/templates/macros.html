@@ -258,8 +258,7 @@
         {% if field.type in ('HiddenField', 'CSRFTokenField') %}
             {{ field() }}
         {% elif field.type == 'SeparatorText' %}
-            <div class="relative mt-10 mb-4 first:mt-2">
-                <span aria-hidden="true" class="absolute left-0 top-0 h-px w-12 bg-amber-500"></span>
+            <div class="mt-10 mb-4 first:mt-2">
                 <h3 class="border-t border-gray-200 pt-5 font-display text-xl font-semibold text-blue-900 lg:text-2xl [&_a]:underline [&_a]:underline-offset-2 [&_a]:decoration-amber-500 [&_a]:decoration-2 [&_a]:hover:text-blue-800">{{ field.label.text | safe }}</h3>
             </div>
         {% elif field.type == 'SubmitField' %}
@@ -316,8 +315,7 @@
                 <p class="text-blue-900 [&_a]:underline [&_a]:underline-offset-2 [&_a]:decoration-amber-500 [&_a]:decoration-2 [&_a]:hover:text-blue-800">{{ field.label.text | safe | urlize }}</p>
             </div>
         {% elif field.render_kw and 'header' in field.render_kw %}
-            <div class="relative mt-10 mb-4 first:mt-2">
-                <span aria-hidden="true" class="absolute left-0 top-0 h-px w-12 bg-amber-500"></span>
+            <div class="mt-10 mb-4 first:mt-2">
                 <h2 class="border-t border-gray-200 pt-5 font-display text-2xl font-semibold text-blue-900 lg:text-3xl [&_a]:underline [&_a]:underline-offset-2 [&_a]:decoration-amber-500 [&_a]:decoration-2 [&_a]:hover:text-blue-800">{{ field.label.text | safe }}</h2>
             </div>
         {% elif field.type == 'FieldList' %}
@@ -362,8 +360,7 @@
 
 
 {% macro start_panel(label, id, expanded=True, buttons=None, listType='dl') %}
-    <details id="{{ id }}-fields" class="group relative scroll-mt-8 py-5 lg:py-6" {% if expanded %}open{% endif %}>
-        <span aria-hidden="true" class="pointer-events-none absolute left-0 top-5 h-px w-12 bg-amber-500 lg:top-6"></span>
+    <details id="{{ id }}-fields" class="group scroll-mt-8 py-5 lg:py-6" {% if expanded %}open{% endif %}>
         <summary id="{{ id }}-heading" class="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
             <h2 class="font-display text-xl font-semibold leading-tight tracking-tight text-blue-900 lg:text-2xl">{{ label }}</h2>
             <span class="flex shrink-0 items-center gap-2">
@@ -467,13 +464,6 @@
         </dd>
     </div>
     {% endif -%}
-{% endmacro %}
-
-{% macro eyebrow(label) %}
-    <p class="flex items-center gap-3 font-display text-sm font-semibold text-blue-900">
-        <span aria-hidden="true" class="inline-block h-px w-10 bg-amber-500"></span>
-        <span>{{ label }}</span>
-    </p>
 {% endmacro %}
 
 {% macro btn_primary(href, label, icon=None, full_width=False, title=None) %}

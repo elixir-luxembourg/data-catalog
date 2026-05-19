@@ -28,7 +28,7 @@
 
 {% macro facet_group(facet) %}
     <div>
-        <div class="relative mb-4 flex h-9 items-end border-b border-gray-200 pb-2 after:absolute after:-bottom-px after:left-0 after:h-px after:w-10 after:bg-amber-500 after:content-['']">
+        <div class="mb-4 flex h-9 items-end border-b border-gray-200 pb-2">
             <h3 class="text-xs font-medium leading-none text-gray-600">
                 {{ facet.label }}
             </h3>
@@ -110,7 +110,7 @@
         <aside class="order-2 lg:order-none lg:col-start-1 lg:row-span-2 lg:row-start-1">
             {% if facets %}
                 <details class="group lg:hidden">
-                    <summary class="relative flex cursor-pointer items-center justify-between border-b border-gray-200 pb-2 font-display text-base font-semibold text-blue-900 after:absolute after:-bottom-px after:left-0 after:h-px after:w-10 after:bg-amber-500 after:content-['']">
+                    <summary class="flex cursor-pointer items-center justify-between border-b border-gray-200 pb-2 font-display text-base font-semibold text-blue-900">
                         Filters
                         <i data-lucide="chevron-down" class="h-4 w-4 transition-transform group-open:rotate-180" aria-hidden="true"></i>
                     </summary>
@@ -125,8 +125,7 @@
         </aside>
 
         <div class="order-1 lg:order-none lg:col-start-2 lg:row-start-1">
-            {{ macros.eyebrow("Search") }}
-            <div class="relative mb-4 mt-5 flex items-end border-b border-gray-200 pb-2 after:absolute after:-bottom-px after:left-0 after:h-px after:w-10 after:bg-amber-500 after:content-['']">
+            <div class="mb-4 flex items-end border-b border-gray-200 pb-2">
                 <h1 id="title-home" class="font-display text-3xl font-semibold leading-none tracking-tight text-blue-900 lg:text-4xl">
                     Search {{ entity_plural_name }}
                 </h1>

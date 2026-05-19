@@ -14,7 +14,7 @@
 
 {% block search_results %}
     {% for project in entities %}
-        <article class="relative py-5 before:absolute before:-top-px before:left-0 before:h-px before:w-10 before:bg-amber-500 before:content-['']">
+        <article class="py-5">
             <div class="flex items-start justify-between gap-3">
                 <h2 class="text-lg font-semibold leading-snug text-blue-900 lg:text-xl">
                     <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=project.id) }}"
