@@ -22,6 +22,7 @@ datacatalog.authentication.ldap_authentication
 Contains an implementation of class UserPasswordAuthentication for LDAP authentication
 
 """
+
 import logging
 from typing import Tuple, List, Optional
 

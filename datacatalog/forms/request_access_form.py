@@ -20,11 +20,12 @@ datacatalog.forms.request_access_form
 Form to request access to an entity
 
 """
+
 import logging
 
 from flask_wtf import FlaskForm, RecaptchaField
 from wtforms import StringField, validators, TextAreaField, SubmitField
-from wtforms.fields.html5 import EmailField
+from wtforms.fields import EmailField
 
 logger = logging.getLogger(__name__)
 

@@ -21,6 +21,7 @@ DataCatalog root package
 Loads configuration and creates the Flask application
 
 """
+
 import logging
 import os
 import json

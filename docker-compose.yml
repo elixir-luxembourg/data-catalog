@@ -6,6 +6,7 @@ services:
         container_name: datacatalog_web_dev
         volumes:
             - .:/code
+            - /code/.venv
             - static_files:/code/datacatalog/static/
         expose:
             - '${WEB_INTERNAL_PORT:-5000}'
@@ -45,6 +46,7 @@ services:
         container_name: datacatalog_celery_dev
         volumes:
             - .:/code
+            - /code/.venv
         command: celery -A celery_worker:celery_app worker --loglevel=info
         entrypoint: ""
         environment:

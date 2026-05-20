@@ -24,6 +24,7 @@ Module containing the EntitiesIndexExtender class
 
 
 """
+
 import logging
 
 from .. import app

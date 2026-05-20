@@ -21,6 +21,7 @@
 Module to configure DataCatalog exceptions
 
 """
+
 __author__ = "Valentin Grouès"
 
 

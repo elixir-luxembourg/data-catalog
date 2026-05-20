@@ -157,13 +157,13 @@ class TestPyOIDCviews(BaseTest):
         session["state"] = "testsessionkey"
         self.AUTH_RESPONSE["state"] = session.get("state")
         current_app.config["authentication"].get_token = MagicMock()
-        current_app.config["authentication"].get_token.return_value = (
-            self.TOKEN_RESPONSE
-        )
+        current_app.config[
+            "authentication"
+        ].get_token.return_value = self.TOKEN_RESPONSE
 
-        current_app.config["authentication"].oidc_client.do_user_info_request = (
-            MagicMock()
-        )
+        current_app.config[
+            "authentication"
+        ].oidc_client.do_user_info_request = MagicMock()
         current_app.config[
             "authentication"
         ].oidc_client.do_user_info_request.return_value = self.USERINFO_RESPONSE

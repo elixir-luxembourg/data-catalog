@@ -23,6 +23,7 @@ Module containing the EntitiesConnector abstract class
 
 
 """
+
 import datetime
 import logging
 import re

@@ -23,6 +23,7 @@ Module containing the Pagination utility class.
 It is used to handle pagination in jinja templates.
 
 """
+
 import logging
 from math import ceil
 from typing import Optional, Generator

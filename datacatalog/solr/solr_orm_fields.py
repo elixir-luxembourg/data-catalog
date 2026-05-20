@@ -20,6 +20,7 @@
 Module containing the SolrField class and subclasses for different fields type
 
 """
+
 import logging
 from typing import Optional
 

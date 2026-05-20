@@ -22,6 +22,7 @@ Module containing the Dataset entity
 
 
 """
+
 import logging
 from collections import defaultdict
 from dataclasses import dataclass, field, InitVar
@@ -67,7 +68,7 @@ class Dataset(SolrEntity, EntityWithSlugs):
     """
 
     # specifies the list of compatibles connectors
-    COMPATIBLE_CONNECTORS = ["Ckan", "Limesurvey", "Geo", "Json", "Dats", "Daisy"]
+    COMPATIBLE_CONNECTORS = ["Limesurvey", "Geo", "Json", "Dats", "Daisy"]
 
     id = SolrField("id")
     title = SolrField("title")

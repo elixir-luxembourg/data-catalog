@@ -25,12 +25,13 @@ Module containing the following classes:
   - SolrQuery: base class to query solr
 
 """
+
 import base64
 import json
 import logging
 import re
 
-from datetime import datetime
+from datetime import date, datetime, timezone
 from typing import Type, Dict, List, Tuple, Optional, Union, Iterable
 
 import pysolr
@@ -510,6 +511,20 @@ class SolrAutomaticQuery(SolrQuery):
             self.__class__.DEFAULT_SORT = default_sort or "title"
 
 
+def _encode_solr_json_value(value):
+    """Serialize date/datetime to Solr ``pdate`` (UTC, ``Z``-suffixed)."""
+    if isinstance(value, datetime):
+        if value.utcoffset() is not None:
+            value = value.astimezone(timezone.utc).replace(tzinfo=None)
+        return value.isoformat(timespec="milliseconds") + "Z"
+    if isinstance(value, date):
+        return f"{value.isoformat()}T00:00:00Z"
+    raise TypeError(f"{type(value).__name__} is not JSON serializable")
+
+
+_SOLR_JSON_ENCODER = json.JSONEncoder(default=_encode_solr_json_value)
+
+
 class SolrORM(object):
     """
     Class abstracting access to solr api to create, update and delete solr fields
@@ -526,7 +541,7 @@ class SolrORM(object):
         """
         self.url = url
         self.collection = collection
-        self.indexer = Solr("{}/{}".format(url, collection))
+        self.indexer = Solr("{}/{}".format(url, collection), encoder=_SOLR_JSON_ENCODER)
         self.indexer_schema = SolrSchemaAdmin(
             "{}/{}/schema".format(self.url, collection)
         )

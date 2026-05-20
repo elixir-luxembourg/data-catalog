@@ -10,7 +10,7 @@ from flask import render_template
 from PIL import Image
 from pypdf import PdfReader, PdfWriter
 from weasyprint import HTML
-from weasyprint.fonts import FontConfiguration
+from weasyprint.text.fonts import FontConfiguration
 
 logger = logging.getLogger(__name__)
 

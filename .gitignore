@@ -104,6 +104,8 @@ nosetests.xml
 coverage.xml
 *,cover
 .hypothesis/
+.mypy_cache/
+.ruff_cache/
 
 # Unit test / generated data
 tests/data/datasets_new.json
@@ -133,9 +135,6 @@ target/
 
 # IPython Notebook
 .ipynb_checkpoints
-
-# pyenv
-.python-version
 
 # celery beat schedule file
 celerybeat-schedule

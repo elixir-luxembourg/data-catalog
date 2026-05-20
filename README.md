@@ -41,6 +41,7 @@ Local installation of development environment and procedure for docker version a
 ### Requirements
 
 Python ≥ 3.10
+[uv](https://docs.astral.sh/uv/) ≥ 0.8
 Solr ≥ 8.2  
 npm ≥ 7.5.6
 
@@ -64,7 +65,7 @@ sudo systemctl enable --now redis
 1. Install python requirements with:
 
     ```
-    python -m pip install .
+    uv sync
     ```
 
 1. The less compiler needs to be installed to generate the css files.
@@ -100,53 +101,53 @@ sudo systemctl enable --now redis
 1. Back to the application folder, build the assets:
 
     ```
-    flask assets build
+    uv run flask assets build
     ```
 
 1. Initialize the solr schema:
 
     ```
-    flask indexer init
+    uv run flask indexer init
     ```
 1. Index the provided studies, projects and datasets.
 For local development, change `JSON_FILE_PATH` from `'data/imi_projects'`to `'tests/data/imi_projects_test'` or use data from [dats-elixir-files](https://gitlab.lcsb.uni.lu/core-services/datacatalog/dats-elixir-files).
 
      ```
-     flask import entities Dats study
-     flask import entities Dats project
-     flask import entities Dats dataset
+     uv run flask import entities Dats study
+     uv run flask import entities Dats project
+     uv run flask import entities Dats dataset
      ```
 1. [Optional] Automatically generate sitemap while indexing the datasets:
 
    ```
-   flask import entities Dats study --sitemap
-   flask import entities Dats project --sitemap
-   flask import entities Dats dataset --sitemap
+   uv run flask import entities Dats study --sitemap
+   uv run flask import entities Dats project --sitemap
+   uv run flask import entities Dats dataset --sitemap
    ```
 1. Generate Sitemap:
 
      ```
-     flask generate_sitemaps
+     uv run flask generate_sitemaps
      ```
 1. [Optional] Extend Index for studies, projects and datasets:
 
       ```
-      flask indexer extend project
-      flask indexer extend study
-      flask indexer extend dataset
+      uv run flask indexer extend project
+      uv run flask indexer extend study
+      uv run flask indexer extend dataset
       ```
 1. [Optional] Drop connector entities - removes connector entities from solr:
 
       ```
-      flask indexer drop_connector_entities Daisy dataset
+      uv run flask indexer drop_connector_entities Daisy dataset
       ```
 
-1. [Optional] Customize the [About](./datacatalog/templates/about.html) and [Help](./datacatalog/templates/help.html) pages to relect your services.
+1. [Optional] Customize the [About](./datacatalog/templates/about.html) and [Help](./datacatalog/templates/help.html) pages to reflect your services.
 
 1. Run the development server:
 
      ```
-     flask run
+     uv run flask run
      ```
 
 The application should now be available under http://localhost:5000
@@ -156,7 +157,7 @@ The application should now be available under http://localhost:5000
 To run the unit tests:
 
 ```
-pytest --cov .
+uv run pytest
 ```
 
 Note that a different core is used for tests and will have to be created. By default, it should be called
@@ -189,19 +190,19 @@ Start the Celery worker in a separate terminal:
 
 ```bash
 # Development
-USE_CELERY=true celery -A celery_worker:celery_app worker --loglevel=info
+USE_CELERY=true uv run celery -A celery_worker:celery_app worker --loglevel=info
 
 # With periodic task scheduler (beat)
-USE_CELERY=true celery -A celery_worker:celery_app worker --beat --loglevel=info
+USE_CELERY=true uv run celery -A celery_worker:celery_app worker --beat --loglevel=info
 
 # Production (with concurrency)
-USE_CELERY=true celery -A celery_worker:celery_app worker --loglevel=warning --concurrency=4
+USE_CELERY=true uv run celery -A celery_worker:celery_app worker --loglevel=warning --concurrency=4
 ```
 
 For local (non-Docker) async execution, start the web app with the same flag:
 
 ```bash
-USE_CELERY=true flask run
+USE_CELERY=true uv run flask run
 ```
 
 ### Configuration
@@ -342,9 +343,22 @@ runnning). Then, simply use:
 
 ## Development
 
-Install needed dependencies with:
+Install all dependencies (runtime + dev + testing) with:
 
-`pip install .[testing]`
+```
+uv sync --all-groups
+```
 
-Configure pre-commit hook for black and flake8:  
-see https://dev.to/m1yag1/how-to-setup-your-project-with-pre-commit-black-and-flake8-183k
+Linting and formatting use [ruff](https://docs.astral.sh/ruff/); type checking uses [ty](https://docs.astral.sh/ty/).
+
+```
+uv run ruff check .
+uv run ruff format .
+uv run ty check
+```
+
+Install the pre-commit hooks (ruff, ty, eslint):
+
+```
+uvx pre-commit install
+```

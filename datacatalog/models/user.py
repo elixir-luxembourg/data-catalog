@@ -21,6 +21,7 @@ Module containing the User class used for authentication
 
 
 """
+
 import logging
 
 from flask import session

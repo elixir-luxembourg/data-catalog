@@ -3,62 +3,6 @@ import os
 class Config(object):
     SECRET_KEY = 'fdsaf87s@#$d98g7fsd89g7w89e$#@%#@$7f9s8dv7sd9frw%R#@$%98e7fwefds7897ws98wf7ew8'
     TITLE = 'Data Catalogue'
-    CKAN_URL = '###########'
-
-    CKAN_DIRECT_MAPPING = {
-	"Affiliation": "affiliation",
-	"Therapeutic Area Standards  Disease Area  if applicable": "therapeutic_area_standards_disease",
-	"Organism": "organism",
-	"PubMed": "pubmed_link",
-	"Type of Samples": "samples_type",
-	"Number of Samples": "samples_number",
-	"Disease": "disease",
-	"Contact Address": "business_address",
-	"Platform": "platform",
-	"Indication": "indication",
-	"Type of Data": "data_type",
-	"Description of Cohorts  if multi cohorts": "cohorts_description",
-	'Dataset Title': "title",
-	'Email': "contact_email",
-	'Study Type': "study_type",
-	'Funding': "funding",
-	'Version': "version",
-	'Primary Purpose': "primary_purpose",
-	'Secondary Analysis': "secondary_analysis",
-	'Informed Consent': "informed_consent",
-	'Standardized Treatment Name': "treatment_name_standardized",
-	'Study Classification': "study_classification",
-	'First Name': "contact_first_name",
-	'Multi center Study': "multi_center_study",
-	'Type of Samples Collected': "samples_type",
-	"Name of Treatment": "treatment_name",
-	"Dose Description": "dose_description",
-	"Study Phase": "study_phase",
-	"Business Phone Number": "business_phone_number",
-	"Study Protocol Description": "study_protocol_description",
-	"BMI Range": "bmi_range",
-	"Project Website": "project_website",
-	"Last Name": "contact_last_name",
-	"Intervention Model": "intervention_model",
-	"Business Address": "business_address",
-	"Detail Subject Composition": "subjects_composition_details",
-	"Data Standards Implemented": "data_standards",
-	"Body System or Organ Class": "body_system_or_organ_class",
-	"Age Unit  of the above range": "age_unit",
-	"Total Number of  Human  Subjects": "total_number_subjects",
-	"Number of Samples Collected": "samples_number",
-	"Age Range  Upper Llimit  of Study Participants": "age_range_upper_limit",
-	"Age Range  Low Limit  of Study Participants": "age_range_lower_limit",
-	"Number of Subjects in Each Cohorts  if multi cohorts": "subjects_number_per_cohort",
-	"Reference Publications": "reference_publications",
-	"Total Number of Subjects": "total_number_subjects",
-	"Category": "category",
-	"Planned Arm  Description of Sub cohorts": "planned_arm",
-	"Date of Creation of the dataset": "dataset_created",
-	"Date of the Last Update of the dataset": "dataset_modified"
-
-    }
-    CKAN_TO_SKIP = ["Email Address", "Project Name"]
     RESULTS_PER_PAGE = 8
     SURVEY_LINK = "/limesurvey/?r=survey/index&sid=779596"
     # Flask-Mail Configuration
