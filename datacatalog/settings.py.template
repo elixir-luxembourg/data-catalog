@@ -22,7 +22,7 @@ dirname = os.path.dirname(__file__)
 class Config(object):
     BASE_URL = os.environ.get("BASE_URL", "")
     SECRET_KEY = os.environ.get("APP_SECRET", b"")
-    TITLE = "Data Catalog"
+    TITLE = "Data Catalogue"
     ENTITIES = {
         "dataset": "datacatalog.models.dataset.Dataset",
         "project": "datacatalog.models.project.Project",
@@ -94,6 +94,7 @@ class Config(object):
     SOLR_ENDPOINT = os.environ.get("SOLR_ENDPOINT", "http://localhost:8983/solr")
     # SOLR CORE
     SOLR_COLLECTION = "datacatalog"
+    USE_CURSOR_PAGINATION = False
     # FOR ENTITIES IMPORT FROM JSON FILES
     JSON_FILE_PATH = {
         "dataset": "data/imi_projects",
@@ -261,6 +262,20 @@ class Config(object):
     CONTACT_ACCESS_BODY = ""  # the body of the email to send if no storages are defined
 
     HOSTED_STRING = "hosted"
+    USE_CELERY = os.environ.get("USE_CELERY", "false").lower() == "true"
+
+    CELERY = {
+        "broker_url": os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379/0"),
+        "result_backend": os.environ.get(
+            "CELERY_RESULT_BACKEND", "redis://localhost:6379/0"
+        ),
+        "task_ignore_result": True,
+        "task_track_started": True,
+        "task_serializer": "json",
+        "accept_content": ["json"],
+        "task_time_limit": 300,
+        "task_soft_time_limit": 240,
+    }
 
 
 class DockerConfig(Config):
@@ -274,6 +289,11 @@ class DockerConfig(Config):
     SERVER_NAME = os.environ.get("SERVER_NAME")
     PREFERRED_URL_SCHEME = os.environ.get("PREFERRED_URL_SCHEME", "http")
     PLUGIN = os.environ.get("PLUGIN")
+    CELERY = {
+        **Config.CELERY,
+        "broker_url": os.environ.get("CELERY_BROKER_URL", "redis://redis:6379/0"),
+        "result_backend": os.environ.get("CELERY_RESULT_BACKEND", "redis://redis:6379/0"),
+    }
 
 
 class ProdConfig(Config):
@@ -314,4 +334,10 @@ class TestConfig(Config):
         "dataset": "tests/data/imi_projects_test",
         "project": "tests/data/imi_projects_test",
         "study": "tests/data/imi_projects_test",
+    }
+    USE_CELERY = True
+
+    CELERY = {
+        "task_always_eager": True,
+        "task_eager_propagates": True,
     }

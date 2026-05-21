@@ -25,6 +25,7 @@ The code is available under **AGPL-3.0 license**.
     * [Requirements](#requirements)
     * [Procedure](#procedure)
     * [Testing](#testing)
+* [Background Tasks (Celery)](#background-tasks-celery)
 * [Docker-compose build](#docker-compose-build)
     * [Requirements](#requirements-for-docker-compose-build)
     * [Building](#building)
@@ -40,6 +41,7 @@ Local installation of development environment and procedure for docker version a
 ### Requirements
 
 Python ≥ 3.10
+[uv](https://docs.astral.sh/uv/) ≥ 0.8
 Solr ≥ 8.2  
 npm ≥ 7.5.6
 
@@ -49,12 +51,21 @@ npm ≥ 7.5.6
 sudo apt-get install libsasl2-dev libldap2-dev libssl-dev
 ```
 
+##### Background Tasks Rocky Linux 8
+
+```bash
+sudo dnf install pango cairo gdk-pixbuf2 libffi-devel
+sudo dnf install libreoffice-writer
+sudo dnf install redis
+sudo systemctl enable --now redis
+```
+
 ### Procedure
 
 1. Install python requirements with:
 
     ```
-    python -m pip install .
+    uv sync
     ```
 
 1. The less compiler needs to be installed to generate the css files.
@@ -90,53 +101,53 @@ sudo apt-get install libsasl2-dev libldap2-dev libssl-dev
 1. Back to the application folder, build the assets:
 
     ```
-    flask assets build
+    uv run flask assets build
     ```
 
 1. Initialize the solr schema:
 
     ```
-    flask indexer init
+    uv run flask indexer init
     ```
 1. Index the provided studies, projects and datasets.
 For local development, change `JSON_FILE_PATH` from `'data/imi_projects'`to `'tests/data/imi_projects_test'` or use data from [dats-elixir-files](https://gitlab.lcsb.uni.lu/core-services/datacatalog/dats-elixir-files).
 
      ```
-     flask import entities Dats study
-     flask import entities Dats project
-     flask import entities Dats dataset
+     uv run flask import entities Dats study
+     uv run flask import entities Dats project
+     uv run flask import entities Dats dataset
      ```
 1. [Optional] Automatically generate sitemap while indexing the datasets:
 
    ```
-   flask import entities Dats study --sitemap
-   flask import entities Dats project --sitemap
-   flask import entities Dats dataset --sitemap
+   uv run flask import entities Dats study --sitemap
+   uv run flask import entities Dats project --sitemap
+   uv run flask import entities Dats dataset --sitemap
    ```
 1. Generate Sitemap:
 
      ```
-     flask generate_sitemaps
+     uv run flask generate_sitemaps
      ```
 1. [Optional] Extend Index for studies, projects and datasets:
 
       ```
-      flask indexer extend project
-      flask indexer extend study
-      flask indexer extend dataset
+      uv run flask indexer extend project
+      uv run flask indexer extend study
+      uv run flask indexer extend dataset
       ```
 1. [Optional] Drop connector entities - removes connector entities from solr:
 
       ```
-      flask indexer drop_connector_entities Daisy dataset
+      uv run flask indexer drop_connector_entities Daisy dataset
       ```
 
-1. [Optional] Customize the [About](./datacatalog/templates/about.html) and [Help](./datacatalog/templates/help.html) pages to relect your services.
+1. [Optional] Customize the [About](./datacatalog/templates/about.html) and [Help](./datacatalog/templates/help.html) pages to reflect your services.
 
 1. Run the development server:
 
      ```
-     flask run
+     uv run flask run
      ```
 
 The application should now be available under http://localhost:5000
@@ -146,11 +157,67 @@ The application should now be available under http://localhost:5000
 To run the unit tests:
 
 ```
-pytest --cov .
+uv run pytest
 ```
 
 Note that a different core is used for tests and will have to be created. By default, it should be called
 datacatalog_test.
+
+## Background Tasks (Celery)
+
+The application uses Celery with Redis for background task processing.
+
+### Requirements
+
+Redis must be running:
+
+```bash
+sudo dnf install pango cairo gdk-pixbuf2 libffi-devel
+sudo dnf install libreoffice-writer
+sudo dnf install redis
+sudo systemctl enable --now redis
+
+# Linux
+sudo systemctl start redis
+
+# Docker
+docker run -d -p 6379:6379 redis
+```
+
+### Running the Worker
+
+Start the Celery worker in a separate terminal:
+
+```bash
+# Development
+USE_CELERY=true uv run celery -A celery_worker:celery_app worker --loglevel=info
+
+# With periodic task scheduler (beat)
+USE_CELERY=true uv run celery -A celery_worker:celery_app worker --beat --loglevel=info
+
+# Production (with concurrency)
+USE_CELERY=true uv run celery -A celery_worker:celery_app worker --loglevel=warning --concurrency=4
+```
+
+For local (non-Docker) async execution, start the web app with the same flag:
+
+```bash
+USE_CELERY=true uv run flask run
+```
+
+### Configuration
+
+Celery is configured via the `CELERY` dict in `settings.py`. Key settings:
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `broker_url` | `redis://localhost:6379/0` | Message broker URL |
+| `result_backend` | `redis://localhost:6379/0` | Task result storage |
+| `task_time_limit` | `300` | Hard time limit (seconds) |
+| `task_soft_time_limit` | `240` | Soft time limit (seconds) |
+
+Environment variables `CELERY_BROKER_URL` and `CELERY_RESULT_BACKEND` can override defaults.
+Set `USE_CELERY=true` to enable asynchronous task dispatch; when false, tasks run synchronously.
 
 ## Docker-compose build
 
@@ -178,7 +245,7 @@ Docker and git must be installed.
    ```
    in python to generate this key.
 
-   Then build and start the dockers containers by running:
+   Then build and start the docker containers by running:
 
    ```
    (local) $ docker-compose up --build
@@ -208,6 +275,15 @@ Docker and git must be installed.
    ```
 1. The web application should now be available with loaded data via http://localhost and https://localhost with ssl
    connection (beware that most browsers display a warning or block self-signed certificates)
+
+   Note: Redis and Celery worker are optional and enabled with the `celery` profile:
+   ```
+   (local) $ USE_CELERY=true docker-compose --profile celery up --build
+   ```
+   Check worker logs with:
+   ```
+   (local) $ docker-compose logs -f celery
+   ```
 
 ### Maintenance of docker-compose
 
@@ -267,9 +343,22 @@ runnning). Then, simply use:
 
 ## Development
 
-Install needed dependencies with:
+Install all dependencies (runtime + dev + testing) with:
 
-`pip install .[testing]`
+```
+uv sync --all-groups
+```
 
-Configure pre-commit hook for black and flake8:  
-see https://dev.to/m1yag1/how-to-setup-your-project-with-pre-commit-black-and-flake8-183k
+Linting and formatting use [ruff](https://docs.astral.sh/ruff/); type checking uses [ty](https://docs.astral.sh/ty/).
+
+```
+uv run ruff check .
+uv run ruff format .
+uv run ty check
+```
+
+Install the pre-commit hooks (ruff, ty, eslint):
+
+```
+uvx pre-commit install
+```

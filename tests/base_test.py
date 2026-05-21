@@ -16,8 +16,7 @@
 
 import os
 import re
-
-from flask_testing import TestCase
+import unittest
 
 from datacatalog import app, configure_solr_orm
 
@@ -33,23 +32,13 @@ def get_resource_path(filename):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), "data", filename)
 
 
-class BaseTest(TestCase):
+class BaseTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.configure_test_app()
-
-    @classmethod
-    def configure_test_app(cls):
         os.environ["DATACATALOG_ENV"] = "test"
         app.config.from_object("datacatalog.settings.TestConfig")
         configure_solr_orm(app)
+        cls.app = app
 
-    def create_app(self):
-        BaseTest.configure_test_app()
-        return app
-
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
+    def assert200(self, response, message=None):
+        self.assertEqual(response.status_code, 200, message)

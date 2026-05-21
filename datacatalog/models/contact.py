@@ -21,6 +21,7 @@ Module containing the Contact class used for storing entity contact details info
 
 
 """
+
 import logging
 
 logger = logging.getLogger(__name__)

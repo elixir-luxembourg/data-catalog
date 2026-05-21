@@ -23,6 +23,7 @@ Module containing the EntitiesImporter class
 
 
 """
+
 import logging
 from typing import List
 

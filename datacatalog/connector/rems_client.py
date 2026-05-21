@@ -213,6 +213,15 @@ class CreateResponse(BaseModel):
     id: Optional[int]
 
 
+class RemarkCommand(BaseModel):
+    """Command to add a remark to a REMS application."""
+
+    application_id: int = Field(..., alias="application-id")
+    comment: Optional[str] = None
+    attachments: Optional[List[Dict[str, int]]] = None
+    public: bool = False
+
+
 class RemsClient:
     """
     + POST api/users/create
@@ -536,6 +545,43 @@ class RemsClient:
                 )
                 response.raise_for_status()
                 return response.json()["id"]
+
+    def get_attachment(self, attachment_id: int) -> bytes:
+        """GET /api/applications/attachment/{attachment-id}"""
+        url = f"{self.base_url}/api/applications/attachment/{attachment_id}"
+        with requests.Session() as session:
+            response = session.get(
+                url, headers=self.auth_headers, verify=self.verify_ssl
+            )
+            response.raise_for_status()
+            return response.content
+
+    def add_remark(
+        self,
+        application_id: int,
+        comment: Optional[str] = None,
+        attachments: Optional[List[Dict[str, int]]] = None,
+        public: bool = False,
+    ) -> SuccessResponse:
+        """POST /api/applications/remark"""
+        url = f"{self.base_url}/api/applications/remark"
+        command = RemarkCommand(
+            **{
+                "application-id": application_id,
+                "comment": comment,
+                "attachments": attachments,
+                "public": public,
+            }
+        )
+        with requests.Session() as session:
+            response = session.post(
+                url,
+                headers=self.auth_headers_admin,
+                verify=self.verify_ssl,
+                json=command.model_dump(by_alias=True, exclude_unset=True),
+            )
+            response.raise_for_status()
+            return SuccessResponse.model_validate_json(response.text)
 
 
 """

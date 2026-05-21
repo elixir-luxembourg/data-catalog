@@ -20,13 +20,21 @@
 Module containing the SolrEntity class
 
 """
+
+import base64
 import json
 import logging
 import uuid
 from datetime import datetime
 from typing import Optional, Any
 
-from .solr_orm_fields import SolrDateTimeField, SolrField, SolrIntField, SolrJsonField
+from .solr_orm_fields import (
+    SolrDateTimeField,
+    SolrField,
+    SolrIntField,
+    SolrJsonField,
+    SolrBinaryField,
+)
 from .. import app
 from ..connector.file_storage_connectors.webdav_file_connector import (
     WebdavFileStorageConnector,
@@ -174,6 +182,12 @@ class SolrEntity:
                 key = entity_type + "_" + field.name
             else:
                 key = field.name
+            if (
+                isinstance(field, SolrBinaryField)
+                and attribute_value
+                and isinstance(attribute_value, bytes)
+            ):
+                attribute_value = base64.b64encode(attribute_value).decode("ascii")
             if isinstance(field, SolrJsonField):
                 if field.model:
                     if attribute_value is not None:
@@ -221,14 +235,19 @@ class SolrEntity:
                     solr_value = datetime.strptime(solr_value, DATETIME_FORMAT_NO_MICRO)
             if solr_value is not None and isinstance(field, SolrIntField):
                 solr_value = int(solr_value)
+            if solr_value is not None and isinstance(field, SolrBinaryField):
+                solr_value = base64.b16decode(solr_value)
             setattr(new_instance, attribute_name, solr_value)
         if "id" in entity_json:
             new_instance.id = entity_json.get("id")
         return new_instance
 
-    def attachment_url(self) -> str:
+    def attachment_url(self) -> str | None:
+        storage_root = app.config.get("PUBLIC_FILE_STORAGE_ROOT")
+        if not storage_root:
+            return None
         entity_name = self.__class__.__name__.lower()
-        return app.config["PUBLIC_FILE_STORAGE_ROOT"] + f"/{entity_name}/{self.id}"
+        return f"{storage_root}/{entity_name}/{self.id}"
 
     def attachment_exists(self) -> bool:
         """
@@ -237,20 +256,23 @@ class SolrEntity:
         Returns:
             bool: True if attachments were found, else False
         """
-        connector = WebdavFileStorageConnector()
         attachments_folder = self.attachment_url()
+        if attachments_folder is None:
+            return False
+        connector = WebdavFileStorageConnector()
         return connector.folder_exists(attachments_folder)
 
-    def list_attached_files(self) -> str:
+    def list_attached_files(self) -> list:
         """
         This method search for the files attached to this entity in the file storage.
 
         Returns:
             list: A list built by parse_webdav_response if the requests was answered successfully. [] if not
         """
-        connector = WebdavFileStorageConnector()
         attachments_folder = self.attachment_url()
-
+        if attachments_folder is None:
+            return []
+        connector = WebdavFileStorageConnector()
         return connector.list_files(attachments_folder)
 
     def set_computed_values(self):

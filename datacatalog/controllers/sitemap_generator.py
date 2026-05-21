@@ -20,6 +20,7 @@ datacatalog.sitemap_generator
 
 Generate Sitemap
 """
+
 import logging
 import os
 from typing import Type

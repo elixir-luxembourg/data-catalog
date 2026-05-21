@@ -25,10 +25,13 @@ Module containing the following classes:
   - SolrQuery: base class to query solr
 
 """
+
+import base64
 import json
 import logging
+import re
 
-from datetime import datetime
+from datetime import date, datetime, timezone
 from typing import Type, Dict, List, Tuple, Optional, Union, Iterable
 
 import pysolr
@@ -40,7 +43,12 @@ from werkzeug.exceptions import abort
 
 from .facets import Facet, FacetRange
 from .solr_orm_entity import DATETIME_FORMAT, DATETIME_FORMAT_NO_MICRO, SolrEntity
-from .solr_orm_fields import SolrField, SolrForeignKeyField, SolrJsonField
+from .solr_orm_fields import (
+    SolrField,
+    SolrForeignKeyField,
+    SolrJsonField,
+    SolrBinaryField,
+)
 from .solr_orm_schema import SolrSchemaAdmin
 from .. import app
 from ..exceptions import SolrQueryException
@@ -82,6 +90,7 @@ class SolrQuery(object):
         self.class_object = class_object
         self.entity_name = class_object.__name__.lower()
         self.solr_orm = solr_orm
+        self.cursor_enabled = app.config.get("USE_CURSOR_PAGINATION", False)
 
     def query_has_solr_query_field(self, query: str) -> bool:
         """
@@ -145,6 +154,7 @@ class SolrQuery(object):
         edismax: bool = False,
         bq: str = None,
         sorts: List[str] = None,
+        cursor: str = None,
     ) -> pysolr.Results:
         """
         Execute a solr search
@@ -157,9 +167,10 @@ class SolrQuery(object):
         See https://lucene.apache.org/solr/guide/8_4/common-query-parameters.html#fq-filter-query-parameter
         @param facets: list of facets to retrieve
         @param fuzzy:boolean triggering fuzzy search to be active or not
+        @param cursor: cursor mark for deep pagination
         @return: a pysolr.Results instance containing the search results
         """
-        if sort_order or sort:
+        if sort_order or sort:  # string to sort using sort_order
             order = sort_order or "desc"
             if sort:
                 sort_with_order = sort + " " + order
@@ -167,10 +178,20 @@ class SolrQuery(object):
                 sort_with_order = "score " + order
         else:
             sort_with_order = ""
-        if sorts:
+        if sorts:  # list of fields to sort in order
             sort_with_order = ", ".join(
                 [self.format_field_name_with_order(sort) for sort in sorts]
             )
+
+        cursor_mark = None
+        if self.cursor_enabled:
+            cursor_mark = cursor or "*"
+            if sort_with_order:
+                if not re.search(r"\bid (asc|desc)", sort_with_order):
+                    sort_with_order += ", id asc"
+            else:
+                sort_with_order = "id asc"
+
         if fq is None:
             fq = []
         params = {
@@ -211,7 +232,9 @@ class SolrQuery(object):
                     fq.append(query)
         if rows:
             params["rows"] = rows
-        if start:
+        if self.cursor_enabled:
+            params["cursorMark"] = cursor_mark
+        elif start:
             params["start"] = start
 
         if facets:
@@ -263,6 +286,8 @@ class SolrQuery(object):
                 entity = self._build_instance(doc)
                 entities.append(entity)
             results.entities = entities
+            results.has_more = len(results.docs) >= rows
+
             # replace facets fields name to remove prefix
             facet_fields = results.facets.get("facet_fields")
             new_facets_fields = {}
@@ -383,6 +408,8 @@ class SolrQuery(object):
                         solr_value[count] = field.model.from_json(data)
                 else:
                     solr_value = json.loads(solr_value)
+            elif solr_value is not None and isinstance(field, SolrBinaryField):
+                solr_value = base64.b64decode(solr_value)
             setattr(new_instance, attribute_name, solr_value)
         doc_id = doc.get("id", None)
         # remove prefix from id (entity_name_)
@@ -484,6 +511,20 @@ class SolrAutomaticQuery(SolrQuery):
             self.__class__.DEFAULT_SORT = default_sort or "title"
 
 
+def _encode_solr_json_value(value):
+    """Serialize date/datetime to Solr ``pdate`` (UTC, ``Z``-suffixed)."""
+    if isinstance(value, datetime):
+        if value.utcoffset() is not None:
+            value = value.astimezone(timezone.utc).replace(tzinfo=None)
+        return value.isoformat(timespec="milliseconds") + "Z"
+    if isinstance(value, date):
+        return f"{value.isoformat()}T00:00:00Z"
+    raise TypeError(f"{type(value).__name__} is not JSON serializable")
+
+
+_SOLR_JSON_ENCODER = json.JSONEncoder(default=_encode_solr_json_value)
+
+
 class SolrORM(object):
     """
     Class abstracting access to solr api to create, update and delete solr fields
@@ -500,7 +541,7 @@ class SolrORM(object):
         """
         self.url = url
         self.collection = collection
-        self.indexer = Solr("{}/{}".format(url, collection))
+        self.indexer = Solr("{}/{}".format(url, collection), encoder=_SOLR_JSON_ENCODER)
         self.indexer_schema = SolrSchemaAdmin(
             "{}/{}/schema".format(self.url, collection)
         )
@@ -894,7 +935,8 @@ class SolrORM(object):
         @param soft_commit: if true, only a soft commit will be triggered
         @return: a string containing the response body from solr
         """
-        logger.debug("Solr commit")
+        logger.debug("Solr %scommit", "soft " if soft_commit else "")
+
         return self.indexer.commit(softCommit=soft_commit)
 
     def _delete_fields_for_class(self, entity_class):

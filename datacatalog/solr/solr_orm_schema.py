@@ -21,6 +21,7 @@
 Module containing the SolrSchemaAdmin class
 
 """
+
 import logging
 
 import requests

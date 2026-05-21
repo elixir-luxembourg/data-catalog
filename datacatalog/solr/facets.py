@@ -23,6 +23,7 @@ Module containing the facets class and related utility classes:
   - FacetRange
 
 """
+
 import logging
 
 import math

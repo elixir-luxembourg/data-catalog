@@ -25,6 +25,7 @@ HTML endpoints:
     - about
     - request_access
 """
+
 import json
 import logging
 import re
@@ -237,6 +238,7 @@ def default_search(
     page = search_request.args.get("page", "1").strip()
     sort_by = search_request.args.get("sort_by", searcher_default_sort)
     sort_order = search_request.args.get("order", searcher_default_sort_order)
+
     export_excel = "export_excel" in search_request.args and exporter
 
     results_per_page = results_per_page or app.config.get("RESULTS_PER_PAGE", 20)
@@ -275,6 +277,13 @@ def default_search(
                     facet.use_default()
     else:
         facets = {}
+
+    cursor_enabled = app.config.get("USE_CURSOR_PAGINATION", False)
+    cursor, prev_cursor = None, None
+    if cursor_enabled and not export_excel:
+        cursor = search_request.args.get("cursor", "*")
+        prev_cursor = search_request.args.get("prev_cursor")
+
     try:
         fq = None
         if extra_filter:
@@ -294,6 +303,7 @@ def default_search(
             facets=facets.values(),
             fuzzy=True,
             fq=fq,
+            cursor=cursor,
         )
     except (NotImplementedError, SolrQueryException) as e:
         logger.error(str(e), exc_info=e)
@@ -326,6 +336,9 @@ def default_search(
         sort_labels=sort_labels,
         selected_sort=sort_by,
         sort_order=sort_order,
+        cursor_enabled=cursor_enabled,
+        current_cursor=cursor if cursor_enabled else None,
+        prev_cursor=prev_cursor,
         facets=ordered_facets,
         fair_values=FAIR_VALUES,
         fair_values_show=FAIR_VALUES_SHOW,

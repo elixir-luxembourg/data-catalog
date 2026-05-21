@@ -20,6 +20,7 @@
 Module to configure Flask-Assets
 
 """
+
 from flask_assets import Bundle
 
 typeahead_js = "vendor/node_modules/typeahead.js/dist/typeahead.bundle.js"
@@ -33,7 +34,7 @@ common_css = Bundle(
     jqueryui_css,
     Bundle("css/layout.less", filters="less"),
     "css/typeahead.css",
-    filters="cssmin",
+    filters="rcssmin",
     output="public/css/common.min.css",
     debug=False,
 )
@@ -48,7 +49,7 @@ common_js = Bundle(
         handlebars_js,
         typeahead_js,
         "js/main.js",
-        filters="closure_js",
+        filters="rjsmin",
         debug=False,
     ),
     "js/react/bundle.js",

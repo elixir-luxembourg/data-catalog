@@ -91,6 +91,42 @@
 {% endmacro %}
 
 
+{% macro show_cursor_pagination(results, query, sort_order, selected_sort, facets=[], search_controller="entities_search", entity_name='dataset', current_cursor='*', prev_cursor=none) %}
+    <div class="row text-center cursor-pagination">
+        <ul class="pagination">
+            {% if not prev_cursor %}
+                <li class="disabled">
+                    <a href="javascript:void(0)" title="Previous page">
+                        &laquo; Previous
+                    </a>
+                </li>
+            {% else %}
+            <li>
+                <a href="{{ build_link(query, selected_sort, sort_order, facets, to_remove=none, search_controller=search_controller, entity_name=entity_name) }}&cursor={{ prev_cursor | urlencode }}&prev_cursor="
+                    title="Previous page">
+                    &laquo; Previous
+                </a>
+            </li>
+            {% endif %}
+            {% if not results.has_more %}
+                <li class="disabled">
+                    <a href="javascript:void(0)" title="Next page">
+                        Next &raquo;
+                    </a>
+                </li>
+            {% else %}
+            <li>
+                <a href="{{ build_link(query, selected_sort, sort_order, facets, to_remove=none, search_controller=search_controller, entity_name=entity_name) }}&cursor={{ results.nextCursorMark | urlencode }}&prev_cursor={{ current_cursor | urlencode }}"
+                    title="Next page">
+                    Next &raquo;
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+{% endmacro %}
+
+
 {%- macro build_link(query, sort_by, order, facets, to_add, to_remove, no_defaults, search_controller="search", entity_name='dataset') %}
 
     {{ url_for(search_controller, entity_name=entity_name, query=query, sort_by=sort_by, order=order) }}

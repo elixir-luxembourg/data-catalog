@@ -183,7 +183,23 @@
 
                 {% block search_results %}{% endblock %}
                 {% block pagination %}
-                    {{ macros.show_pagination(pagination, query, sort_order, selected_sort, facets, search_controller=search_controller, entity_name=entity_name) }}
+                    {% if cursor_enabled and results.nextCursorMark is defined %}
+                        {{ 
+                            macros.show_cursor_pagination(
+                                results,
+                                query,
+                                sort_order,
+                                selected_sort,
+                                facets, 
+                                search_controller=search_controller, 
+                                entity_name=entity_name,
+                                current_cursor=current_cursor,
+                                prev_cursor=prev_cursor
+                            )
+                        }}
+                    {% else %}
+                        {{ macros.show_pagination(pagination, query, sort_order, selected_sort, facets, search_controller=search_controller, entity_name=entity_name) }}
+                    {% endif %}
                 {% endblock %}
             </div>
 

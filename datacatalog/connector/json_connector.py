@@ -24,6 +24,7 @@ Module containing the JsonConnector class
 
 
 """
+
 import json
 import logging
 from math import isnan

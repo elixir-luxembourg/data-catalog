@@ -20,6 +20,7 @@ datacatalog.forms.login_form
 Login form
 
 """
+
 import logging
 
 from wtforms import StringField, PasswordField, BooleanField

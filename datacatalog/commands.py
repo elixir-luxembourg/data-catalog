@@ -28,6 +28,7 @@ Entry points for CLI operations:
    - import_entities: import entities into solr
 
 """
+
 import click
 from flask import Flask
 from flask.cli import AppGroup

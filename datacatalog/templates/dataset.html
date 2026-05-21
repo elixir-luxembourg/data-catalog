@@ -3,8 +3,8 @@
 {% extends 'layout.html' %}
 {% import 'macros.html' as macros %}
 {% block jsonld %}
-    {{ super() }}
-    <script type="application/ld+json">
+{{ super() }}
+<script type="application/ld+json">
     {
       "@context": "http://schema.org",
       "@id": "{{ request.url }}",
@@ -143,6 +143,11 @@
                         </div>
                     {% endif %}
                 {% endif %}
+
+        <button type="button" class="btn btn-default right_side_btn"
+                data-toggle="modal" data-target="#citationModal">
+            <i class="material-icons">format_quote</i> Cite
+        </button>
 
                 {% if config.get('ALLOW_ENTITY_EXPORT', False) %}
                     <div class="button-link input-group right_side_btn">
@@ -294,5 +299,43 @@
                 {{ macros.end_panel() }}
             {% endif %}
         </div>
+        {# Citation Modal #}
+        <div class="modal fade" id="citationModal" tabindex="-1" role="dialog" aria-labelledby="citationModalLabel">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <h4 class="modal-title" id="citationModalLabel">Cite this dataset</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p><small class="text-muted">
+                            APA citation format. Copy the citation below and paste it into your reference manager or document.
+                        </small></p>
+                        <blockquote id="citation-text">ELIXIR Luxembourg. ({{ dataset.dataset_created.year if dataset.dataset_created else '' }}). {{ dataset.title }} ({{ dataset.version }}) [Data set]. {{ url_for('entity_details', entity_name='dataset', entity_id=dataset.id, _external=True) }}</blockquote>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" id="copy-btn">
+                            <i class="material-icons">content_copy</i>
+                            <span>Copy to clipboard</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+{% endblock %}
+
+{% block js %}
+{{ super() }}
+<script>
+    document.getElementById('copy-btn').addEventListener('click', (e) => {
+        const label = e.currentTarget.querySelector('span');
+        navigator.clipboard.writeText(document.getElementById('citation-text').textContent);
+        label.textContent = 'Copied!';
+        setTimeout(() => label.textContent = 'Copy to clipboard', 2000);
+    });
+</script>
 {% endblock %}

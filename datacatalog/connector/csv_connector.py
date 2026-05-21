@@ -24,6 +24,7 @@ Module containing the CSVConnector class
 
 
 """
+
 import csv
 import logging
 from typing import Type, Generator

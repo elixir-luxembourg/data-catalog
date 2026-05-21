@@ -20,6 +20,7 @@
 Module containing the SolrField class and subclasses for different fields type
 
 """
+
 import logging
 from typing import Optional
 
@@ -138,6 +139,22 @@ class SolrFloatField(SolrField):
             super().__init__(
                 name, attribute_name, "pfloat", indexed, stored, multivalued
             )
+
+
+class SolrBinaryField(SolrField):
+    """
+    SolrField subclass setting solr type to binary
+    """
+
+    def __init__(
+        self,
+        name: str,
+        attribute_name: Optional[str] = None,
+        indexed: bool = False,
+        stored: bool = True,
+        multivalued: bool = False,
+    ) -> None:
+        super().__init__(name, attribute_name, "binary", indexed, stored, multivalued)
 
 
 class SolrIntField(SolrField):
