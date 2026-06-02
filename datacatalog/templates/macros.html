@@ -1,3 +1,5 @@
+{% macro urlize_link(value) %}<span class="[&_a]:text-blue-900 [&_a]:underline [&_a]:underline-offset-2 [&_a]:hover:text-blue-800">{{ value | urlize }}</span>{% endmacro %}
+
 {% macro show_flashes() %}
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -22,7 +24,10 @@
 {% endmacro %}
 
 
-{% macro split_labels(list, type="primary", facet_url=None) %}
+{% macro split_labels(list, type="primary", facet_url=None, empty=None) %}
+    {% if not list and empty %}
+        <span class="text-gray-400">{{ empty }}</span>
+    {% endif %}
     {% for value in list or [] %}
         {% if ":" in value and "://" not in value %}
             {{ split_value(value) }}
@@ -39,7 +44,7 @@
 {% endmacro %}
 
 {% macro split_values(list) %}
-    <span>{{ list | join(", ") | urlize }}</span>
+    {{ urlize_link(list | join(", ")) }}
 {% endmacro %}
 
 {% macro split_value(value, label_type="primary", span_type="static") %}
@@ -159,11 +164,11 @@
                     {% elif facet_url %}
                         <a href="{{ facet_url }}{{ value | lower if value is boolean() else value | urlencode }}" class="text-blue-900 underline underline-offset-2 hover:text-blue-800">{{ value }}</a>
                     {% else %}
-                        {{ value | urlize }}
+                        {{ urlize_link(value) }}
                     {% endif %}
                 {% endif %}
             {% else %}
-                <blockquote class="bg-gray-50 px-4 py-3 text-sm leading-relaxed text-blue-900 lg:text-base">{{ value | urlize }}</blockquote>
+                <blockquote class="bg-gray-50 px-4 py-3 text-sm leading-relaxed text-blue-900 lg:text-base [&_a]:text-blue-900 [&_a]:underline [&_a]:underline-offset-2 [&_a]:hover:text-blue-800">{{ value | urlize }}</blockquote>
             {% endif %}
         </dd>
     {% endif %}
@@ -420,7 +425,7 @@
         <td class="border border-gray-200 px-3 py-2 align-top {% if loop.first %}font-medium text-gray-700{% endif %}"
             {% if merge and loop.last %}colspan="2"{% endif %}>
         {% if links[loop.index0] %}
-            <a href="{{ links[loop.index0] }}" class="text-blue-900 underline hover:text-blue-700">{{ col }}</a>
+            <a href="{{ links[loop.index0] }}" class="text-blue-900 underline underline-offset-2 hover:text-blue-800">{{ col }}</a>
         {% elif col is none %}
             <span class="text-gray-400">-</span>
         {% else %}

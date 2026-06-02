@@ -176,12 +176,12 @@
                       <a href="{{ url_for('entity_details', entity_name='study', entity_id=study.id) }}"
                          class="font-semibold text-blue-900 hover:text-blue-800 hover:underline underline-offset-2">{{ study.title }}</a>
                     </td>
-                    <td class="px-3 py-2.5 text-gray-800">{{ study.primary_purpose }}</td>
+                    <td class="px-3 py-2.5 text-gray-800">{% if study.primary_purpose %}{{ study.primary_purpose }}{% else %}<span class="text-gray-400">—</span>{% endif %}</td>
                     <td class="px-3 py-2.5 text-gray-800">
-                      <span class="flex flex-wrap gap-1.5 whitespace-nowrap">{{ macros.split_labels(study.types) }}</span>
+                      <span class="flex flex-wrap gap-1.5 whitespace-nowrap">{{ macros.split_labels(study.types, empty="—") }}</span>
                     </td>
                     <td class="py-2.5 pl-3 text-gray-800">
-                      <span class="flex flex-wrap gap-1.5 whitespace-nowrap">{{ macros.split_labels(study.organisms) }}</span>
+                      <span class="flex flex-wrap gap-1.5 whitespace-nowrap">{{ macros.split_labels(study.organisms, empty="—") }}</span>
                     </td>
                   </tr>
                 {% endfor %}
@@ -226,7 +226,7 @@
                       <td class="px-3 py-2.5 text-gray-800">
                         {% if dataset.study_title != "-" %}
                           <a href="{{ url_for('entity_details', entity_name='study', entity_id=dataset.study_id) }}"
-                             class="text-blue-900 underline underline-offset-2 hover:text-blue-800">{{ dataset.study_title }}</a>
+                             class="font-semibold text-blue-900 hover:text-blue-800 hover:underline underline-offset-2">{{ dataset.study_title }}</a>
                         {% else %}
                           {{ dataset.study_title }}
                         {% endif %}
@@ -265,7 +265,7 @@
             {% for pub in project.reference_publications %}
               <li class="flex gap-4 py-3 text-sm leading-relaxed text-blue-900 first:pt-0 lg:text-base">
                 <span class="shrink-0 text-xs font-semibold tabular-nums text-gray-500" aria-hidden="true">{{ '%02d' | format(loop.index) }}</span>
-                <span class="min-w-0 break-words">{{ pub | urlize }}</span>
+                <span class="min-w-0 break-words">{{ macros.urlize_link(pub) }}</span>
               </li>
             {% endfor %}
           </ol>
