@@ -321,6 +321,10 @@
                     <p class="mt-1 text-xs leading-relaxed text-gray-500">{{ field.description | safe }}</p>
                 {% endif %}
             </div>
+        {% elif field.type == 'RecaptchaField' %}
+            <div class="mb-4">
+                {{ field() }}
+            </div>
         {% elif field.type == 'FileField' %}
             <div class="mb-4">
                 <label for="{{ field.id }}" class="mb-2 block text-sm font-medium text-blue-900 [&_a]:underline [&_a]:underline-offset-2 [&_a]:decoration-amber-500 [&_a]:decoration-2 [&_a]:hover:text-blue-800">
