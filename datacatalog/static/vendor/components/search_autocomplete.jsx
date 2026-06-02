@@ -21,8 +21,8 @@ import {Search} from "lucide-react";
 
 let domContainer = document.querySelector("#autocomplete_input");
 
-const itemBase = "block cursor-pointer px-3 py-2 text-sm text-gray-800 hover:bg-gray-100";
-const itemActive = "block cursor-pointer px-3 py-2 text-sm bg-blue-900 text-white";
+const itemBase = "block cursor-pointer truncate px-3 py-2 text-sm text-gray-800 hover:bg-gray-100";
+const itemActive = "block cursor-pointer truncate px-3 py-2 text-sm bg-blue-900 text-white";
 const headerClass = "px-3 pt-2 pb-1 text-xs font-semibold uppercase tracking-wide text-blue-900";
 
 class Autocomplete extends Component {
@@ -206,7 +206,7 @@ class Autocomplete extends Component {
                             const className = index === this.state.active ? itemActive : itemBase;
 
                             return (
-                                <div className={className} key={index} onClick={() => this.onItemClick(suggestion)}>
+                                <div className={className} key={index} title={suggestion} onClick={() => this.onItemClick(suggestion)}>
                                     {suggestion}
                                 </div>
                             );
@@ -226,6 +226,7 @@ class Autocomplete extends Component {
                                     <div className={className}
                                         key={suggestionsTerms.slice(0, totalTermsState).length + index}
                                         data-entity-id={suggestion.id}
+                                        title={suggestion.acronym ? `${suggestion.acronym} - ${suggestion.title}` : suggestion.title}
                                         onClick={() => this.onItemClick(suggestion)}>
                                         {suggestion.acronym ? `${suggestion.acronym} - ${suggestion.title}` : suggestion.title}
                                         <small className={isActive ? "ml-2 text-white/80" : "ml-2 text-gray-500"}>({suggestion.id})</small>
