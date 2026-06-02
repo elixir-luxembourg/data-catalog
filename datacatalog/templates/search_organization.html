@@ -7,14 +7,18 @@
 {% block description %}Organizations{% endblock %}
 
 {% block search_results %}
+    {% set start_rank = (pagination.page - 1) * pagination.per_page %}
     {% for organization in entities %}
         <article class="py-5">
-            <h2 class="text-lg font-semibold leading-snug text-blue-900 lg:text-xl">
-                <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=organization.id) }}"
-                   class="hover:text-blue-800 hover:underline underline-offset-2">
-                    {{ organization.title | truncate(80, True) }}
-                </a>
-            </h2>
+            <div class="flex items-baseline justify-between gap-x-4">
+                <h2 class="min-w-0 flex-1 text-lg font-semibold leading-snug text-blue-900 lg:text-xl">
+                    <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=organization.id) }}"
+                       class="line-clamp-2 hover:text-blue-800 hover:underline underline-offset-2">
+                        {{ organization.title }}
+                    </a>
+                </h2>
+                <span class="shrink-0 text-sm font-semibold tabular-nums text-gray-400">{{ loop.index + start_rank }}</span>
+            </div>
             {% if organization.summary %}
                 <p class="mt-3 line-clamp-3 max-w-prose text-sm leading-relaxed text-gray-800 lg:text-base">
                     {{ organization.summary | truncate(500, True) }}
