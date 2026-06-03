@@ -17,8 +17,8 @@
   <meta property="og:type" content="website" />
   <meta property="og:image"
     content="{{ url_for('static', filename='public/images/icon-meta.png', _external=True, _scheme=request.scheme) }}" />
-  <link rel="icon" href="{{ url_for('static', filename='public/images/favicon.ico') }}" />
-  <link rel="shortcut icon" href="{{ url_for('static', filename='public/images/favicon.ico') }}" />
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='public/images/favicon.png') }}" />
+  <link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='public/images/favicon.png') }}" />
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='public/images/icon-meta.png') }}" />
   {% endblock %}
   {% block jsonld %}
@@ -264,7 +264,7 @@
               <li><a href="https://ec.europa.eu/" class="flex h-20 w-full items-center justify-center rounded-sm border border-gray-200 px-4 py-3 opacity-80 transition hover:border-gray-300 hover:opacity-100"><img class="max-h-10 w-auto object-contain" src="{{ url_for('static', filename='public/images/EU_logo.jpg') }}" alt="European Commission"/></a></li>
               <li><a href="https://www.uni.lu/lcsb" class="flex h-20 w-full items-center justify-center rounded-sm border border-gray-200 px-4 py-3 opacity-80 transition hover:border-gray-300 hover:opacity-100"><img class="max-h-10 w-auto object-contain" src="{{ url_for('static', filename='public/images/UNI_Logo_LCSB.svg') }}" alt="UNI LCSB"/></a></li>
               <li><a href="https://www.imi.europa.eu" class="flex h-20 w-full items-center justify-center rounded-sm border border-gray-200 px-4 py-3 opacity-80 transition hover:border-gray-300 hover:opacity-100"><img class="max-h-10 w-auto object-contain" src="{{ url_for('static', filename='public/images/IMI_logo.png') }}" alt="IMI"/></a></li>
-              <li><a href="https://www.elixir-luxembourg.org" class="flex h-20 w-full items-center justify-center rounded-sm border border-gray-200 px-4 py-3 opacity-80 transition hover:border-gray-300 hover:opacity-100"><img class="max-h-10 w-auto object-contain" src="{{ url_for('static', filename='public/images/Elixir_LU.svg') }}" alt="ELIXIR Luxembourg"/></a></li>
+              <li><a href="https://elixir-luxembourg.org/" class="flex h-20 w-full items-center justify-center rounded-sm border border-gray-200 px-4 py-3 opacity-80 transition hover:border-gray-300 hover:opacity-100"><img class="max-h-10 w-auto object-contain" src="{{ url_for('static', filename='public/images/Elixir_LU.svg') }}" alt="ELIXIR Luxembourg"/></a></li>
               <li><a href="https://www.etriks.org/" class="flex h-20 w-full items-center justify-center rounded-sm border border-gray-200 px-4 py-3 opacity-80 transition hover:border-gray-300 hover:opacity-100"><img class="max-h-10 w-auto object-contain" src="{{ url_for('static', filename='public/images/etriks.png') }}" alt="eTRIKS"/></a></li>
               <li><a href="https://fairplus-project.eu/" class="flex h-20 w-full items-center justify-center rounded-sm border border-gray-200 px-4 py-3 opacity-80 transition hover:border-gray-300 hover:opacity-100"><img class="max-h-10 w-auto object-contain" src="{{ url_for('static', filename='public/images/fairplus-logo.png') }}" alt="FAIRplus"/></a></li>
               <li><a href="https://www.efpia.eu/" class="flex h-20 w-full items-center justify-center rounded-sm border border-gray-200 px-4 py-3 opacity-80 transition hover:border-gray-300 hover:opacity-100"><img class="max-h-10 w-auto object-contain" src="{{ url_for('static', filename='public/images/efpia_logo.png') }}" alt="EFPIA"/></a></li>
@@ -275,7 +275,7 @@
 
       <div class="bg-blue-950 text-white/85">
         <div class="mx-auto grid w-full max-w-7xl grid-cols-1 gap-3 border-x border-white/10 px-4 py-5 text-xs text-white/70 sm:grid-cols-3 sm:items-center sm:px-6 lg:px-8">
-          <a href="{{ url_for('home') }}"
+          <a href="https://elixir-luxembourg.org/"
              class="inline-flex shrink-0 items-center gap-3 justify-self-center opacity-95 transition-opacity hover:opacity-100 sm:justify-self-start">
             <img class="h-10 w-auto brightness-0 invert"
                  src="{{ url_for('static', filename='public/images/Elixir_LU.svg') }}"
