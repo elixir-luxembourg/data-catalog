@@ -260,3 +260,8 @@
         </div>
     </div>
 {% endblock %}
+
+{% block js %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='js/search_controls.js') }}"></script>
+{% endblock %}
