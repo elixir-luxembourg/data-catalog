@@ -106,4 +106,26 @@ const initApplicationsTable = () => {
   render();
 };
 
+const initCloseApplicationForms = () => {
+  document.querySelectorAll("[data-close-application-form]").forEach((form) => {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const button = form.querySelector("button[type='submit']");
+      if (button) button.disabled = true;
+
+      try {
+        await fetch(form.action, {
+          method: "POST",
+          body: new FormData(form),
+          credentials: "same-origin",
+        });
+        window.location.reload();
+      } catch (_error) {
+        if (button) button.disabled = false;
+      }
+    });
+  });
+};
+
 initApplicationsTable();
+initCloseApplicationForms();

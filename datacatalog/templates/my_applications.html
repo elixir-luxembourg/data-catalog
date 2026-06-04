@@ -70,6 +70,9 @@
               <th scope="col" class="py-3 pr-4 text-left font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Dataset</th>
               <th scope="col" class="w-48 py-3 pr-4 text-left font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">State</th>
               <th scope="col" class="hidden w-32 py-3 text-left font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500 md:table-cell">Created on</th>
+              {% if actions_allowed %}
+                <th scope="col" class="w-20 py-3 text-right font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Actions</th>
+              {% endif %}
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100">
@@ -87,6 +90,21 @@
                   <span title="{{ a.state }}" aria-label="{{ a.state }}" class="inline-flex">{{ state_icon(a.state) }}</span>
                 </td>
                 <td class="hidden py-3 align-top text-sm tabular-nums text-gray-600 md:table-cell">{{ a.creation_date_string[:10] }}</td>
+                {% if actions_allowed %}
+                  <td class="py-3 align-top text-right">
+                    <form method="post"
+                          action="{{ url_for('close_application', entity_name=entity_name, application_id=a.id) }}"
+                          data-close-application-form>
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit"
+                              title="Cancel request"
+                              aria-label="Cancel request {{ a.ext_id or a.id }}"
+                              class="inline-flex h-8 w-8 items-center justify-center rounded-sm border border-red-200 bg-white text-red-900 hover:border-red-900 hover:bg-red-900 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-900 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400 disabled:hover:bg-white disabled:hover:text-gray-400">
+                        <i data-lucide="x" class="h-4 w-4"></i>
+                      </button>
+                    </form>
+                  </td>
+                {% endif %}
               </tr>
             {% endfor %}
           </tbody>
