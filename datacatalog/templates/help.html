@@ -25,7 +25,6 @@
 
   {% set faqs = [
     ('what-is', 'What is the ' ~ config.get('TITLE', 'Data Catalogue') ~ '?'),
-    ('looks-different', 'Why does the catalogue look different to the last time I visited?'),
     ('project-study-dataset', 'What is the difference between "Project", "Study" and "Dataset"?'),
     ('how-search', 'How can I search the catalogue?'),
     ('request-access', 'How can I request access to a dataset?'),
@@ -59,15 +58,6 @@
           <h2 class="font-display text-2xl font-semibold leading-tight text-blue-900 lg:text-3xl">What is the {{ config.get('TITLE', 'Data Catalogue') }}?</h2>
           <p class="mt-3 text-sm leading-relaxed text-gray-800 lg:text-base">For more information on the catalogue, see our
             <a href="{{ url_for('about') }}" class="font-semibold text-blue-900 underline decoration-amber-500 decoration-2 underline-offset-4 hover:text-blue-800">About page</a>.
-          </p>
-        </li>
-
-        <li id="looks-different" class="relative scroll-mt-8 py-8 lg:py-10">
-<h2 class="font-display text-2xl font-semibold leading-tight text-blue-900 lg:text-3xl">Why does the catalogue look different to the last time I visited?</h2>
-          <p class="mt-3 text-sm leading-relaxed text-gray-800 lg:text-base">We recently did some major redevelopment work, including creating a new user interface, implementing a new data model based on the
-            <a href="https://github.com/datatagsuite/README" class="font-semibold text-blue-900 underline decoration-amber-500 decoration-2 underline-offset-4 hover:text-blue-800">DATS model</a>
-            and recurating a lot of the content. We are still in the process of adding some of the older projects into the new model. If you urgently need access to any of the old catalogue entries, we have an
-            <a href="https://datacatalog.elixir-luxembourg.org/old" class="text-blue-900 underline underline-offset-2 hover:text-blue-800">archived version</a> of the old Data Catalog available.
           </p>
         </li>
 
