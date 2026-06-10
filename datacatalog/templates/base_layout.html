@@ -193,6 +193,15 @@
       }
     </style>
     <style>
+      html {
+        overflow-y: scroll;
+      }
+      @supports (scrollbar-gutter: stable) {
+        html {
+          overflow-y: auto;
+          scrollbar-gutter: stable;
+        }
+      }
       body.bg-white::before,
       body.bg-white::after {
         content: "";
