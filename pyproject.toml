@@ -41,7 +41,9 @@ dependencies = [
     "jsonschema==4.26.0",
     "click==8.3.3",
     "celery[redis]==5.6.3",
-    "weasyprint==68.1",
+    # Pinned < 53: WeasyPrint >= 53 calls Pango >= 1.44 APIs unconditionally,
+    # but Rocky 8 ships Pango 1.42.4. See docs for details.
+    "weasyprint>=52.5,<53",
     "pypdf>=6.10.2",
     "Pillow>=12.2.0",
     "gunicorn==25.3.0",
