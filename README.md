@@ -68,6 +68,12 @@ sudo systemctl enable --now redis
     uv sync
     ```
 
+   Install the `lftclient` (required for the LFT downloads handler):
+
+    ```
+    uv pip install -e lftpythonclient --upgrade
+    ```
+
 1. The less compiler needs to be installed to generate the css files.
 
     ```
