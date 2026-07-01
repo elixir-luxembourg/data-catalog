@@ -182,18 +182,19 @@ def configure_solr_orm(new_app) -> None:
 
 def get_downloads_handler():
     if app.config.get("DOWNLOADS_HANDLER") == "LFT":
-        from lftclient import LFTClient
-        from .storage_handler.lft_handler import LFTStorageHandler
-
-        lft_config = app.config.get("LFT_CONFIG")
-        lft = LFTClient(
-            host=lft_config["HOST"],
-            port=lft_config["PORT"],
-            scheme=lft_config["SCHEME"],
-            verify_ssl=lft_config["VERIFY_SSL"],
-        )
-        logger.info("logging in to LFT")
         try:
+            from lftclient import LFTClient
+            from .storage_handler.lft_handler import LFTStorageHandler
+
+            lft_config = app.config.get("LFT_CONFIG")
+            lft = LFTClient(
+                host=lft_config["HOST"],
+                port=lft_config["PORT"],
+                scheme=lft_config["SCHEME"],
+                verify_ssl=lft_config["VERIFY_SSL"],
+            )
+            logger.info("logging in to LFT")
+
             lft.login(lft_config["USERNAME"], lft_config["PASSWORD"])
         except Exception as e:
             raise DownloadsHandlerLinksException(e)
