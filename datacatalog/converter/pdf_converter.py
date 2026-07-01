@@ -10,13 +10,7 @@ from flask import render_template
 from PIL import Image
 from pypdf import PdfReader, PdfWriter
 from weasyprint import HTML
-
-try:
-    # WeasyPrint >= 53
-    from weasyprint.text.fonts import FontConfiguration
-except ImportError:
-    # WeasyPrint < 53 (pinned for Rocky 8 / Pango 1.42)
-    from weasyprint.fonts import FontConfiguration
+from weasyprint.fonts import FontConfiguration
 
 logger = logging.getLogger(__name__)
 

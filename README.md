@@ -60,12 +60,6 @@ sudo dnf install redis
 sudo systemctl enable --now redis
 ```
 
-> **Note:** Rocky 8 ships Pango 1.42.4, while WeasyPrint >= 53 calls Pango >= 1.44
-> APIs unconditionally (e.g. `pango_context_set_round_glyph_positions`), which
-> fails at PDF render time with an `undefined symbol` error. WeasyPrint is
-> therefore pinned to `< 53` in `pyproject.toml`. Do not bump it unless the host
-> provides Pango >= 1.44 (not available in stock Rocky 8 repos).
-
 ### Procedure
 
 1. Install python requirements with:
