@@ -68,12 +68,6 @@ sudo systemctl enable --now redis
     uv sync
     ```
 
-   Install the `lftclient` (required for the LFT downloads handler):
-
-    ```
-    uv pip install -e lftpythonclient --upgrade
-    ```
-
 1. The less compiler needs to be installed to generate the css files.
 
     ```
@@ -149,6 +143,12 @@ For local development, change `JSON_FILE_PATH` from `'data/imi_projects'`to `'te
       ```
 
 1. [Optional] Customize the [About](./datacatalog/templates/about.html) and [Help](./datacatalog/templates/help.html) pages to reflect your services.
+
+1. [Optional] if you use the LFT downloads handler (`DOWNLOADS_HANDLER = "LFT"`), install the `lftclient`:
+
+    ```
+    uv pip install -e lftpythonclient --upgrade
+    ```
 
 1. Run the development server:
 
