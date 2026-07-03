@@ -7,7 +7,6 @@ from celery import shared_task
 
 from flask import current_app
 from datacatalog.connector.rems_connector import RemsConnector
-from datacatalog.converter.pdf_converter import to_pdf, merge, render_form
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +35,9 @@ def attach_request_pdf(
     licenses: Optional[List[Dict[str, Any]]] = None,
 ):
     logger.info("Generating request PDF for application %s", application_id)
+
+    # Import lazily so missing PDF native libraries do not break app startup.
+    from datacatalog.converter.pdf_converter import to_pdf, merge, render_form
 
     connector = None
     tmp_path = None

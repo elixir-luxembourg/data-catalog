@@ -41,7 +41,7 @@ dependencies = [
     "jsonschema==4.26.0",
     "click==8.3.3",
     "celery[redis]==5.6.3",
-    "weasyprint==68.1",
+    "weasyprint>=52.5,<53",  # WeasyPrint>=53 needs Pango>=1.44, and Rocky8 ships Pango<=1.42.4
     "pypdf>=6.10.2",
     "Pillow>=12.2.0",
     "gunicorn==25.3.0",
