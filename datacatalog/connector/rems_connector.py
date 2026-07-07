@@ -76,6 +76,11 @@ class RemsConnector(ExportEntitiesConnector):
         field_values = []
         for field_name, value in fields.items():
             if value is None:
+                logger.warning(
+                    "Dropping REMS draft field %s for application %s because its serialized value is None",
+                    field_name,
+                    application_id,
+                )
                 continue
             field_values.append({"form": form_id, "field": field_name, "value": value})
         response = self.rems_client.save_draft(application_id, field_values)
