@@ -410,6 +410,155 @@ class TestRemsAccessHandler(BaseTest):
         self.assertEqual(result.value, ApplicationState.submitted.value)
 
     @requests_mock.Mocker()
+    def test_apply_skips_none_draft_values(self, m):
+        catalogue_item = CatalogueItem(
+            id=1,
+            resid=self.dataset_id,
+            **{"formid": 3},
+            wfid=REMS_WORKFLOW_ID,
+            **{"resource-id": 1},
+            archived=False,
+            localizations={"en": {"title": "Test Dataset"}},
+            start="2023-01-01T00:00:00Z",
+            organization={"organization/id": "test-org"},
+            expired=False,
+            end=None,
+            enabled=True,
+        )
+        m.get(
+            f"{REMS_URL}/api/catalogue-items",
+            json=[catalogue_item.model_dump(by_alias=True)],
+        )
+
+        form_fields_data = [
+            {
+                "field/id": "text",
+                "field/type": "text",
+                "field/title": {"en": "Text"},
+                "field/optional": False,
+            },
+            {
+                "field/id": "label",
+                "field/type": "label",
+                "field/title": {"en": "Label"},
+                "field/optional": True,
+            },
+            {
+                "field/id": "header",
+                "field/type": "header",
+                "field/title": {"en": "Header"},
+                "field/optional": True,
+            },
+            {
+                "field/id": "option",
+                "field/type": "option",
+                "field/title": {"en": "Optional Option"},
+                "field/optional": True,
+                "field/options": [{"key": "1", "label": {"en": "One"}}],
+            },
+        ]
+        form = Form(
+            **{"form/id": 3},
+            **{"form/internal-name": "test-form"},
+            **{"form/title": "Test Form"},
+            **{"form/external-title": {"en": "Test Form Title"}},
+            archived=False,
+            enabled=True,
+            organization={
+                "organization/id": "test-org",
+                "organization/short-name": {"en": "Test Org"},
+                "organization/name": {"en": "Test Organization"},
+            },
+            **{"form/fields": form_fields_data},
+        )
+        m.get(
+            f"{REMS_URL}/api/forms/3",
+            json=form.model_dump(by_alias=True),
+        )
+
+        m.post(
+            f"{REMS_URL}/api/applications/create",
+            json={"success": True, "application-id": 123},
+        )
+        m.post(
+            f"{REMS_URL}/api/applications/save-draft",
+            json={"success": True},
+        )
+
+        resource_license = ResourceLicense(
+            id=2,
+            licensetype="license",
+            organization={
+                "organization/id": "test-org",
+                "organization/short-name": {"en": "Test Org"},
+                "organization/name": {"en": "Test Organization"},
+            },
+            enabled=True,
+            archived=False,
+            localizations={
+                "en": {
+                    "title": "Test License",
+                    "textcontent": "This is the license text content",
+                }
+            },
+        )
+        resource = Resource(
+            id=1,
+            resid=self.dataset_id,
+            enabled=True,
+            archived=False,
+            organization={
+                "organization/id": "test-org",
+                "organization/short-name": {"en": "Test Org"},
+                "organization/name": {"en": "Test Organization"},
+            },
+            licenses=[resource_license],
+            **{"resource/duo": {}},
+        )
+        m.get(
+            f"{REMS_URL}/api/resources/1",
+            json=resource.model_dump(by_alias=True),
+        )
+        m.post(
+            f"{REMS_URL}/api/applications/accept-licenses",
+            json={"success": True},
+        )
+        m.post(
+            f"{REMS_URL}/api/applications/submit",
+            json={"success": True},
+        )
+
+        form_data = ImmutableMultiDict(
+            [
+                ("text", "value"),
+                ("license_2", "on"),
+                ("submit", "Send"),
+                ("csrf_token", "test"),
+            ]
+        )
+
+        form = self.rems_access_handler.create_form(self.dataset, form_data)
+
+        self.rems_access_handler.apply(self.dataset, form)
+
+        save_draft_request = next(
+            request
+            for request in m.request_history
+            if request.method == "POST"
+            and request.url == f"{REMS_URL}/api/applications/save-draft"
+        )
+        self.assertEqual(
+            save_draft_request.json(),
+            {
+                "application-id": 123,
+                "field-values": [
+                    {"form": 3, "field": "text", "value": "value"},
+                    {"form": 3, "field": "option", "value": ""},
+                ],
+            },
+        )
+
+    @requests_mock.Mocker()
     def test_create_form(self, m):
         # Mock get_catalogue_item calls
         catalogue_item = CatalogueItem(

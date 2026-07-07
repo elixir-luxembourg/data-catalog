@@ -75,6 +75,8 @@ class RemsConnector(ExportEntitiesConnector):
         logger.info("Saving application %s as draft", application_id)
         field_values = []
         for field_name, value in fields.items():
+            if value is None:
+                continue
             field_values.append({"form": form_id, "field": field_name, "value": value})
         response = self.rems_client.save_draft(application_id, field_values)
         success = response.success
