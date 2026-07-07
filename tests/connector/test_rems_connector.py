@@ -198,6 +198,33 @@ class TestRemsConnector(BaseTest):
         )
         self.assertTrue(response)
 
+    def test_save_application_draft_logs_and_drops_none_values(self, m):
+        m.post(
+            f"{REMS_URL}/api/applications/save-draft",
+            json={"success": True},
+        )
+
+        with self.assertLogs(
+            "datacatalog.connector.rems_connector", level="WARNING"
+        ) as logs:
+            response = self.rems_connector.save_application_draft(
+                123,
+                3,
+                {"field1": "value", "field2": None},
+            )
+
+        self.assertTrue(response)
+        self.assertIn(
+            "Dropping REMS draft field field2 for application 123", logs.output[0]
+        )
+        self.assertEqual(
+            m.request_history[-1].json(),
+            {
+                "application-id": 123,
+                "field-values": [{"form": 3, "field": "field1", "value": "value"}],
+            },
+        )
+
     def test_export_entities_already_exported(self, m):
         # Mock export_entities calls
         m.get(f"{REMS_URL}/api/resources", json=[])
