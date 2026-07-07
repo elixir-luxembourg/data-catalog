@@ -169,6 +169,8 @@ class RemsAccessHandler(AccessHandler):
         for field in rems_form.fields:
             rems_field_id = field.fieldid
             wtf_field = FieldBuilder.build_field_builder(field)
+            if not wtf_field.submits_value():
+                continue
             flask_form_value = getattr(form, rems_field_id).data
             field_values[rems_field_id] = wtf_field.transform_value(
                 flask_form_value, self.rems_connector, application_id
@@ -378,7 +380,12 @@ class FieldBuilder(metaclass=ABCMeta):
                 render_kw["placeholder"] = placeholder
         return render_kw
 
+    def submits_value(self):
+        return True
+
     def transform_value(self, value, rems_connector=None, application_id=None):
+        if value is None:
+            return ""
         return value
 
 
@@ -400,6 +407,9 @@ class LabelFieldBuilder(FieldBuilder):
     def build(self):
         return StringField(self.label, validators=[], render_kw=self.render_kw)
 
+    def submits_value(self):
+        return False
+
 
 class HeaderFieldBuilder(FieldBuilder):
     SUPPORTED_FIELD_TYPE = ["header"]
@@ -409,6 +419,9 @@ class HeaderFieldBuilder(FieldBuilder):
 
     def build(self):
         return StringField(self.label, validators=[], render_kw=self.render_kw)
+
+    def submits_value(self):
+        return False
 
 
 class TextAreaFieldBuilder(FieldBuilder):
@@ -499,7 +512,7 @@ class MultiSelectFieldBuilder(FieldBuilder):
         )
 
     def transform_value(self, value, rems_connector=None, application_id=None):
-        return " ".join(value)
+        return " ".join(value or [])
 
 
 class EmailFieldBuilder(FieldBuilder):
