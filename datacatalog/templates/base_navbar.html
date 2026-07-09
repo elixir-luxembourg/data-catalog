@@ -1,26 +1,18 @@
 {% set active_page = active_page|default('datasets') -%}
 
 <nav class="border-b border-gray-200 bg-white">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="flex h-16 items-center justify-between">
-            <div class="flex items-center gap-3">
-                <button type="button"
-                        class="inline-flex items-center justify-center rounded p-2 text-blue-900 hover:bg-gray-100 focus:ring-2 focus:ring-blue-900 focus:outline-none lg:hidden"
-                        aria-label="Toggle navigation"
-                        onclick="document.getElementById('navbar-collapse').classList.toggle('hidden')">
-                    <i data-lucide="menu" class="h-5 w-5"></i>
-                </button>
-                <a href="{{ url_for('home') }}" class="flex items-center text-blue-900">
-                    {% block brand %}
-                        {% set logo = config.get('URL_PREFIX', '') + config.get('LOGO', '/static/public/images/datacatalog_logo.svg') %}
-                        {% if config.get('USE_LOGO', True) %}
-                            <img class="h-8 w-auto" src="{{ logo }}" alt="logo"/>
-                        {% else %}
-                            <span class="font-display text-xl font-semibold tracking-tight">{{ config.get('TITLE', 'Data Catalogue') }}</span>
-                        {% endif %}
-                    {% endblock %}
-                </a>
-            </div>
+    <div class="mx-auto max-w-7xl border-x border-blue-900/10 px-4 sm:px-6 lg:px-8">
+        <div class="flex h-16 items-center justify-between gap-3">
+            <a href="{{ url_for('home') }}" class="flex items-center text-blue-900">
+                {% block brand %}
+                    {% set logo = config.get('URL_PREFIX', '') + config.get('LOGO', '/static/public/images/datacatalog_logo.svg') %}
+                    {% if config.get('USE_LOGO', True) %}
+                        <img class="h-12 w-auto" src="{{ logo }}" alt="logo"/>
+                    {% else %}
+                        <span class="font-display text-xl font-semibold tracking-tight">{{ config.get('TITLE', 'Data Catalogue') }}</span>
+                    {% endif %}
+                {% endblock %}
+            </a>
 
             <div id="navbar-collapse" class="absolute inset-x-0 top-16 z-40 hidden border-b border-gray-200 bg-white lg:static lg:flex lg:flex-1 lg:items-center lg:justify-between lg:border-0">
                 <ul class="flex flex-col px-4 py-3 lg:ml-6 lg:flex-row lg:items-center lg:gap-1 lg:px-0 lg:py-0">
@@ -29,7 +21,7 @@
                             {% set entity_class = config.get('entities').get(entity_name_item) %}
                             <li>
                                 <a href="{{ url_for('entities_search', entity_name=entity_name_item) }}"
-                                   class="block rounded px-3 py-2 text-sm font-medium {% if entity_name == entity_name_item %}bg-blue-900 text-white{% else %}text-blue-900 hover:bg-gray-100{% endif %}">
+                                   class="block rounded px-3 py-2 text-sm {% if entity_name == entity_name_item %}font-semibold text-blue-900 underline decoration-amber-500 decoration-2 underline-offset-8{% else %}font-medium text-blue-900 hover:bg-gray-100{% endif %}">
                                     {{ entity_class.plural_name() | title }}
                                 </a>
                             </li>
@@ -38,7 +30,7 @@
                     {% for href, id, caption in navigation_bar %}
                         <li>
                             <a href="{{ url_for(href) }}"
-                               class="block rounded px-3 py-2 text-sm font-medium {% if id == active_page %}bg-blue-900 text-white{% else %}text-blue-900 hover:bg-gray-100{% endif %}">
+                               class="block rounded px-3 py-2 text-sm {% if id == active_page %}font-semibold text-blue-900 underline decoration-amber-500 decoration-2 underline-offset-8{% else %}font-medium text-blue-900 hover:bg-gray-100{% endif %}">
                                 {{ caption|e }}
                             </a>
                         </li>
@@ -93,6 +85,15 @@
                     {% endif %}
                 </ul>
             </div>
+
+            <button type="button"
+                    class="inline-flex items-center justify-center rounded p-2 text-blue-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-900 lg:hidden"
+                    aria-label="Toggle navigation"
+                    aria-controls="navbar-collapse"
+                    aria-expanded="false"
+                    onclick="var n=document.getElementById('navbar-collapse'),h=n.classList.toggle('hidden');this.setAttribute('aria-expanded',!h)">
+                <i data-lucide="menu" class="h-5 w-5"></i>
+            </button>
         </div>
     </div>
 </nav>

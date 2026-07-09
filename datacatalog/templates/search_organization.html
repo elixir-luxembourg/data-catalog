@@ -8,20 +8,24 @@
 
 {% block search_results %}
     {% set start_rank = (pagination.page - 1) * pagination.per_page %}
-    <div class="space-y-4">
-        {% for organization in entities %}
-            <article class="relative rounded border border-gray-200 bg-white shadow-sm">
-                <div class="space-y-2 px-4 py-3">
-                    <h3 class="font-display text-lg font-semibold text-blue-900">
-                        <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=organization.id) }}"
-                           class="text-blue-900 hover:underline">
-                            {{ organization.title | truncate(55, True) }}
-                        </a>
-                    </h3>
-                    <p class="text-sm leading-relaxed text-gray-800">{{ organization.summary | default("", True) | truncate(500, True) }}</p>
-                    <span class="absolute right-3 top-3 text-xs text-gray-500">{{ loop.index + start_rank }}</span>
-                </div>
-            </article>
-        {% endfor %}
-    </div>
+    {% for organization in entities %}
+        <article class="py-5">
+            <div class="flex items-baseline justify-between gap-x-4">
+                <h2 class="min-w-0 flex-1 text-lg font-semibold leading-snug text-blue-900 lg:text-xl">
+                    <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=organization.id) }}"
+                       class="line-clamp-2 hover:text-blue-800 hover:underline underline-offset-2">
+                        {{ organization.title }}
+                    </a>
+                </h2>
+                <span class="shrink-0 text-sm font-semibold tabular-nums text-gray-400">{{ loop.index + start_rank }}</span>
+            </div>
+            {% if organization.summary %}
+                <p class="mt-3 line-clamp-3 max-w-prose text-sm leading-relaxed text-gray-800 lg:text-base">
+                    {{ organization.summary | truncate(500, True) }}
+                </p>
+            {% endif %}
+
+            {{ macros.small_id_row(organization) }}
+        </article>
+    {% endfor %}
 {% endblock %}

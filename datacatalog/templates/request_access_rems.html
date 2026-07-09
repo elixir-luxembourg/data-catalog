@@ -6,7 +6,7 @@
     {{ macros.quick_form(form, include_form_tag=False, show_submit=False, render_rw_filter='use_condition_rule') }}
     {% if conditions_fields %}
         <h3 class="font-display text-xl font-semibold text-blue-900">Use Conditions</h3>
-        <p class="text-sm text-gray-700">All use conditions must be accepted to be able to request access to this dataset</p>
+        <p class="text-sm text-gray-700 lg:text-base">All use conditions must be accepted to be able to request access to this dataset</p>
         <div class="space-y-6">
             {% for condition_type in conditions_fields %}
                 <div class="space-y-3 rounded border border-gray-200 bg-white p-4">
@@ -27,18 +27,13 @@
                 </div>
             {% endfor %}
         </div>
-    {% endif %}
-    <div class="pt-2">
-        {{ form.submit(class_="inline-flex items-center justify-center rounded bg-blue-900 px-4 py-2 font-medium text-white hover:bg-blue-800 focus:ring-2 focus:ring-blue-900 focus:ring-offset-2 focus:outline-none") }}
-    </div>
-{% endblock %}
-
-{% block extra_form_content %}
-    {% if conditions_fields %}
-        <p class="mt-4 text-sm text-gray-700">
+        <p class="text-sm text-gray-700 lg:text-base">
             Explanation of use condition code can be found on the
             <a href="https://www.ga4gh.org/wp-content/uploads/DataUseBeacon_160209_tab_0.pdf"
-               class="text-blue-900 underline hover:text-blue-700">GA4GH website</a>
+               class="text-blue-900 underline underline-offset-2 hover:text-blue-800">GA4GH website</a>.
         </p>
     {% endif %}
+    <div class="mt-6 flex justify-end">
+        {{ form.submit(class_="inline-flex items-center justify-center gap-2 bg-blue-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-2") }}
+    </div>
 {% endblock %}

@@ -1,38 +1,135 @@
 {% extends 'base_layout.html' %}
 
-{% block content %}
-<section class="space-y-6">
-    <h1 class="font-display text-3xl font-semibold text-blue-900">My data access requests</h1>
+{% block title %}My data access requests{% endblock %}
 
-    {% if entities_with_access %}
-        <div class="space-y-3">
-            <h2 class="font-display text-xl font-semibold text-blue-900">Accessible datasets</h2>
-            <ul class="divide-y divide-gray-200 overflow-hidden rounded border border-gray-200 bg-white">
-                {% for entity in entities_with_access %}
-                    <li>
-                        <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=entity.id) }}"
-                           class="flex items-center justify-between gap-4 px-4 py-3 hover:bg-sky-50">
-                            <span class="text-sm font-medium text-blue-900">{{ entity.title }}</span>
-                            <i data-lucide="circle-check" class="h-5 w-5 text-blue-900"></i>
-                        </a>
-                    </li>
-                {% endfor %}
-            </ul>
-            <h2 class="font-display text-xl font-semibold text-blue-900">Pending and rejected data access requests</h2>
-        </div>
-    {% endif %}
+{% block meta %}
+{{ super() }}
+<meta property="og:title" content="My data access requests – {{ config.get('TITLE', 'Data Catalogue') }}">
+{% endblock %}
+
+{% macro state_icon(state) -%}
+  {%- set icons = {
+    'draft':     'file-pen',
+    'submitted': 'hourglass',
+    'approved':  'circle-check',
+    'returned':  'triangle-alert',
+    'rejected':  'circle-x',
+    'closed':    'circle-x',
+    'revoked':   'circle-x',
+  } -%}
+  {%- if state in icons -%}
+    <i data-lucide="{{ icons[state] }}" class="h-5 w-5 shrink-0 text-blue-900"></i>
+  {%- else -%}
+    <span class="text-sm text-gray-600">{{ state }}</span>
+  {%- endif -%}
+{%- endmacro %}
+
+{% block content %}
+<section aria-labelledby="page-heading" class="space-y-10 pb-12 lg:space-y-14 lg:pb-16">
+  <header>
+    <h1 id="page-heading" class="font-display text-4xl font-semibold tracking-tight text-blue-900 lg:text-6xl">My data access requests</h1>
+  </header>
+
+  {% if entities_with_access %}
+    <section aria-labelledby="accessible-heading" class="space-y-4">
+      <header class="border-b border-gray-200 pb-2">
+        <h2 id="accessible-heading" class="font-display text-2xl font-semibold leading-tight text-blue-900 lg:text-3xl">Accessible datasets</h2>
+      </header>
+      <ul class="divide-y divide-gray-100">
+        {% for entity in entities_with_access %}
+          <li>
+            <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=entity.id) }}"
+               class="group flex items-center justify-between gap-4 py-3 hover:bg-gray-50">
+              <span class="text-base font-semibold leading-snug text-blue-900 group-hover:text-blue-800 group-hover:underline group-hover:underline-offset-2 lg:text-lg">{{ entity.title }}</span>
+              <i data-lucide="circle-check" class="h-5 w-5 shrink-0 text-blue-900"></i>
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endif %}
+
+  <section aria-labelledby="applications-heading" class="space-y-4">
+    <header class="flex flex-wrap items-end justify-between gap-4 border-b border-gray-200 pb-2">
+      <h2 id="applications-heading" class="font-display text-2xl font-semibold leading-tight text-blue-900 lg:text-3xl">Pending and rejected data access requests</h2>
+      {% if applications %}
+        <label class="flex items-center gap-2 text-sm text-gray-600">
+          <span class="sr-only">Search requests</span>
+          <input type="search" data-applications-search placeholder="Search dataset or ID"
+                 class="w-56 rounded-sm border border-gray-300 bg-white px-3 py-1.5 text-sm text-blue-900 placeholder:text-gray-400 focus:border-blue-900 focus:outline-none focus:ring-1 focus:ring-blue-900">
+        </label>
+      {% endif %}
+    </header>
 
     {% if applications %}
-        <div id="applications-datatable"
-             class="overflow-x-auto rounded border border-gray-200 bg-white"
-             data-applications="{{ applications }}"
-             {% if actions_allowed %}
-             data-actions-allowed="true"
-             data-close-url-template="{{ url_for('close_application', entity_name=entity_name, application_id='__APP_ID__') }}"
-             {% endif %}>
+      <div class="overflow-x-auto">
+        <table class="w-full border-collapse" data-paginated-table data-page-size="10">
+          <thead>
+            <tr class="border-b border-gray-200">
+              <th scope="col" class="hidden w-32 py-3 pr-4 text-left font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500 lg:table-cell">Id</th>
+              <th scope="col" class="py-3 pr-4 text-left font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Dataset</th>
+              <th scope="col" class="w-48 py-3 pr-4 text-left font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">State</th>
+              <th scope="col" class="hidden w-32 py-3 text-left font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500 md:table-cell">Created on</th>
+              {% if actions_allowed %}
+                <th scope="col" class="w-20 py-3 text-right font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Actions</th>
+              {% endif %}
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            {% for a in applications %}
+              <tr class="group hover:bg-gray-50">
+                <td class="hidden py-3 pr-4 align-top font-mono text-xs tabular-nums text-gray-500 lg:table-cell">{{ a.ext_id or a.id }}</td>
+                <td class="py-3 pr-4 align-top">
+                  <a href="{{ a.entity_url }}"
+                     class="text-base font-semibold leading-snug text-blue-900 hover:text-blue-800 group-hover:underline group-hover:underline-offset-2 lg:text-lg">{{ a.dataset }}</a>
+                  <p class="mt-1 text-xs text-gray-500 md:hidden">
+                    Created <span class="tabular-nums">{{ a.creation_date_string[:10] }}</span> &middot; ID <span class="tabular-nums">{{ a.ext_id or a.id }}</span>
+                  </p>
+                </td>
+                <td class="py-3 pr-4 align-top">
+                  <span title="{{ a.state }}" aria-label="{{ a.state }}" class="inline-flex">{{ state_icon(a.state) }}</span>
+                </td>
+                <td class="hidden py-3 align-top text-sm tabular-nums text-gray-600 md:table-cell">{{ a.creation_date_string[:10] }}</td>
+                {% if actions_allowed %}
+                  <td class="py-3 align-top text-right">
+                    <form method="post"
+                          action="{{ url_for('close_application', entity_name=entity_name, application_id=a.id) }}"
+                          data-close-application-form>
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit"
+                              title="Cancel request"
+                              aria-label="Cancel request {{ a.ext_id or a.id }}"
+                              class="inline-flex h-8 w-8 items-center justify-center rounded-sm border border-red-200 bg-white text-red-900 hover:border-red-900 hover:bg-red-900 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-900 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400 disabled:hover:bg-white disabled:hover:text-gray-400">
+                        <i data-lucide="x" class="h-4 w-4"></i>
+                      </button>
+                    </form>
+                  </td>
+                {% endif %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p data-applications-empty hidden class="pt-2 text-sm leading-relaxed text-gray-800">No requests match your search.</p>
+      <nav data-pagination aria-label="Applications pagination" hidden
+           class="mt-4 flex flex-wrap items-center justify-between gap-4 border-t border-gray-200 pt-4">
+        <p data-pagination-status class="font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500" aria-live="polite"></p>
+        <div class="flex items-center gap-2">
+          <button type="button" data-pagination-prev
+                  class="inline-flex items-center gap-1 rounded-sm border border-gray-300 bg-white px-3 py-1.5 font-display text-xs font-semibold uppercase tracking-[0.15em] text-blue-900 hover:border-blue-900 hover:bg-blue-900 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-900 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400 disabled:hover:bg-transparent disabled:hover:text-gray-400">
+            <span aria-hidden="true">&larr;</span> Previous
+          </button>
+          <ol data-pagination-pages class="flex items-center gap-1"></ol>
+          <button type="button" data-pagination-next
+                  class="inline-flex items-center gap-1 rounded-sm border border-gray-300 bg-white px-3 py-1.5 font-display text-xs font-semibold uppercase tracking-[0.15em] text-blue-900 hover:border-blue-900 hover:bg-blue-900 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-900 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400 disabled:hover:bg-transparent disabled:hover:text-gray-400">
+            Next <span aria-hidden="true">&rarr;</span>
+          </button>
         </div>
+      </nav>
+      <script type="module" src="{{ url_for('static', filename='js/my_applications.js') }}"></script>
     {% else %}
-        <p class="text-base text-gray-800"><strong class="font-semibold text-blue-900">No data access requests found.</strong></p>
+      <p class="max-w-prose pt-2 text-sm leading-relaxed text-gray-800"><strong class="font-semibold text-blue-900">No data access requests found.</strong></p>
     {% endif %}
+  </section>
 </section>
 {% endblock %}

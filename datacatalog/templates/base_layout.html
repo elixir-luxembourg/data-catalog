@@ -17,8 +17,8 @@
   <meta property="og:type" content="website" />
   <meta property="og:image"
     content="{{ url_for('static', filename='public/images/icon-meta.png', _external=True, _scheme=request.scheme) }}" />
-  <link rel="icon" href="{{ url_for('static', filename='public/images/favicon.ico') }}" />
-  <link rel="shortcut icon" href="{{ url_for('static', filename='public/images/favicon.ico') }}" />
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='public/images/favicon.png') }}" />
+  <link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='public/images/favicon.png') }}" />
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='public/images/icon-meta.png') }}" />
   {% endblock %}
   {% block jsonld %}
@@ -54,6 +54,10 @@
   </script>
   {% endblock %}
   {% block css %}
+  <link rel="preload" href="{{ url_for('static', filename='public/fonts/barlow-400.woff2') }}" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="{{ url_for('static', filename='public/fonts/barlow-500.woff2') }}" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="{{ url_for('static', filename='public/fonts/barlow-600.woff2') }}" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="{{ url_for('static', filename='public/fonts/barlow-condensed-600.woff2') }}" as="font" type="font/woff2" crossorigin />
   <script src="{{ url_for('static', filename='vendor/tailwindcss/browser.js') }}"></script>
   <style type="text/tailwindcss">
     @theme static {
@@ -104,6 +108,25 @@
         --color-sky-200: #e7f5fc;
         --color-sky-100: #e7f5fc;
         --color-sky-50: #e7f5fc;
+
+        --color-amber-500: #f6931d;
+      }
+
+      @layer base {
+        button:not(:disabled),
+        [type="button"]:not(:disabled),
+        [type="submit"]:not(:disabled),
+        [type="reset"]:not(:disabled),
+        [role="button"]:not(:disabled),
+        summary {
+          cursor: pointer;
+        }
+        button:disabled,
+        [type="button"]:disabled,
+        [type="submit"]:disabled,
+        [type="reset"]:disabled {
+          cursor: not-allowed;
+        }
       }
 
       @font-face {
@@ -169,6 +192,53 @@
           format("woff2");
       }
     </style>
+    <style>
+      html {
+        overflow-y: scroll;
+      }
+      @supports (scrollbar-gutter: stable) {
+        html {
+          overflow-y: auto;
+          scrollbar-gutter: stable;
+        }
+      }
+      body.bg-white::before,
+      body.bg-white::after {
+        content: "";
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        width: max(0px, calc((100vw - 80rem) / 2));
+        z-index: -1;
+        pointer-events: none;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none' stroke='%23f6931d' stroke-width='1'><path d='M0 0v3M0 8v4M0 17v3M0 0h3M8 0h4M17 0h3'/></svg>");
+        background-size: 20px 20px;
+        opacity: 30%;
+      }
+      body.bg-white::before {
+        left: 0;
+        -webkit-mask-image: radial-gradient(ellipse 110% 90% at 0% 50%, #000 65%, transparent 98%);
+        mask-image: radial-gradient(ellipse 110% 90% at 0% 50%, #000 65%, transparent 98%);
+      }
+      body.bg-white::after {
+        right: 0;
+        -webkit-mask-image: radial-gradient(ellipse 110% 90% at 100% 50%, #000 65%, transparent 98%);
+        mask-image: radial-gradient(ellipse 110% 90% at 100% 50%, #000 65%, transparent 98%);
+      }
+      body.bg-white > nav.bg-white,
+      body.bg-white > footer > section.bg-white,
+      body.bg-white > footer > .bg-blue-950 {
+        background-color: transparent;
+        border-color: transparent;
+      }
+      body.bg-white > nav.bg-white > div.mx-auto,
+      body.bg-white > footer > section.bg-white > div.mx-auto {
+        background-color: #ffffff;
+      }
+      body.bg-white > footer > .bg-blue-950 > div.mx-auto {
+        background-color: #142f3f;
+      }
+    </style>
   {% endblock %} {% endblock %}
 </head>
 
@@ -183,7 +253,7 @@
   {% endblock %}
 
   {% block container %}
-    <main class="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8" id="main-container">
+    <main class="mx-auto w-full max-w-7xl flex-1 border-x border-blue-900/10 px-4 pb-6 pt-8 sm:px-6 lg:px-8 lg:pt-12" id="main-container">
       {{ macros.show_flashes() }}
       {% block content %}{% endblock %}
     </main>
@@ -191,78 +261,52 @@
 
   {% block extra_content %}{% endblock %}
 
-  <footer class="mt-auto border-t border-gray-200 bg-white">
+  <footer class="mt-auto">
     {% block footer %}
       {% block footerlogos %}
-        <div class="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-          <ul class="grid grid-cols-2 items-center gap-x-8 gap-y-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
-            <li class="flex items-center justify-center">
-              <a href="https://ec.europa.eu/" class="block opacity-80 transition-opacity hover:opacity-100">
-                <img class="h-12 w-auto object-contain"
-                     src="{{ url_for('static', filename='public/images/EU_logo.jpg') }}"
-                     alt="European Commission logo"/>
-              </a>
-            </li>
-            <li class="flex items-center justify-center">
-              <a href="https://www.uni.lu/lcsb" class="block opacity-80 transition-opacity hover:opacity-100">
-                <img class="h-12 w-auto object-contain"
-                     src="{{ url_for('static', filename='public/images/UNI_Logo_LCSB.svg') }}"
-                     alt="University of Luxembourg LCSB logo"/>
-              </a>
-            </li>
-            <li class="flex items-center justify-center">
-              <a href="https://www.imi.europa.eu" class="block opacity-80 transition-opacity hover:opacity-100">
-                <img class="h-12 w-auto object-contain"
-                     src="{{ url_for('static', filename='public/images/IMI_logo.png') }}"
-                     alt="IMI logo"/>
-              </a>
-            </li>
-            <li class="flex items-center justify-center">
-              <a href="https://www.elixir-luxembourg.org" class="block opacity-80 transition-opacity hover:opacity-100">
-                <img class="h-12 w-auto object-contain"
-                     src="{{ url_for('static', filename='public/images/Elixir_LU.svg') }}"
-                     alt="ELIXIR Luxembourg logo"/>
-              </a>
-            </li>
-            <li class="flex items-center justify-center">
-              <a href="https://www.etriks.org/" class="block opacity-80 transition-opacity hover:opacity-100">
-                <img class="h-12 w-auto object-contain"
-                     src="{{ url_for('static', filename='public/images/etriks.png') }}"
-                     alt="eTRIKS logo"/>
-              </a>
-            </li>
-            <li class="flex items-center justify-center">
-              <a href="https://fairplus-project.eu/" class="block opacity-80 transition-opacity hover:opacity-100">
-                <img class="h-12 w-auto object-contain"
-                     src="{{ url_for('static', filename='public/images/fairplus-logo.png') }}"
-                     alt="FAIRplus logo"/>
-              </a>
-            </li>
-            <li class="flex items-center justify-center">
-              <a href="https://www.efpia.eu/" class="block opacity-80 transition-opacity hover:opacity-100">
-                <img class="h-12 w-auto object-contain"
-                     src="{{ url_for('static', filename='public/images/efpia_logo.png') }}"
-                     alt="EFPIA logo"/>
-              </a>
-            </li>
-          </ul>
-        </div>
+        <section aria-labelledby="footer-partners-heading" class="border-t border-blue-900/10 bg-white">
+          <div class="mx-auto flex w-full max-w-7xl flex-col items-center gap-6 border-x border-blue-900/10 px-4 py-10 sm:px-6 lg:px-8 lg:py-12">
+            <h2 id="footer-partners-heading" class="font-display text-xs font-semibold uppercase tracking-[0.15em] text-gray-500">
+              Partners
+            </h2>
+            <ul class="grid w-full grid-cols-2 items-stretch gap-3 sm:grid-cols-4 lg:grid-cols-7">
+              <li><a href="https://ec.europa.eu/" class="flex h-20 w-full items-center justify-center rounded-sm border border-gray-200 px-4 py-3 opacity-80 transition hover:border-gray-300 hover:opacity-100"><img class="max-h-10 w-auto object-contain" src="{{ url_for('static', filename='public/images/EU_logo.jpg') }}" alt="European Commission"/></a></li>
+              <li><a href="https://www.uni.lu/lcsb" class="flex h-20 w-full items-center justify-center rounded-sm border border-gray-200 px-4 py-3 opacity-80 transition hover:border-gray-300 hover:opacity-100"><img class="max-h-10 w-auto object-contain" src="{{ url_for('static', filename='public/images/UNI_Logo_LCSB.svg') }}" alt="UNI LCSB"/></a></li>
+              <li><a href="https://www.imi.europa.eu" class="flex h-20 w-full items-center justify-center rounded-sm border border-gray-200 px-4 py-3 opacity-80 transition hover:border-gray-300 hover:opacity-100"><img class="max-h-10 w-auto object-contain" src="{{ url_for('static', filename='public/images/IMI_logo.png') }}" alt="IMI"/></a></li>
+              <li><a href="https://elixir-luxembourg.org/" class="flex h-20 w-full items-center justify-center rounded-sm border border-gray-200 px-4 py-3 opacity-80 transition hover:border-gray-300 hover:opacity-100"><img class="max-h-10 w-auto object-contain" src="{{ url_for('static', filename='public/images/Elixir_LU.svg') }}" alt="ELIXIR Luxembourg"/></a></li>
+              <li><a href="https://www.etriks.org/" class="flex h-20 w-full items-center justify-center rounded-sm border border-gray-200 px-4 py-3 opacity-80 transition hover:border-gray-300 hover:opacity-100"><img class="max-h-10 w-auto object-contain" src="{{ url_for('static', filename='public/images/etriks.png') }}" alt="eTRIKS"/></a></li>
+              <li><a href="https://fairplus-project.eu/" class="flex h-20 w-full items-center justify-center rounded-sm border border-gray-200 px-4 py-3 opacity-80 transition hover:border-gray-300 hover:opacity-100"><img class="max-h-10 w-auto object-contain" src="{{ url_for('static', filename='public/images/fairplus-logo.png') }}" alt="FAIRplus"/></a></li>
+              <li><a href="https://www.efpia.eu/" class="flex h-20 w-full items-center justify-center rounded-sm border border-gray-200 px-4 py-3 opacity-80 transition hover:border-gray-300 hover:opacity-100"><img class="max-h-10 w-auto object-contain" src="{{ url_for('static', filename='public/images/efpia_logo.png') }}" alt="EFPIA"/></a></li>
+            </ul>
+          </div>
+        </section>
       {% endblock %}
-      {% block footercopyright %}
-        <div class="border-t border-gray-200 px-4 py-6 sm:px-6 lg:px-8">
-          <p class="mx-auto max-w-[48ch] text-center text-sm text-gray-700">
-            <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">
-              <img class="mx-auto mb-3 w-[88px]"
-                   alt="Creative Commons License"
-                   src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png"/>
-            </a>
-            This work is licensed under a
-            <a rel="license"
-               href="http://creativecommons.org/licenses/by-nc-sa/4.0/"
-               class="text-blue-900 underline hover:text-blue-700">Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License</a>.
-          </p>
+
+      <div class="bg-blue-950 text-white/85">
+        <div class="mx-auto grid w-full max-w-7xl grid-cols-1 gap-3 border-x border-white/10 px-4 py-5 text-xs text-white/70 sm:grid-cols-3 sm:items-center sm:px-6 lg:px-8">
+          <a href="https://elixir-luxembourg.org/"
+             class="inline-flex shrink-0 items-center gap-3 justify-self-center opacity-95 transition-opacity hover:opacity-100 sm:justify-self-start">
+            <img class="h-10 w-auto brightness-0 invert"
+                 src="{{ url_for('static', filename='public/images/Elixir_LU.svg') }}"
+                 alt="ELIXIR Luxembourg"/>
+            <span class="hidden h-5 w-px bg-white/20 sm:block" aria-hidden="true"></span>
+            <span class="hidden font-display text-sm font-semibold text-white sm:inline">
+              Data Catalogue
+            </span>
+          </a>
+
+          <p class="text-center sm:justify-self-center">&copy; Université du Luxembourg 2026</p>
+
+          <a rel="license"
+             href="http://creativecommons.org/licenses/by-nc-sa/4.0/"
+             class="flex items-center gap-1.5 justify-self-center transition-colors hover:text-white sm:justify-self-end">
+            <img class="h-[18px] w-auto"
+                 alt="Creative Commons License"
+                 src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png"/>
+            <span>CC BY-NC-SA 4.0</span>
+          </a>
         </div>
-      {% endblock %}
+      </div>
     {% endblock %}
   </footer>
 
