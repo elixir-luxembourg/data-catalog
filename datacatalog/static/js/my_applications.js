@@ -114,11 +114,12 @@ const initCloseApplicationForms = () => {
       if (button) button.disabled = true;
 
       try {
-        await fetch(form.action, {
+        const response = await fetch(form.action, {
           method: "POST",
           body: new FormData(form),
           credentials: "same-origin",
         });
+        if (!response.ok) throw new Error(`close failed: ${response.status}`);
         window.location.reload();
       } catch (_error) {
         if (button) button.disabled = false;
