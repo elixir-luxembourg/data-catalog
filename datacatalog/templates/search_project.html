@@ -1,4 +1,5 @@
 {% extends 'base_search.html' %}
+{% import 'macros.html' as macros %}
 {% set entity_controller = "project_details" %}
 {% set entity_name = "project" %}
 {% set search_controller = "entities_search" %}
@@ -11,67 +12,80 @@
 <meta property="og:description" content="Browse projects available in the {{ config.get('TITLE', 'Data Catalogue') }}.">
 {% endblock %}
 
-
 {% block search_results %}
-    {% set start_rank = (pagination.page - 1) * pagination.per_page %}
     {% for project in entities %}
-
-        <div class="panel panel-default panel-flat panel-dataset">
-
-            <div class="panel-body" style="position:relative">
-                <h3>
-                    <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=project.id) }}">    
-                        {% if project.project_name and project.project_name != project.title %}
-                        {{ project.project_name| truncate(55, True) }}&nbsp;-&nbsp;{{ project.title| truncate(55, True) }}
-                        {% else %}
-                            {{ project.title| truncate(55, True) }}
-                        {% endif %}
-                    </a>
-                {{macros.small_id_row(project)}}
-                </h3>
-               
-                <p class="search-description">{{ project.description | default("", True)|truncate(500, True) }}</p>
-                {% if project.keywords %}
-                    <p>
-                        <span class="dataset-field-label">Keywords:</span>
-                        {% for keyword in project.keywords %}
-                            <span class="label label-default">{{ keyword }}</span>
-                        {% endfor %}
-                    </p>
-                {% endif %}
-                {% if fair_evaluations_show and project.fair_evaluation %}
-                    <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=project.id) }}#fairplus-evaluation-fields"
-                       class="fairResultsStamp"><img alt='fairplus stamp'
-                                                     title="Dataset processed by FAIRplus. See FAIRplus Evaluation tab for details."
-                                                     src="/static/public/images/fairplus-stamp.png"/></a>
-                {% endif %}
-            </div>
-            <div class="panel-footer">
-                <div class="row">
-                    <div class="col-md-12">
-                        <ul class="dataset-card">
-                            {% if project.start_date %}
-                                <li><span
-                                        class="dataset-field-label">Start:</span> {{ project.start_date | date }}
-                                </li>
+        <article class="py-5">
+            <div class="flex flex-col gap-x-10 gap-y-4 lg:flex-row lg:items-start lg:justify-between">
+                <div class="min-w-0 flex-1">
+                    <h2 class="text-lg font-semibold leading-snug text-blue-900 lg:text-xl">
+                        <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=project.id) }}"
+                           class="line-clamp-2 hover:text-blue-800 hover:underline underline-offset-2">
+                            {% if project.project_name and project.project_name != project.title %}
+                                {{ project.project_name }}<span class="text-gray-500">&nbsp;·&nbsp;</span>{{ project.title }}
+                            {% else %}
+                                {{ project.title }}
                             {% endif %}
-                            {% if project.website %}
-                                <li><span class="dataset-field-label"><a
-                                        href="{{ project.website }}">Project website</a></span>
+                        </a>
+                    </h2>
 
-                                </li>
+                    {% if project.description %}
+                        <p class="mt-3 line-clamp-3 max-w-prose text-sm leading-relaxed text-gray-800 lg:text-base">
+                            {{ project.description | truncate(500, True) }}
+                        </p>
+                    {% endif %}
+
+                    {% if project.keywords %}
+                        <div class="mt-3 flex flex-wrap items-baseline gap-1.5">
+                            <span class="mr-1 text-xs font-medium text-gray-500">Keywords</span>
+                            {% for keyword in project.keywords[:6] %}
+                                <span class="rounded-sm border border-gray-200 px-2 py-0.5 text-xs text-gray-700">{{ keyword }}</span>
+                            {% endfor %}
+                            {% if project.keywords | length > 6 %}
+                                <span class="text-xs text-gray-500">+{{ project.keywords | length - 6 }} more</span>
                             {% endif %}
-                            {% if project.display_name %}
-                                <li><span
-                                        class="dataset-field-label">Contact:</span> {{ project.display_name }}
-                                </li>
-                            {% endif %}
-                        </ul>
-                    </div>
+                        </div>
+                    {% endif %}
                 </div>
+
+                {% if (fair_evaluations_show and project.fair_evaluation) or project.start_date or project.website or project.display_name %}
+                    <div class="flex shrink-0 flex-col gap-3 lg:w-56 lg:items-end">
+                        {% if fair_evaluations_show and project.fair_evaluation %}
+                            <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=project.id) }}#fairplus-evaluation-fields"
+                               title="Dataset processed by FAIRplus. See FAIRplus Evaluation tab for details.">
+                                <img alt="fairplus stamp"
+                                     src="/static/public/images/fairplus-stamp.png"
+                                     class="h-8 w-8"/>
+                            </a>
+                        {% endif %}
+                        {% if project.start_date or project.website or project.display_name %}
+                            <dl class="w-full space-y-3">
+                                {% if project.start_date %}
+                                    <div class="lg:text-right">
+                                        <dt class="text-xs font-medium text-gray-500">Started</dt>
+                                        <dd class="mt-0.5 text-sm font-semibold tabular-nums text-blue-900">{{ project.start_date | date }}</dd>
+                                    </div>
+                                {% endif %}
+                                {% if project.display_name %}
+                                    <div class="lg:text-right">
+                                        <dt class="text-xs font-medium text-gray-500">Contact</dt>
+                                        <dd class="mt-0.5 truncate text-sm font-semibold text-blue-900">{{ project.display_name }}</dd>
+                                    </div>
+                                {% endif %}
+                                {% if project.website %}
+                                    <div class="min-w-0 lg:text-right">
+                                        <dt class="text-xs font-medium text-gray-500">Website</dt>
+                                        <dd class="mt-0.5 truncate text-sm">
+                                            <a href="{{ project.website }}" class="text-blue-900 underline underline-offset-2 hover:text-blue-800">{{ project.website | truncate(28, True) }}</a>
+                                        </dd>
+                                    </div>
+                                {% endif %}
+                            </dl>
+                        {% endif %}
+                    </div>
+                {% endif %}
             </div>
-        </div>
 
+            {{ macros.small_id_row(project) }}
+        </article>
     {% endfor %}
-
 {% endblock %}

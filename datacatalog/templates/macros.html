@@ -1,18 +1,21 @@
-{% macro show_flashes() %}
+{% macro urlize_link(value) %}<span class="[&_a]:text-blue-900 [&_a]:underline [&_a]:underline-offset-2 [&_a]:hover:text-blue-800">{{ value | urlize }}</span>{% endmacro %}
 
+{% macro show_flashes() %}
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% set printed_messages = dict() %}
             {% for category, message in messages %}
                 {% if message not in printed_messages %}
-                    {% if category == 'error' or category is none %}
-                        <div class="alert alert-dismissible alert-danger" role="alert">
+                    {% if category == 'error' or category == 'warning' or category is none %}
+                        <div class="relative mb-4 flex items-start gap-3 rounded border border-red-900 bg-red-50 px-4 py-3 text-blue-900" role="alert">
                     {% else %}
-                        <div class="alert alert-{{ category }}" role="alert">
+                        <div class="relative mb-4 flex items-start gap-3 rounded border border-blue-900 bg-blue-50 px-4 py-3 text-blue-900" role="alert">
                     {% endif %}
                 {% set x = printed_messages.__setitem__(message, "value") %}
-                <button type="button" class="close" data-dismiss="alert">×</button>
-                <strong>{{ message }}</strong>
+                <strong class="flex-1 font-medium">{{ message }}</strong>
+                <button type="button" class="text-blue-900 hover:text-blue-700" aria-label="Close" onclick="this.parentElement.remove()">
+                    <i data-lucide="x" class="h-4 w-4"></i>
+                </button>
                 </div>
                 {% endif %}
             {% endfor %}
@@ -21,109 +24,111 @@
 {% endmacro %}
 
 
-{% macro split_labels(list, type="primary", facet_url=None) %}
-    {% for value in list %}
+{% macro split_labels(list, type="primary", facet_url=None, empty=None) %}
+    {% if not list and empty %}
+        <span class="text-gray-400">{{ empty }}</span>
+    {% endif %}
+    {% for value in list or [] %}
         {% if ":" in value and "://" not in value %}
             {{ split_value(value) }}
         {% elif "://" in value %}
-            <span class="label label-{{ type }}">{{ value | urlize }}</span>
+            <span class="inline-flex items-center rounded-sm border border-gray-200 bg-white px-2 py-0.5 text-xs text-blue-900">{{ value | urlize }}</span>
         {% else %}
             {% if facet_url %}
-                <span class="label label-{{ type }}"><a href="{{ facet_url }}{{ value | urlencode }}">{{ value }}</a></span>
+                <a href="{{ facet_url }}{{ value | urlencode }}" class="inline-flex items-center rounded-sm border border-sky-300 bg-sky-50 px-2 py-0.5 text-xs text-blue-900 transition-colors hover:border-blue-900 hover:bg-sky-100">{{ value }}</a>
             {% else %}
-                <span class="keyword-unclickable label">{{ value }}</span>
+                <span class="inline-flex items-center rounded-sm border border-gray-200 bg-white px-2 py-0.5 text-xs text-gray-700">{{ value }}</span>
             {% endif %}
         {% endif %}
     {% endfor %}
 {% endmacro %}
 
 {% macro split_values(list) %}
-    <span>{{ list | join(", ")| urlize }}</span>
+    {{ urlize_link(list | join(", ")) }}
 {% endmacro %}
 
 {% macro split_value(value, label_type="primary", span_type="static") %}
     {% set key, val = value.split(':', 1) %}
-    <div class="keyword-div">
-        <label class="label keyword-unclickable">{{ key }}</label>
-        <span class="label-{{ span_type }} keyword-span">{{ val }}</span>
+    <div class="mr-1 mb-1 inline-flex overflow-hidden rounded border border-gray-200 text-xs">
+        <span class="bg-gray-100 px-2 py-0.5 font-medium text-gray-700">{{ key }}</span>
+        <span class="bg-white px-2 py-0.5 text-blue-900">{{ val }}</span>
     </div>
 {% endmacro %}
 
 
 {% macro show_pagination(pagination, query, sort_order, selected_sort, facets=[], search_controller="search", entity_name='dataset') %}
-    <div class="row text-center">
-        <ul class="pagination">
-
+    {% set base_link = build_link(query, selected_sort, sort_order, facets, to_remove=none, search_controller=search_controller, entity_name=entity_name) %}
+    {% set start = (pagination.page - 1) * pagination.per_page + 1 %}
+    {% set end = pagination.page * pagination.per_page if pagination.has_next else pagination.total_count %}
+    {% set step_btn = "inline-flex items-center gap-1 rounded-sm border border-gray-300 bg-white px-3 py-1.5 font-display text-xs font-semibold uppercase tracking-[0.15em] text-blue-900 hover:border-blue-900 hover:bg-blue-900 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-900" %}
+    {% set step_btn_disabled = "inline-flex items-center gap-1 rounded-sm border border-gray-200 bg-white px-3 py-1.5 font-display text-xs font-semibold uppercase tracking-[0.15em] text-gray-400 cursor-not-allowed" %}
+    {% set num_btn = "inline-flex h-8 min-w-8 items-center justify-center rounded-sm border border-gray-300 bg-white px-2 font-display text-xs font-semibold tabular-nums text-blue-900 hover:border-blue-900 hover:bg-blue-900 hover:text-white" %}
+    {% set num_btn_current = "inline-flex h-8 min-w-8 items-center justify-center rounded-sm border border-blue-900 bg-blue-900 px-2 font-display text-xs font-semibold tabular-nums text-white" %}
+    <nav aria-label="Pagination" class="mt-4 flex flex-wrap items-center justify-between gap-4 border-t border-gray-200 pt-4">
+        <p class="font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500" aria-live="polite">
+            Showing {{ start }}–{{ end }} of {{ pagination.total_count }}
+        </p>
+        <div class="flex items-center gap-2">
             {% if pagination.has_prev %}
-                <li>
-                    <a href="{{ build_link(query, selected_sort, sort_order, facets, to_remove=none, search_controller=search_controller, entity_name=entity_name) }}&page={{ pagination.page - 1 }}">«</a>
-                </li>
+                <a href="{{ base_link }}&page={{ pagination.page - 1 }}" aria-label="Previous page" class="{{ step_btn }}">
+                    <span aria-hidden="true">&larr;</span> Previous
+                </a>
             {% else %}
-                <li class="disabled"><a href="javascript:void(0)">«</a></li>
+                <span aria-disabled="true" class="{{ step_btn_disabled }}">
+                    <span aria-hidden="true">&larr;</span> Previous
+                </span>
             {% endif %}
-            {%- for page in pagination.iter_pages() %}
-                {% if page %}
-                    {% if page != pagination.page %}
-                        <li>
-                            <a href="{{ build_link(query, selected_sort, sort_order, facets, to_remove=none,search_controller=search_controller, entity_name=entity_name) }}&page={{ page }}">{{ page }}</a>
-                        </li>
+            <ol class="flex items-center gap-1">
+                {%- for page in pagination.iter_pages() %}
+                    {% if page %}
+                        {% if page != pagination.page %}
+                            <li><a href="{{ base_link }}&page={{ page }}" class="{{ num_btn }}">{{ page }}</a></li>
+                        {% else %}
+                            <li><span aria-current="page" class="{{ num_btn_current }}">{{ page }}</span></li>
+                        {% endif %}
                     {% else %}
-                        <li class="active"><a
-                                href="{{ build_link(query, selected_sort, sort_order, facets, to_remove=none,search_controller=search_controller, entity_name=entity_name) }}&page={{ page }}">{{ page }}</a>
-                        </li>
+                        <li aria-hidden="true" class="px-1 font-display text-xs text-gray-400">&hellip;</li>
                     {% endif %}
-                {% else %}
-                    <li><span class=ellipsis>…</span></li>
-                {% endif %}
-            {%- endfor %}
-
-            {#                <li href="{{ url_for_other_page(pagination.page + 1) }}">»</li>#}
+                {%- endfor %}
+            </ol>
             {% if pagination.has_next %}
-                <li>
-                    <a href="{{ build_link(query, selected_sort, sort_order, facets, to_remove=none,search_controller=search_controller, entity_name=entity_name) }}&page={{ pagination.page + 1 }}">»</a>
-                </li>
+                <a href="{{ base_link }}&page={{ pagination.page + 1 }}" aria-label="Next page" class="{{ step_btn }}">
+                    Next <span aria-hidden="true">&rarr;</span>
+                </a>
             {% else %}
-                <li class="disabled"><a href="javascript:void(0)">»</a></li>
+                <span aria-disabled="true" class="{{ step_btn_disabled }}">
+                    Next <span aria-hidden="true">&rarr;</span>
+                </span>
             {% endif %}
-        </ul>
-
-    </div>
+        </div>
+    </nav>
 {% endmacro %}
 
 
 {% macro show_cursor_pagination(results, query, sort_order, selected_sort, facets=[], search_controller="entities_search", entity_name='dataset', current_cursor='*', prev_cursor=none) %}
-    <div class="row text-center cursor-pagination">
-        <ul class="pagination">
-            {% if not prev_cursor %}
-                <li class="disabled">
-                    <a href="javascript:void(0)" title="Previous page">
-                        &laquo; Previous
-                    </a>
-                </li>
-            {% else %}
-            <li>
-                <a href="{{ build_link(query, selected_sort, sort_order, facets, to_remove=none, search_controller=search_controller, entity_name=entity_name) }}&cursor={{ prev_cursor | urlencode }}&prev_cursor="
-                    title="Previous page">
-                    &laquo; Previous
-                </a>
-            </li>
-            {% endif %}
-            {% if not results.has_more %}
-                <li class="disabled">
-                    <a href="javascript:void(0)" title="Next page">
-                        Next &raquo;
-                    </a>
-                </li>
-            {% else %}
-            <li>
-                <a href="{{ build_link(query, selected_sort, sort_order, facets, to_remove=none, search_controller=search_controller, entity_name=entity_name) }}&cursor={{ results.nextCursorMark | urlencode }}&prev_cursor={{ current_cursor | urlencode }}"
-                    title="Next page">
-                    Next &raquo;
-                </a>
-            </li>
-            {% endif %}
-        </ul>
-    </div>
+    {% set base_link = build_link(query, selected_sort, sort_order, facets, to_remove=none, search_controller=search_controller, entity_name=entity_name) %}
+    {% set step_btn = "inline-flex items-center gap-1 rounded-sm border border-gray-300 bg-white px-3 py-1.5 font-display text-xs font-semibold uppercase tracking-[0.15em] text-blue-900 hover:border-blue-900 hover:bg-blue-900 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-900" %}
+    {% set step_btn_disabled = "inline-flex items-center gap-1 rounded-sm border border-gray-200 bg-white px-3 py-1.5 font-display text-xs font-semibold uppercase tracking-[0.15em] text-gray-400 cursor-not-allowed" %}
+    <nav aria-label="Pagination" class="mt-4 flex items-center justify-between gap-4 border-t border-gray-200 pt-4">
+        {% if not prev_cursor %}
+            <span aria-disabled="true" class="{{ step_btn_disabled }}">
+                <span aria-hidden="true">&larr;</span> Previous
+            </span>
+        {% else %}
+            <a href="{{ base_link }}&cursor={{ prev_cursor | urlencode }}&prev_cursor=" class="{{ step_btn }}">
+                <span aria-hidden="true">&larr;</span> Previous
+            </a>
+        {% endif %}
+        {% if not results.has_more %}
+            <span aria-disabled="true" class="{{ step_btn_disabled }}">
+                Next <span aria-hidden="true">&rarr;</span>
+            </span>
+        {% else %}
+            <a href="{{ base_link }}&cursor={{ results.nextCursorMark | urlencode }}&prev_cursor={{ current_cursor | urlencode }}" class="{{ step_btn }}">
+                Next <span aria-hidden="true">&rarr;</span>
+            </a>
+        {% endif %}
+    </nav>
 {% endmacro %}
 
 
@@ -145,30 +150,28 @@
 
 
 {% macro show_field(value, label, link=None, long=False, list=False, reference_list=False, facet_url=None) %}
-    <dt>{{ label }}</dt>
-    <dd>
-        {% if value is not none %}
+    {% if value is not none and value != '' %}
+        <dt class="mt-2.5 text-xs font-medium text-gray-500">{{ label }}</dt>
+        <dd class="mt-1 text-sm leading-relaxed text-blue-900 lg:text-base">
             {% if not long %}
                 {% if link %}
-                    <a href="{{ link }}">{{ value }}</a>
+                    <a href="{{ link }}" class="text-blue-900 underline underline-offset-2 hover:text-blue-800">{{ value }}</a>
                 {% else %}
                     {% if list %}
                         {{ split_labels(value, facet_url=facet_url) }}
                     {% elif reference_list %}
                         {{ split_values(value) }}
                     {% elif facet_url %}
-                        <a href="{{ facet_url }}{{ value | lower if value is boolean() else value | urlencode }}">{{ value }}</a>
+                        <a href="{{ facet_url }}{{ value | lower if value is boolean() else value | urlencode }}" class="text-blue-900 underline underline-offset-2 hover:text-blue-800">{{ value }}</a>
                     {% else %}
-                        {{ value | urlize }}
+                        {{ urlize_link(value) }}
                     {% endif %}
                 {% endif %}
             {% else %}
-                <blockquote>{{ value | urlize }}</blockquote>
+                <blockquote class="bg-gray-50 px-4 py-3 text-sm leading-relaxed text-blue-900 lg:text-base [&_a]:text-blue-900 [&_a]:underline [&_a]:underline-offset-2 [&_a]:hover:text-blue-800">{{ value | urlize }}</blockquote>
             {% endif %}
-        {% else %}
-            -
-        {% endif %}
-    </dd>
+        </dd>
+    {% endif %}
 {% endmacro %}
 
 {% macro show_field_text(value, label, list=False, facet_url=None) %}
@@ -180,36 +183,31 @@
 {% endmacro %}
 
 {% macro show_field_list(value, label, reference_list=False, facet_url=None) %}
-    {% if  value %}
+    {% if value %}
         {{ show_field(value, label, list=True, reference_list=reference_list, facet_url=facet_url) }}
     {% endif %}
 {% endmacro %}
 
 {% macro show_field_list_entities_inline(entities, label, entity_name) %}
-    <dt>{{ label }}</dt>
-    <dd>
-        {% if entities %}
+    {% if entities %}
+        <dt class="mt-2.5 text-xs font-medium text-gray-500">{{ label }}</dt>
+        <dd class="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-sm leading-relaxed lg:text-base">
             {% for entity in entities %}
-                {% set link = url_for('entity_details', entity_name=entity_name, entity_id = entity.id) %}
-                <a href="{{ link }}">{{ entity.title }}</a>
+                {% set link = url_for('entity_details', entity_name=entity_name, entity_id=entity.id) %}
+                <a href="{{ link }}" class="text-blue-900 underline underline-offset-2 hover:text-blue-800">{{ entity.title }}</a>
             {% endfor %}
-        {% else %}
-            -
-        {% endif %}
-    </dd>
-
+        </dd>
+    {% endif %}
 {% endmacro %}
 
 {% macro show_field_list_entities(entities, label, entity_name) %}
     {% if entities %}
-    {% for entity in entities %}
-        <li>
-            {% set link = url_for('entity_details', entity_name=entity_name, entity_id = entity.id) %}
-            <a href="{{ link }}">{{ entity.title }}</a>
-        </li>
-    {% endfor %}
-    {% else %}
-    -
+        {% for entity in entities %}
+            <li>
+                {% set link = url_for('entity_details', entity_name=entity_name, entity_id=entity.id) %}
+                <a href="{{ link }}" class="text-sm text-blue-900 underline underline-offset-2 hover:text-blue-800 lg:text-base">{{ entity.title }}</a>
+            </li>
+        {% endfor %}
     {% endif %}
 {% endmacro %}
 
@@ -225,24 +223,25 @@
 {% endmacro %}
 
 {% macro show_field_link(value, label, link) %}
-    {% if value %}
-        {{ show_field(value, label, link) }}
-    {% else %}
-        {{ show_field('-', label) }}
-    {% endif %}
+    {% if value %}{{ show_field(value, label, link) }}{% endif %}
 {% endmacro %}
 
 
 {% macro form_group(field) -%}
-    <div class="form-group {% if field.flags.required %}required{% endif %}">
-        <label for="{{ field.id }}" class="form-control-label">{{ field.label.text }}</label>
+    <div class="mb-4">
+        <label for="{{ field.id }}" class="mb-1 block text-sm font-medium text-blue-900 [&_a]:underline [&_a]:underline-offset-2 [&_a]:decoration-amber-500 [&_a]:decoration-2 [&_a]:hover:text-blue-800">
+            {{ field.label.text | safe }}{% if field.flags.required %}<span aria-hidden="true" class="ml-0.5 text-red-900">*</span>{% endif %}
+        </label>
         {% if field.errors %}
-            {{ field(class_="form-control is-invalid") }}
+            {{ field(class_="block w-full rounded border border-red-900 bg-white px-3 py-2 text-blue-900 shadow-sm focus:border-red-900 focus:ring-1 focus:ring-red-900 focus:outline-none") }}
         {% else %}
-            {{ field(class_="form-control") }}
+            {{ field(class_="block w-full rounded border border-gray-300 bg-white px-3 py-2 text-blue-900 shadow-sm focus:border-blue-900 focus:ring-1 focus:ring-blue-900 focus:outline-none") }}
+        {% endif %}
+        {% if field.description %}
+            <p class="mt-1 text-xs leading-relaxed text-gray-500">{{ field.description | safe }}</p>
         {% endif %}
         {% if field.errors and field.type != 'RecaptchaField' %}
-            <div class="invalid-feedback red">
+            <div class="mt-1 text-sm text-red-900">
                 {{ field.errors[0] }}
             </div>
         {% endif %}
@@ -250,25 +249,24 @@
 {% endmacro %}
 
 {% macro render_checkbox(field) %}
-    <div class="flex-checkbox checkbox">
-        <label><input id="{{ field.name }}" name="{{ field.name }}"
-                      type="checkbox"
-                      {% if field.data %}checked="checked"{% endif %}/></label>
-        <label for="{{ field.name }}" class="control-label">
+    <div class="flex items-start gap-2">
+        <input id="{{ field.name }}" name="{{ field.name }}"
+               type="checkbox"
+               {% if field.data %}checked="checked"{% endif %}
+               class="mt-1 h-4 w-4 rounded border-gray-300 text-blue-900 focus:ring-blue-900"/>
+        <label for="{{ field.name }}" class="inline-flex items-center gap-1 text-sm text-blue-900 [&_a]:underline [&_a]:underline-offset-2 [&_a]:decoration-amber-500 [&_a]:decoration-2 [&_a]:hover:text-blue-800">
             {% if field.render_kw['icon'] %}
-                <i class="material-icons {{ field.render_kw['icon'][1] }}">{{ field.render_kw['icon'][0] }}</i>
+                <i data-lucide="{{ field.render_kw['icon'][0] }}" class="h-4 w-4 {{ field.render_kw['icon'][1] }}"></i>
             {% endif %}
             {% if field.render_kw['url'] %}
-                {{ field.label.text }}&nbsp;<a href="{{ field.render_kw['url'] }}"><span
-                    class="glyphicon glyphicon-new-window"/></a>
+                {{ field.label.text | safe }}
+                <a href="{{ field.render_kw['url'] }}" class="text-blue-900 hover:text-blue-700" aria-label="Open link">
+                    <i data-lucide="external-link" class="h-3.5 w-3.5"></i>
+                </a>
             {% elif field.render_kw['tooltip'] %}
-                <span
-                        data-toggle="tooltip" data-placement="top"
-                        title="{{ field.render_kw['tooltip'] }}">
-                                   {{ field.label.text }}
-                                </span>
+                <span title="{{ field.render_kw['tooltip'] }}">{{ field.label.text | safe }}</span>
             {% else %}
-                {{ field.label.text }}
+                {{ field.label.text | safe }}
             {% endif %}
         </label>
     </div>
@@ -279,59 +277,103 @@
         {% if field.type in ('HiddenField', 'CSRFTokenField') %}
             {{ field() }}
         {% elif field.type == 'SeparatorText' %}
-            <h3>{{ field.label.text }}</h3>
+            <div class="mt-10 mb-4 first:mt-2">
+                <h3 class="border-t border-gray-200 pt-5 font-display text-xl font-semibold text-blue-900 lg:text-2xl [&_a]:underline [&_a]:underline-offset-2 [&_a]:decoration-amber-500 [&_a]:decoration-2 [&_a]:hover:text-blue-800">{{ field.label.text | safe }}</h3>
+            </div>
         {% elif field.type == 'SubmitField' %}
             {% if show_submit %}
-                <div class="form-group">
-                    {{ field(class_="btn btn-default btn-raised btn-primary") }}
+                <div class="mt-6 flex justify-end">
+                    {{ field(class_="inline-flex items-center justify-center gap-2 bg-blue-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-2") }}
                 </div>
             {% endif %}
         {% elif field.type == 'MultiCheckboxField' %}
-            <div class="form-group {% if field.flags.required %}required{% endif %}">
-                <label for="{{ field.id }}" class="form-control-label">{{ field.label.text }}</label>
-                {% for choice in field.choices %}
-                    <div class="flex-checkbox checkbox">
-                        <label><input id="{{ field.name ~ '-' ~ loop0 }}" name="{{ field.name }}"
-                                      type="checkbox" value="{{ choice[0] }}"/></label>
-                        <label for="{{ field.name }}" class="control-label">
-                            {{ choice[1] }}
-                        </label>
-                    </div>
-                {% endfor %}
+            <div class="mb-4">
+                <label for="{{ field.id }}" class="mb-2 block text-sm font-medium text-blue-900 [&_a]:underline [&_a]:underline-offset-2 [&_a]:decoration-amber-500 [&_a]:decoration-2 [&_a]:hover:text-blue-800">
+                    {{ field.label.text | safe }}{% if field.flags.required %}<span aria-hidden="true" class="ml-0.5 text-red-900">*</span>{% endif %}
+                </label>
+                <div class="grid grid-cols-1 gap-x-4 gap-y-1.5 sm:grid-cols-2 md:grid-cols-3">
+                    {% for choice in field.choices %}
+                        <div class="flex items-start gap-2">
+                            <input id="{{ field.name ~ '-' ~ loop0 }}" name="{{ field.name }}"
+                                   type="checkbox" value="{{ choice[0] }}"
+                                   class="mt-1 h-4 w-4 rounded border-gray-300 text-blue-900 focus:ring-blue-900"/>
+                            <label for="{{ field.name }}" class="text-sm text-blue-900 [&_a]:underline [&_a]:underline-offset-2 [&_a]:decoration-amber-500 [&_a]:decoration-2 [&_a]:hover:text-blue-800">
+                                {{ choice[1] | safe }}
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% if field.description %}
+                    <p class="mt-2 text-xs leading-relaxed text-gray-500">{{ field.description | safe }}</p>
+                {% endif %}
             </div>
         {% elif field.type == 'BooleanField' %}
-            <div class="row form-group {% if field.render_kw['compact'] %}form-group-compact{% endif %} {% if field.flags.required %}required{% endif %}">
+            <div class="mb-4 {% if field.render_kw['compact'] %}mb-2{% endif %}">
                 {{ render_checkbox(field) }}
             </div>
         {% elif field.type == 'TextAreaField' %}
-            <div class="form-group {% if field.flags.required %}required{% endif %}">
-                <label for="{{ field.id }}" class="form-control-label">{{ field.label.text }}</label>
-                {{ field(class_="form-control ", rows='4',cols='15') }}
+            <div class="mb-4">
+                <label for="{{ field.id }}" class="mb-1 block text-sm font-medium text-blue-900 [&_a]:underline [&_a]:underline-offset-2 [&_a]:decoration-amber-500 [&_a]:decoration-2 [&_a]:hover:text-blue-800">
+                    {{ field.label.text | safe }}{% if field.flags.required %}<span aria-hidden="true" class="ml-0.5 text-red-900">*</span>{% endif %}
+                </label>
+                {{ field(class_="block w-full rounded border border-gray-300 bg-white px-3 py-2 text-blue-900 shadow-sm focus:border-blue-900 focus:ring-1 focus:ring-blue-900 focus:outline-none", rows='4', cols='15') }}
+                {% if field.description %}
+                    <p class="mt-1 text-xs leading-relaxed text-gray-500">{{ field.description | safe }}</p>
+                {% endif %}
+            </div>
+        {% elif field.type == 'RecaptchaField' %}
+            <div class="mb-4">
+                {{ field() }}
             </div>
         {% elif field.type == 'FileField' %}
-            <div class="form-group {% if field.flags.required %}required{% endif %} is-fileinput">
-                <label for="{{ field.id }}" class="form-control-label">{{ field.label.text }}</label>
-                <input type="text" readonly="" class="form-control" placeholder="Browse...">
-                <input class="form-control" id="{{ field.id }}" name="{{ field.id }}" type="file">
+            <div class="mb-4">
+                <label for="{{ field.id }}" class="mb-2 block text-sm font-medium text-blue-900 [&_a]:underline [&_a]:underline-offset-2 [&_a]:decoration-amber-500 [&_a]:decoration-2 [&_a]:hover:text-blue-800">
+                    {{ field.label.text | safe }}{% if field.flags.required %}<span aria-hidden="true" class="ml-0.5 text-red-900">*</span>{% endif %}
+                </label>
+                <input class="block w-full cursor-pointer rounded border border-gray-300 bg-white p-2 text-sm text-gray-700 shadow-sm file:mr-4 file:cursor-pointer file:border file:border-blue-900 file:bg-white file:px-4 file:py-2 file:text-sm file:font-semibold file:text-blue-900 file:transition-colors hover:file:bg-blue-900 hover:file:text-white focus:border-blue-900 focus:outline-none focus:ring-1 focus:ring-blue-900"
+                       id="{{ field.id }}" name="{{ field.id }}" type="file">
             </div>
         {% elif field.render_kw and 'label' in field.render_kw %}
-            <div class="form-group">
-                <p>{{ field.label.text | urlize }}</p>
+            <div class="mb-4">
+                <p class="text-blue-900 [&_a]:underline [&_a]:underline-offset-2 [&_a]:decoration-amber-500 [&_a]:decoration-2 [&_a]:hover:text-blue-800">{{ field.label.text | safe | urlize }}</p>
             </div>
         {% elif field.render_kw and 'header' in field.render_kw %}
-            <h2>{{ field.label.text }}</h2>
+            <div class="mt-10 mb-4 first:mt-2">
+                <h2 class="border-t border-gray-200 pt-5 font-display text-2xl font-semibold text-blue-900 lg:text-3xl [&_a]:underline [&_a]:underline-offset-2 [&_a]:decoration-amber-500 [&_a]:decoration-2 [&_a]:hover:text-blue-800">{{ field.label.text | safe }}</h2>
+            </div>
+        {% elif field.type == 'FieldList' %}
+            <div class="mb-5 space-y-4">
+                {% if field.label.text %}
+                    <p class="text-xs font-medium text-gray-600 [&_a]:underline [&_a]:underline-offset-2 [&_a]:decoration-amber-500 [&_a]:decoration-2 [&_a]:hover:text-blue-800">
+                        {{ field.label.text | safe }}{% if field.flags.required %}<span aria-hidden="true" class="ml-0.5 text-red-900">*</span>{% endif %}
+                    </p>
+                {% endif %}
+                {% for entry in field.entries %}
+                    <div class="space-y-3 border-l-0 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0">
+                        {% for subfield in entry if subfield.type not in ('CSRFTokenField', 'HiddenField') %}
+                            {{ form_group(subfield) }}
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% elif field.type == 'FormField' %}
+            <div class="mb-4 sm:grid sm:grid-cols-2 sm:gap-4">
+                {% for subfield in field.form if subfield.type not in ('CSRFTokenField', 'HiddenField') %}
+                    {{ form_group(subfield) }}
+                {% endfor %}
+            </div>
         {% else %}
             {{ form_group(field) }}
         {% endif %}
         {% if field.errors %}
-            {% for error in field.errors %}<p class="help-block">*{{ error }}</p>{% endfor %}
+            {% for error in field.errors %}<p class="mt-1 text-sm text-red-900">*{{ error }}</p>{% endfor %}
         {% endif %}
     {% endfor %}
 {% endmacro %}
 
 {% macro quick_form(form, show_submit=True, include_form_tag=True, render_rw_filter=None) -%}
     {% if include_form_tag %}
-        <form class="form" method="POST">
+        <form class="space-y-1" method="POST">
             {{ render_quick_form(form, show_submit, render_rw_filter) }}
         </form>
     {% else %}
@@ -340,39 +382,32 @@
 {% endmacro %}
 
 
-{% macro start_panel(label, id, expanded=False, buttons=None, listType='dl') %}
-
-    <div class="panel panel-default panel-flat">
-    <div class="panel-heading" role="tab" id="{{ id }}-heading" data-toggle="collapse" data-parent="#accordion"
-         href="#{{ id }}-fields"
-         aria-expanded="true" aria-controls="{{ id }}-fields">
-        <h4 class="panel-title">
-            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#{{ id }}-fields"
-               aria-expanded="true" aria-controls="{{ id }}-fields">
-                {{ label }}
-            </a>
-            {% for (glyph, label, url) in buttons or [] %}
-                <a href="{{ url }}" class="btn panel-access" role="button"><span
-                        class="glyphicon {{ glyph }}"
-                        data-toggle="tooltip"
-                        title="{{ label }}"></span></a>{% endfor %}
-        </h4>
-    </div>
-    <div id="{{ id }}-fields"
-         class="panel-collapse collapse{% if not expanded %} start-collapsed{% else %} start-visible{% endif %}"
-         role="tabpanel"
-         aria-labelledby="{{ id }}-headings">
-    <div class="panel-body">
-    {% if listType %}<{{ listType }}>{% endif %}
-
+{% macro start_panel(label, id, expanded=True, buttons=None, listType='dl') %}
+    <details id="{{ id }}-fields" class="group scroll-mt-8 py-5 lg:py-6" {% if expanded %}open{% endif %}>
+        <summary id="{{ id }}-heading" class="flex cursor-pointer list-none items-center gap-3 [&::-webkit-details-marker]:hidden">
+            <h2 class="font-display text-xl font-semibold leading-tight tracking-tight text-blue-900 lg:text-2xl">{{ label }}</h2>
+            <i data-lucide="chevron-down" class="h-4 w-4 shrink-0 text-gray-400 transition-transform group-open:rotate-180" aria-hidden="true"></i>
+            {% if buttons %}
+                <span class="ml-auto flex shrink-0 items-center gap-2">
+                    {% for (glyph, label, url) in buttons %}
+                        <a href="{{ url }}" title="{{ label }}" aria-label="{{ label }}"
+                           class="inline-flex items-center gap-1.5 border border-blue-900 bg-white px-3 py-1.5 text-sm font-semibold text-blue-900 transition-colors hover:bg-blue-900 hover:text-white">
+                            {% if glyph %}<i data-lucide="{{ glyph }}" class="h-3.5 w-3.5"></i>{% endif %}
+                            <span>{{ label }}</span>
+                        </a>
+                    {% endfor %}
+                </span>
+            {% endif %}
+        </summary>
+        <div class="mt-4">
+        {% if listType %}<{{ listType }} class="space-y-1">{% endif %}
 {% endmacro %}
 
 
 {% macro end_panel(listType='dl') %}
-    {%  if listType %}</{{ listType }}>{% endif %}
-    </div>
-    </div>
-    </div>
+        {% if listType %}</{{ listType }}>{% endif %}
+        </div>
+    </details>
 {% endmacro %}
 
 
@@ -384,20 +419,20 @@
 
 
 {% macro start_table() %}
-    <table class="dc-table">
+    <table class="min-w-full border-collapse text-sm lg:text-base">
     <tbody>
 {% endmacro %}
 
 {% macro table_row(values, header=False, links=None, merge=False, bold=False) %}
-    <tr {% if header %} class="header-table" {% elif bold %} class="bold-row" {% endif %} >
+    <tr class="{% if header %}bg-gray-50 font-semibold text-blue-900{% elif bold %}font-semibold text-blue-900{% else %}text-blue-900{% endif %}">
     {% for col in values %}
-        <td {% if loop.first %} class="td-table label-table"
-        {% else %} class="td-table" {% endif %} {% if merge and loop.last %} colspan="2" {% endif %}>
+        <td class="border border-gray-200 px-3 py-2 align-top {% if loop.first %}font-medium text-gray-700{% endif %}"
+            {% if merge and loop.last %}colspan="2"{% endif %}>
         {% if links[loop.index0] %}
-            <a href="{{ links[loop.index0] }}">{{ col }}</a>
+            <a href="{{ links[loop.index0] }}" class="text-blue-900 underline underline-offset-2 hover:text-blue-800">{{ col }}</a>
         {% elif col is none %}
-            -
-        {% else %}  
+            <span class="text-gray-400">-</span>
+        {% else %}
             {{ col }}
         {% endif %}
         </td>
@@ -411,46 +446,59 @@
 {% endmacro %}
 
 {% macro start_entity_info() %}
-    <div class="entity-info">
+    <dl class="divide-y divide-gray-100 border-y border-gray-200">
 {% endmacro %}
 
 {% macro entity_info_row(name, value, link=None, facet_url=None, list=False) %}
     {%- if value %}
-    <div class="entity-info-row">
-        <div class="entity-info-label bold-row">{{ name }}</div>
-        <div class="entity-info-value">
+    <div class="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[12rem_minmax(0,1fr)] sm:gap-6">
+        <dt class="text-xs font-medium text-gray-500">{{ name }}</dt>
+        <dd class="text-sm leading-relaxed text-blue-900 lg:text-base">
             {% if link %}
-                <a href="{{ link }}">{{ value }}</a>
-            {% else %}  
+                <a href="{{ link }}" class="break-words text-blue-900 underline underline-offset-2 hover:text-blue-800">{{ value }}</a>
+            {% else %}
                 {% if list %}
-                    {{ show_field(value, label, list=True, facet_url=facet_url) }}
-                {% else %}  
+                    {{ split_labels(value, facet_url=facet_url) }}
+                {% else %}
                     {{ value }}
                 {% endif %}
             {% endif %}
-        </div>
+        </dd>
     </div>
     {% endif -%}
 {% endmacro %}
 
 
 {% macro end_entity_info() %}
-    </div>
+    </dl>
 {% endmacro %}
 
 
 {% macro small_id_row(entity) %}
-<div class="small-id">{{ entity.id }}</div>
+    <div class="mt-3 font-mono text-[11px] text-gray-400">{{ entity.id }}</div>
 {% endmacro %}
 
 {% macro entity_info_deprecated(name, value) %}
-{%- if value %}
-    <div class="entity-info-row">
-        <div class="entity-info-label bold-row">{{ name }}</div>
-        <div class="entity-info-value red bold-row">
-                    {{ value | safe }}
-        </div>
+    {%- if value %}
+    <div class="grid grid-cols-1 gap-1 py-3 sm:grid-cols-[12rem_minmax(0,1fr)] sm:gap-6">
+        <dt class="text-xs font-medium text-red-900">{{ name }}</dt>
+        <dd class="text-sm font-semibold leading-relaxed text-red-900 lg:text-base">
+            {{ value | safe }}
+        </dd>
     </div>
     {% endif -%}
 {% endmacro %}
 
+{% macro btn_primary(href, label, icon=None, full_width=False, title=None) %}
+    <a href="{{ href }}"{% if title %} title="{{ title }}"{% endif %} class="inline-flex {% if full_width %}w-full {% endif %}items-center justify-center gap-2 bg-blue-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-2">
+        {% if icon %}<i data-lucide="{{ icon }}" class="h-4 w-4" aria-hidden="true"></i>{% endif %}
+        <span>{{ label }}</span>
+    </a>
+{% endmacro %}
+
+{% macro btn_secondary(href, label, icon=None, title=None) %}
+    <a href="{{ href }}"{% if title %} title="{{ title }}"{% endif %} class="inline-flex items-center justify-center gap-2 border border-blue-900 bg-white px-4 py-2 text-sm font-semibold text-blue-900 transition-colors hover:bg-blue-900 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-2">
+        {% if icon %}<i data-lucide="{{ icon }}" class="h-4 w-4" aria-hidden="true"></i>{% endif %}
+        <span>{{ label }}</span>
+    </a>
+{% endmacro %}

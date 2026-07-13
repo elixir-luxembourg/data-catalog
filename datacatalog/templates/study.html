@@ -1,48 +1,51 @@
-{% extends 'layout.html' %}
+{% extends 'base_layout.html' %}
+{% import 'macros.html' as macros %}
 {% set entity_name = "study" %}
 {% set study_author = study.get_author() %}
 {% set study_published_date = study.get_published_date() %}
-{% import 'macros.html' as macros %}
+{% set project = study.project_entity %}
+
 {% block title %}Study - {{ study.title }}{% endblock %}
+
 {% block jsonld %}
-    {{ super() }}
-    <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@id": "{{ request.url }}",
-        "@type": "Study",
-        "http://purl.org/dc/terms/conformsTo": {
-            "@id": "https://bioschemas.org/profiles/Study/0.2-DRAFT",
-            "@type": "CreativeWork"
-        },
-        "identifier": {
-            "@id": "{{ study.id }}",
-            "@type": "PropertyValue"
-        },
-        "name": " {{ study.primary_purpose }}",
-        {% if study_author %}
-        "author": {
-            "@type": "{{ study_author['type'] }}",
-            "name": "{{ study_author['name'] }}"
-        },
-        {% endif %}
-        {% if study_published_date %}
-        "datePublished": "{{ study_published_date | date }}",
-        {% endif %}
-        {% if study.description %}
-        "description": "{{ study.description }}",
-        {% endif %}
-        {% if study.types %}
-        "studyDomain": "{{ study.types[0]}}",
-        {% endif %}
-        "keywords": {{ study.get_keywords() | render_keywords | safe }},
-        "isPartOf": "{{ url_for('entity_details', entity_name='project', entity_id=study.project_entity.id, _external=True) }}",
-        "relatedStudy": [
-            {% for related in study.get_related_studies_urls() %}{"@type": "Study", "@id": "{{ related }}"}{{ ", " if not loop.last }}{% endfor %}
-        ],
-        "url": "{{ request.url }}"
-    }
-    </script>
+{{ super() }}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@id": "{{ request.url }}",
+    "@type": "Study",
+    "http://purl.org/dc/terms/conformsTo": {
+        "@id": "https://bioschemas.org/profiles/Study/0.2-DRAFT",
+        "@type": "CreativeWork"
+    },
+    "identifier": {
+        "@id": "{{ study.id }}",
+        "@type": "PropertyValue"
+    },
+    "name": " {{ study.primary_purpose }}",
+    {% if study_author %}
+    "author": {
+        "@type": "{{ study_author['type'] }}",
+        "name": "{{ study_author['name'] }}"
+    },
+    {% endif %}
+    {% if study_published_date %}
+    "datePublished": "{{ study_published_date | date }}",
+    {% endif %}
+    {% if study.description %}
+    "description": "{{ study.description }}",
+    {% endif %}
+    {% if study.types %}
+    "studyDomain": "{{ study.types[0] }}",
+    {% endif %}
+    "keywords": {{ study.get_keywords() | render_keywords | safe }},
+    "isPartOf": "{{ url_for('entity_details', entity_name='project', entity_id=study.project_entity.id, _external=True) }}",
+    "relatedStudy": [
+        {% for related in study.get_related_studies_urls() %}{"@type": "Study", "@id": "{{ related }}"}{{ ", " if not loop.last }}{% endfor %}
+    ],
+    "url": "{{ request.url }}"
+}
+</script>
 {% endblock %}
 
 {% block meta %}
@@ -52,100 +55,177 @@
 {% endblock %}
 
 {% block content %}
-    <div class="well box studyDetails">
-        {% if fair_evaluations_show and study.fair_evaluation %}
-            <p class="fairResultsStamp"><img alt='fairplus stamp'
-                                             title="Dataset processed by FAIRplus. See FAIRplus Evaluation tab for details."
-                                             src="/static/public/images/fairplus-stamp.png"/></p>
+{%- set glance_items = [] -%}
+{%- if study.organisms -%}
+  {%- set _ = glance_items.append({'label': 'Organism' if study.organisms | length == 1 else 'Organisms', 'value': study.organisms | join(', ')}) -%}
+{%- endif -%}
+{%- if study.size -%}
+  {%- set _ = glance_items.append({'label': 'Subjects', 'value': study.size}) -%}
+{%- endif -%}
+{%- if study.multi_center_study is not none and study.multi_center_study != '' -%}
+  {%- set mc_value = study.multi_center_study | yesno | title if study.multi_center_study | boolean else study.multi_center_study -%}
+  {%- set _ = glance_items.append({'label': 'Multi-center', 'value': mc_value}) -%}
+{%- endif -%}
+{%- if study.informed_consent is not none and study.informed_consent != '' -%}
+  {%- set ic_value = study.informed_consent | yesno | title if study.informed_consent | boolean else study.informed_consent -%}
+  {%- set _ = glance_items.append({'label': 'Informed consent', 'value': ic_value}) -%}
+{%- endif -%}
+<article>
+  <div class="grid grid-cols-1 gap-x-10 gap-y-8 pb-12 lg:grid-cols-[18rem_minmax(0,1fr)] lg:grid-rows-[auto_1fr] lg:pb-16">
+
+    <header class="order-1 space-y-6 lg:order-none lg:col-start-2 lg:row-start-1">
+    <p>
+      <span class="font-display text-sm font-semibold text-blue-900">Study</span>
+    </p>
+
+    <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+      <div class="min-w-0 flex-1 space-y-4">
+        <h1 class="font-display text-3xl font-semibold tracking-tight text-blue-900 lg:text-5xl">{{ study.title }}</h1>
+        <p class="select-all break-all font-mono text-xs text-gray-500">{{ study.id }}</p>
+        {% if study.description %}
+          <p class="max-w-3xl text-lg leading-snug text-blue-900 lg:text-xl">{{ study.description }}</p>
         {% endif %}
-        <h1>{{ study.title }}{{macros.small_id_row(study)}}</h1>
-        {% if config.get('ALLOW_ENTITY_EXPORT', False) %}
-            <div class="form-inline">
-                <div class="button-link input-group">
-                    <p class="input-group-btn">
-                        <i class="material-icons">download</i>
-                    </p>
-                    <a class="btn button-link-text"
-                       href="{{ url_for('export_dats_entity', entity_name='study', entity_id=study.id) }}">Export
-                        Metadata
-                        as DATS</a>
+      </div>
 
-                </div>
-            </div>
-        {% endif %}
-        <p class="notes">{{ study.description | default("", True) }}</p>
-        <p>
-            {% if study.keywords %}
-                keywords: {{ macros.split_labels(study.keywords) }}
-            {% endif %}
-        </p>
-        <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
-            <div class="row">
-                <div class="col-md-6">
-                    {#    PROJECT      #}
-                    {{ macros.start_panel("Project", "project", True) }}
-                    {% set project = study.project_entity %}
-                    {{ macros.show_field_link(project.title, "Project Title", url_for('entity_details', entity_name='project', entity_id=project.id)) }}
-                    {% if project.website %}
-                        {{ macros.show_field_link(project.website, "Project website", project.website) }}
-                    {% endif %}
-                    {% if project.contact_entities %}
-                        {{ macros.show_field_list(project.contact_entities, "Contact Person(s)", reference_list=True) }}
-                    {% endif %}
-                    {{ macros.end_panel() }}
-                </div>
-                <div class="col-md-6">
-                    {#    DATASETS    #}
-
-                    {{ macros.start_panel("Datasets", "datasets", True, listType="ol") }}
-                    {{ macros.show_field_list_entities(study.datasets_entities , "Datasets", 'dataset') }}
-                    {{ macros.end_panel(listType='ol') }}
-                </div>
-            </div>
-            <br/>
-
-            {#    PLANNING SITE    #}
-
-            {{ macros.start_panel("Study description", "description") }}
-            {{ macros.show_field_text(study.primary_purpose, "Primary Purpose", facet_url=facets_url.primary_purpose) }}
-            {{ macros.show_field_list(study.types, "Study Types", facet_url=facets_url.types) }}
-            {{ macros.show_field_text_long(study.cohorts_description, "Description of Cohorts") }}
-            {{ macros.show_field_text(study.informed_consent, "Informed Consent Given?", facet_url=facets_url.informed_consent) }}
-            {{ macros.show_field_text(study.multi_center_study, "Multi-center Study?", facet_url=facets_url.multi_center_study) }}
-            {{ macros.show_field_list(study.study_characteristics, "Study characteristics", facet_url=facets_url.study_characteristics) }}
-            {{ macros.end_panel() }}
-
-            {#    STUDY SUBJECTS #}
-
-            {{ macros.start_panel("Subjects", "study-subjects") }}
-            {{ macros.show_field_list(study.organisms, "Organisms", facet_url=facets_url.organisms) }}
-            {{ macros.show_field_text(study.size, "Number of subjects", facet_url=facets_url.size) }}
-            {{ macros.show_field_list(study.disease, "Diseases", facet_url=facets_url.disease) }}
-            {{ macros.show_field_text(study.samples_source, "Sample Sources", list=True, facet_url=facets_url.sample_source) }}
-            {{ macros.show_field_text(study.samples_type, "Type of Samples Collected", list=True, facet_url=facets_url.samples_type) }}
-
-
-            {{ macros.end_panel() }}
-
-            {#    DEMOGRAPHIC AND PARTICIPANT INFORMATION   #}
-
-            {{ macros.start_panel("Demographic and Participant Information", "demographic") }}
-{#            {{ macros.show_field_text(study.age_range, "Age Range of Study Participants") }}#}
-{#            {{ macros.show_field_text(study.bmi_range, "BMI Range of Study Participants") }}#}
-            {{ macros.show_field_list(study.cohort_characteristics, "Cohort characteristics", facet_url=facets_url.cohort_characteristics) }}
-
-            {{ macros.end_panel() }}
-
-            {#    ATTACHED FILES    #}
-            {% if attachment_exist %}
-                {{ macros.start_panel("Attached files", listType="") }}
-                <div id="attachments-datatable" data-url="{{ attachment_url }}"></div>
-                {{ macros.end_panel(listType="") }}
-            {% endif %}
-
-
+      {% if (fair_evaluations_show and study.fair_evaluation) or config.get('ALLOW_ENTITY_EXPORT', False) %}
+        <div class="flex shrink-0 flex-wrap items-center gap-3 lg:flex-col lg:items-end">
+          {% if fair_evaluations_show and study.fair_evaluation %}
+            <img alt="FAIRplus stamp"
+                 title="Study processed by FAIRplus"
+                 src="/static/public/images/fairplus-stamp.png"
+                 class="h-12 w-12"/>
+          {% endif %}
+          {% if config.get('ALLOW_ENTITY_EXPORT', False) %}
+            {{ macros.btn_secondary(url_for('export_dats_entity', entity_name='study', entity_id=study.id), "Export as DATS", icon="download") }}
+          {% endif %}
         </div>
+      {% endif %}
     </div>
 
+    {% if study.types or study.keywords %}
+      <div class="space-y-2 text-sm">
+        {% if study.types %}
+          <div class="flex flex-wrap items-baseline gap-1.5">
+            <span class="mr-1 text-xs font-medium text-gray-600">Types</span>
+            {% for type in study.types %}
+              <span class="rounded-sm border border-sky-300 bg-sky-50 px-2 py-0.5 text-xs text-blue-900">{{ type | title }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+        {% if study.keywords %}
+          <div class="flex flex-wrap items-baseline gap-1.5">
+            <span class="mr-1 text-xs font-medium text-gray-600">Keywords</span>
+            {% for keyword in study.keywords %}
+              <span class="rounded-sm border border-gray-200 px-2 py-0.5 text-xs text-gray-700">{{ keyword }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    {% endif %}
+    </header>
 
+    <aside class="order-2 space-y-10 lg:order-none lg:col-start-1 lg:row-span-2 lg:row-start-1">
+      {% if glance_items %}
+        <section class="relative">
+          <h2 class="font-display text-base font-semibold text-blue-900">At a glance</h2>
+          <dl class="mt-4 divide-y divide-gray-100">
+            {% for item in glance_items %}
+              <div class="flex items-baseline justify-between gap-4 py-2.5 first:pt-0">
+                <dt class="text-xs font-medium text-gray-500">{{ item.label }}</dt>
+                <dd class="min-w-0 text-right text-sm font-semibold text-blue-900 lg:text-base">{{ item.value }}</dd>
+              </div>
+            {% endfor %}
+          </dl>
+        </section>
+      {% endif %}
+
+      {% if project %}
+        <section class="relative border-t border-gray-200 pt-5">
+          <p class="text-xs font-medium text-gray-500">Part of project</p>
+          <a href="{{ url_for('entity_details', entity_name='project', entity_id=project.id) }}"
+             class="mt-3 block text-lg font-semibold text-blue-900 hover:text-blue-800 hover:underline underline-offset-2 lg:text-xl">
+            {{ project.title }}
+          </a>
+          <dl class="mt-4 space-y-3">
+            {% if project.website %}
+              <div>
+                <dt class="text-xs font-medium text-gray-500">Website</dt>
+                <dd class="mt-1 break-words text-sm leading-relaxed lg:text-base">
+                  <a href="{{ project.website }}" class="text-blue-900 underline underline-offset-2 hover:text-blue-800">{{ project.website | truncate(50, True) }}</a>
+                </dd>
+              </div>
+            {% endif %}
+            {% if project.contact_entities %}
+              <div>
+                <dt class="text-xs font-medium text-gray-500">Contact{% if project.contact_entities | length != 1 %}s{% endif %}</dt>
+                <dd class="mt-1 text-sm leading-relaxed text-blue-900 lg:text-base">{{ project.contact_entities | join(', ') }}</dd>
+              </div>
+            {% endif %}
+          </dl>
+        </section>
+      {% endif %}
+
+    </aside>
+
+    <div class="order-3 space-y-8 lg:order-none lg:col-start-2 lg:row-start-2 lg:mt-4">
+      <section class="relative">
+        <div class="flex items-baseline justify-between gap-3 border-t border-gray-200 pt-5 lg:pt-6">
+          <h2 class="font-display text-xl font-semibold leading-tight tracking-tight text-blue-900 lg:text-2xl">Datasets</h2>
+          {% if study.datasets_entities %}
+            <span class="text-xs font-semibold tabular-nums text-gray-500">{{ study.datasets_entities | length }}</span>
+          {% endif %}
+        </div>
+        {% if study.datasets_entities %}
+          <ol class="mt-4 divide-y divide-gray-100">
+            {% for entity in study.datasets_entities %}
+              <li>
+                <a href="{{ url_for('entity_details', entity_name='dataset', entity_id=entity.id) }}"
+                   class="group flex items-baseline gap-4 py-3 transition-colors first:pt-0">
+                  <span class="shrink-0 text-xs font-semibold tabular-nums text-gray-500" aria-hidden="true">{{ '%02d' | format(loop.index) }}</span>
+                  <span class="min-w-0 flex-1 text-base font-semibold text-blue-900 group-hover:text-blue-800 group-hover:underline underline-offset-2 lg:text-lg">{{ entity.title }}</span>
+                </a>
+              </li>
+            {% endfor %}
+          </ol>
+        {% else %}
+          <p class="mt-4 text-sm leading-relaxed text-gray-700 lg:text-base">No datasets linked to this study.</p>
+        {% endif %}
+      </section>
+
+      <div class="space-y-1">
+      {% if study.primary_purpose or study.types or study.cohorts_description or study.study_characteristics %}
+        {{ macros.start_panel("Study description", "description", expanded=True) }}
+        {{ macros.show_field_text(study.primary_purpose, "Primary purpose", facet_url=facets_url.primary_purpose) }}
+        {{ macros.show_field_list(study.types, "Study types", facet_url=facets_url.types) }}
+        {{ macros.show_field_text_long(study.cohorts_description, "Description of cohorts") }}
+        {{ macros.show_field_list(study.study_characteristics, "Study characteristics", facet_url=facets_url.study_characteristics) }}
+        {{ macros.end_panel() }}
+      {% endif %}
+
+      {% if study.organisms or study.size or study.disease or study.samples_source or study.samples_type %}
+        {{ macros.start_panel("Subjects", "study-subjects", expanded=True) }}
+        {{ macros.show_field_list(study.organisms, "Organisms", facet_url=facets_url.organisms) }}
+        {{ macros.show_field_text(study.size, "Number of subjects", facet_url=facets_url.size) }}
+        {{ macros.show_field_list(study.disease, "Diseases", facet_url=facets_url.disease) }}
+        {{ macros.show_field_text(study.samples_source, "Sample sources", list=True, facet_url=facets_url.sample_source) }}
+        {{ macros.show_field_text(study.samples_type, "Samples collected", list=True, facet_url=facets_url.samples_type) }}
+        {{ macros.end_panel() }}
+      {% endif %}
+
+      {% if study.cohort_characteristics %}
+        {{ macros.start_panel("Demographic and participant information", "demographic", expanded=True) }}
+        {{ macros.show_field_list(study.cohort_characteristics, "Cohort characteristics", facet_url=facets_url.cohort_characteristics) }}
+        {{ macros.end_panel() }}
+      {% endif %}
+
+      {% if attachment_exist %}
+        {{ macros.start_panel("Attached files", "attachments", expanded=True, listType="") }}
+        <div id="attachments-datatable" data-url="{{ attachment_url }}"></div>
+        {{ macros.end_panel(listType="") }}
+      {% endif %}
+      </div>
+    </div>
+
+  </div>
+</article>
 {% endblock %}
