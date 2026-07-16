@@ -1,8 +1,25 @@
 import React, {useState} from "react";
 import {useGlobalFilter, usePagination, useSortBy, useTable, useExpanded} from "react-table";
-import styles from "./ReactTable.css";
+import {ChevronDown, ChevronRight, ChevronUp} from "lucide-react";
 import Pagination from "./Pagination.jsx";
 import PropTypes from "prop-types";
+
+const SortIcon = ({ direction }) => {
+    if (direction === "desc") {
+        return <ChevronDown className="ml-1 inline-block h-3 w-3 text-blue-900" aria-hidden="true" />;
+    }
+    if (direction === "asc") {
+        return <ChevronUp className="ml-1 inline-block h-3 w-3 text-blue-900" aria-hidden="true" />;
+    }
+    if (direction === "none") {
+        return <ChevronRight className="ml-1 inline-block h-3 w-3 text-gray-400" aria-hidden="true" />;
+    }
+    return null;
+};
+
+SortIcon.propTypes = {
+    direction: PropTypes.oneOf(["asc", "desc", "none", null]),
+};
 
 export default function ReactTable({
     columns,
@@ -44,23 +61,15 @@ export default function ReactTable({
     function ReactRow({row}){
         return (
             <tr>
-                <td colSpan={visibleColumns.length}>
-                    <div className="panel-body">
-                        <dl>
-                            <dt>
-                                    Name
-                            </dt>
-                            <dd>{row.original["full_name"] || "-"}</dd>
-                            <dt>
-                                    Address
-                            </dt>
-                            <dd>{row.original["business_address"] || "-"}</dd>
-                            <dt>
-                                    Phone Number
-                            </dt>
-                            <dd>-</dd>
-                        </dl>
-                    </div>
+                <td colSpan={visibleColumns.length} className="bg-gray-50 px-3 py-3">
+                    <dl className="grid grid-cols-1 gap-x-4 gap-y-2 text-sm sm:grid-cols-[10rem,1fr]">
+                        <dt className="font-semibold text-blue-900">Name</dt>
+                        <dd className="text-gray-800">{row.original["full_name"] || "-"}</dd>
+                        <dt className="font-semibold text-blue-900">Address</dt>
+                        <dd className="text-gray-800">{row.original["business_address"] || "-"}</dd>
+                        <dt className="font-semibold text-blue-900">Phone Number</dt>
+                        <dd className="text-gray-800">-</dd>
+                    </dl>
                 </td>
             </tr>
         );
@@ -128,10 +137,14 @@ export default function ReactTable({
     };
 
     const displayedRowsString = pagination ? `Showing  ${page.length} of ${data.length} entries: ` : "";
+    const selectClass =
+        "ml-1 rounded border border-gray-200 bg-white px-2 py-1 text-sm text-blue-900 focus:border-blue-900 focus:outline-none focus:ring-1 focus:ring-blue-900";
+    const filterInputClass =
+        "ml-1 rounded border border-gray-200 bg-white px-2 py-1 text-sm text-blue-900 placeholder-gray-400 focus:border-blue-900 focus:outline-none focus:ring-1 focus:ring-blue-900";
     return (
         <>
             {pagination &&
-                    <div className={styles.filterDisplayOptions}>
+                    <div className="mb-2 flex items-center justify-between gap-3 text-sm text-gray-800">
                         <div>
                             <span>
                                 {"Show "}
@@ -140,6 +153,7 @@ export default function ReactTable({
                                     onChange={e => {
                                         setPageSize(Number(e.target.value));
                                     }}
+                                    className={selectClass}
                                 >
                                     {PAGE_SIZE_OPTIONS.map(pageSize => (
                                         <option key={pageSize} value={pageSize}>
@@ -154,72 +168,72 @@ export default function ReactTable({
                                 <div>
                                     {"Filter: "}
                                     <input value={filterInput} onChange={handleFilterChange} type="text"
-                                        placeholder={defaultSearchPlaceHolder}/>
+                                        placeholder={defaultSearchPlaceHolder}
+                                        className={filterInputClass}/>
                                 </div>
                         }
                     </div>
             }
-            <table className="table table-striped" {...getTableProps({style: {width: "100%"}})}>
-                <thead>
-                    {headerGroups.map((headerGroup, index) => (
-                        <tr key={index} {...headerGroup.getHeaderGroupProps()}>
-                            {headerGroup.headers.map((column, index) => {
+            <div className="overflow-x-auto rounded border border-gray-200">
+                <table className="min-w-full divide-y divide-gray-200 text-sm" {...getTableProps({style: {width: "100%"}})}>
+                    <thead className="bg-gray-50">
+                        {headerGroups.map((headerGroup, index) => (
+                            <tr key={index} {...headerGroup.getHeaderGroupProps()}>
+                                {headerGroup.headers.map((column, index) => {
+                                    let direction = null;
+                                    if (sort && column.canSort) {
+                                        if (column.isSorted) {
+                                            direction = column.isSortedDesc ? "desc" : "asc";
+                                        } else {
+                                            direction = "none";
+                                        }
+                                    }
+                                    return (
+                                        <th key={index} width={columnWidthIsDefault ? "" : column.width}
+                                            className="px-3 py-2 text-left font-semibold text-blue-900"
+                                            {...column.getHeaderProps(sort && column.getSortByToggleProps())}
+                                        >
+                                            {column.render("Header")}
+                                            <SortIcon direction={direction} />
+                                        </th>
+                                    );
+                                })}
+                            </tr>
+                        ))}
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 bg-white" {...getTableBodyProps()}>
+                        { pagination ?
+                            page.map((row, i) => {
+                                prepareRow(row);
                                 return (
-                                    <th key={index} width={columnWidthIsDefault ? "" : column.width}
-                                        {...column.getHeaderProps(sort && column.getSortByToggleProps())}
-                                    >
-                                        {column.render("Header")}
-                                        <span className={
-                                            sort && column.canSort
-                                                ? (
-                                                    column.isSorted
-                                                        ? (
-                                                            column.isSortedDesc
-                                                                ? `glyphicon glyphicon-triangle-bottom ${styles.columnSortButton}`
-                                                                : `glyphicon glyphicon-triangle-top ${styles.columnSortButton}`
-                                                        )
-                                                        : `glyphicon glyphicon-triangle-right ${styles.columnSortButton}`
-                                                )
-                                                : styles.columnSortButton
-                                        }/>
-                                    </th>
-                                );
-                            })}
-                        </tr>
-                    ))}
-                </thead>
-                <tbody {...getTableBodyProps()}>
-                    { pagination ?
-                        page.map((row, i) => {
-                            prepareRow(row);
-                            return (
-                                <tr key={i} {...row.getRowProps()}>
-                                    {row.cells.map((cell, index) => {
-                                        return <td key={index} {...cell.getCellProps()}>{cell.render("Cell")}</td>;
-                                    })}
-                                </tr>
-                            );
-                        }) :
-                        rows.map((row, i) => {
-                            prepareRow(row);
-                            return (
-                                <React.Fragment key={i}>
-                                    <tr key={i} {...row.getRowProps()}>
+                                    <tr key={i} className="hover:bg-gray-50" {...row.getRowProps()}>
                                         {row.cells.map((cell, index) => {
-                                            return <td key={index} {...cell.getCellProps()}>{cell.render("Cell")}</td>;
+                                            return <td key={index} className="px-3 py-2 align-top text-gray-800" {...cell.getCellProps()}>{cell.render("Cell")}</td>;
                                         })}
                                     </tr>
-                                    {expanded && row.isExpanded ? (
-                                        <ReactRow row={row} />
-                                    ) : null}
-                                </React.Fragment>
-                            );
-                        })
-                    }
-                </tbody>
-            </table>
+                                );
+                            }) :
+                            rows.map((row, i) => {
+                                prepareRow(row);
+                                return (
+                                    <React.Fragment key={i}>
+                                        <tr key={i} className="hover:bg-gray-50" {...row.getRowProps()}>
+                                            {row.cells.map((cell, index) => {
+                                                return <td key={index} className="px-3 py-2 align-top text-gray-800" {...cell.getCellProps()}>{cell.render("Cell")}</td>;
+                                            })}
+                                        </tr>
+                                        {expanded && row.isExpanded ? (
+                                            <ReactRow row={row} />
+                                        ) : null}
+                                    </React.Fragment>
+                                );
+                            })
+                        }
+                    </tbody>
+                </table>
+            </div>
             {pagination &&
-                <div className={styles.filterDisplayOptions}>
+                <div className="mt-2 flex items-center justify-between gap-3 text-sm text-gray-800">
                     <span>{displayedRowsString}</span>
                     <Pagination
                         currentPage={pageIndex}

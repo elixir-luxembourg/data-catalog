@@ -103,7 +103,7 @@ class TestWebControllers(BaseTest):
             entities = client.get("/datasets")
             self.assertIn(
                 f"{self.dataset_length} datasets found",
-                re.sub(r"\s+", " ", entities.data.decode("utf-8")),
+                get_clean_html_body(entities),
             )
 
     def test_home(self):

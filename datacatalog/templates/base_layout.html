@@ -1,156 +1,322 @@
 {% import 'macros.html' as macros %}
-
 <!doctype html>
 <html lang="en">
+
 <head>
-    {% block head %}
-        <title>{{ config.get('TITLE', 'Data Catalogue') }} - {% block title %}Home{% endblock %}</title>
-        {% block meta %}
-            <meta http-equiv="content-type" content="text/html; charset=utf-8">
-            <meta name="csrf-token" id="csrf-token" content="{{ csrf_token() }}">
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <meta property="og:url" content="{{ request.url }}">
-            <meta property="og:type" content="website">
-            <meta property="og:image" content="{{ url_for('static', filename='public/images/datacatalog_logo.png', _external=True, _scheme=request.scheme) }}">
-        {% endblock %}
-        {#    <link rel="shortcut icon" href="{{ url_for('static',filename='favicon.ico') }}">#}
-        {% block css %}
-            <!-- Material Design fonts -->
-            <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons">
-            {% assets "common_css" %}
-                <link rel="stylesheet" type="text/css" href="{{ ASSET_URL }}"/>
-            {% endassets %}
-        {% endblock %}
-        {% block jsonld %}
-            <script type="application/ld+json">
-                {
-                  "@context": "http://schema.org",
-                  "@id": "{{ request.host_url }}",
-                  "@type": "DataCatalog",
-                  "dct:conformsTo": "https://bioschemas.org/profiles/DataCatalog/0.3-RELEASE-2019_07_01",
-                  "description": "The {{ config.get('TITLE', 'Data Catalogue') }} is a unique collection of project-level metadata from large research initiatives in a diverse range of fields, including clinical, molecular and observational studies. Its aim is to improve the findability of these projects following FAIR data principles.",
-                  "keywords": [
-                    "translational medicine",
-                    "IMI",
-                    "project metadata",
-                    "FAIRplus",
-                    " FAIR metadata",
-                    "IMI-eTriks",
-                    "ELIXIR Luxembourg"
-                  ],
-                  "license": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
-                  "name": "{{ config.get('TITLE', 'Data Catalogue') }}",
-                  "provider": [
-                    {
-                      "@context": "http://schema.org",
-                      "@type": "Organization",
-                      "dct:conformsTo": "https://bioschemas.org/profiles/Organization/0.2-DRAFT-2019_07_19",
-                      "description": "The LCSB is accelerating biomedical research by closing the link between systems biology and medical research",
-                      "name": "LCSB - Luxembourg Centre for Systems Biomedicine"
-                    }
-                  ],
-                  "url": "{{ request.url }}"
-                }
-            </script>
-        {% endblock %}
-        <script type="text/javascript">
-            function defer(method) {
-                if (window.jQuery)
-                    method();
-                else
-                    setTimeout(function () {
-                        defer(method)
-                    }, 50);
-            }
-        </script>
-    {% endblock %}
+  {% block head %}
+  <title>
+    {{ config.get('TITLE', 'Data Catalogue') }} - {% block title %}Home{%
+    endblock %}
+  </title>
+  {% block meta %}
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta name="csrf-token" id="csrf-token" content="{{ csrf_token() }}" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#1E3446" />
+  <meta property="og:url" content="{{ request.url }}" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image"
+    content="{{ url_for('static', filename='public/images/icon-meta.png', _external=True, _scheme=request.scheme) }}" />
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='public/images/favicon.png') }}" />
+  <link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='public/images/favicon.png') }}" />
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='public/images/icon-meta.png') }}" />
+  {% endblock %}
+  {% block jsonld %}
+  <script type="application/ld+json">
+    {
+      "@context": "http://schema.org",
+      "@id": "{{ request.host_url }}",
+      "@type": "DataCatalog",
+      "dct:conformsTo": "https://bioschemas.org/profiles/DataCatalog/0.3-RELEASE-2019_07_01",
+      "description": "The {{ config.get('TITLE', 'Data Catalogue') }} is a unique collection of project-level metadata from large research initiatives in a diverse range of fields, including clinical, molecular and observational studies. Its aim is to improve the findability of these projects following FAIR data principles.",
+      "keywords": [
+        "translational medicine",
+        "IMI",
+        "project metadata",
+        "FAIRplus",
+        " FAIR metadata",
+        "IMI-eTriks",
+        "ELIXIR Luxembourg"
+      ],
+      "license": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+      "name": "{{ config.get('TITLE', 'Data Catalogue') }}",
+      "provider": [
+        {
+          "@context": "http://schema.org",
+          "@type": "Organization",
+          "dct:conformsTo": "https://bioschemas.org/profiles/Organization/0.2-DRAFT-2019_07_19",
+          "description": "The LCSB is accelerating biomedical research by closing the link between systems biology and medical research",
+          "name": "LCSB - Luxembourg Centre for Systems Biomedicine"
+        }
+      ],
+      "url": "{{ request.url }}"
+    }
+  </script>
+  {% endblock %}
+  {% block css %}
+  <link rel="preload" href="{{ url_for('static', filename='public/fonts/barlow-400.woff2') }}" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="{{ url_for('static', filename='public/fonts/barlow-500.woff2') }}" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="{{ url_for('static', filename='public/fonts/barlow-600.woff2') }}" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="{{ url_for('static', filename='public/fonts/barlow-condensed-600.woff2') }}" as="font" type="font/woff2" crossorigin />
+  <script src="{{ url_for('static', filename='vendor/tailwindcss/browser.js') }}"></script>
+  <style type="text/tailwindcss">
+    @theme static {
+        --font-sans:
+          "Barlow", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        --font-body:
+          "Barlow", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        --font-display: "Barlow Condensed", "Arial Black", Arial, sans-serif;
+        --font-mono:
+          ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono",
+          monospace;
+
+        --color-blue-*: initial;
+        --color-blue-950: #142f3f;
+        --color-blue-900: #1e3446;
+        --color-blue-800: #354859;
+        --color-blue-700: #4b5d6b;
+        --color-blue-600: #62717e;
+        --color-blue-500: #788590;
+        --color-blue-400: #8f9aa3;
+        --color-blue-300: #a5aeb5;
+        --color-blue-200: #bcc2c8;
+        --color-blue-100: #d2d6da;
+        --color-blue-50: #e9ebed;
+
+        --color-red-*: initial;
+        --color-red-950: #e13c2e;
+        --color-red-900: #e13c2e;
+        --color-red-800: #e45043;
+        --color-red-700: #e76358;
+        --color-red-600: #ea776d;
+        --color-red-500: #ed8a82;
+        --color-red-400: #f09e97;
+        --color-red-300: #f3b1ab;
+        --color-red-200: #f6c5c0;
+        --color-red-100: #f9d8d5;
+        --color-red-50: #fcecea;
+
+        --color-sky-*: initial;
+        --color-sky-950: #afdef6;
+        --color-sky-900: #afdef6;
+        --color-sky-800: #afdef6;
+        --color-sky-700: #c7e8f9;
+        --color-sky-600: #c7e8f9;
+        --color-sky-500: #c7e8f9;
+        --color-sky-400: #d7effb;
+        --color-sky-300: #d7effb;
+        --color-sky-200: #e7f5fc;
+        --color-sky-100: #e7f5fc;
+        --color-sky-50: #e7f5fc;
+
+        --color-amber-500: #f6931d;
+      }
+
+      @layer base {
+        button:not(:disabled),
+        [type="button"]:not(:disabled),
+        [type="submit"]:not(:disabled),
+        [type="reset"]:not(:disabled),
+        [role="button"]:not(:disabled),
+        summary {
+          cursor: pointer;
+        }
+        button:disabled,
+        [type="button"]:disabled,
+        [type="submit"]:disabled,
+        [type="reset"]:disabled {
+          cursor: not-allowed;
+        }
+      }
+
+      @font-face {
+        font-family: "Barlow";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("{{ url_for('static', filename='public/fonts/barlow-400.woff2') }}")
+          format("woff2");
+      }
+
+      @font-face {
+        font-family: "Barlow";
+        font-style: normal;
+        font-weight: 500;
+        font-display: swap;
+        src: url("{{ url_for('static', filename='public/fonts/barlow-500.woff2') }}")
+          format("woff2");
+      }
+
+      @font-face {
+        font-family: "Barlow";
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url("{{ url_for('static', filename='public/fonts/barlow-600.woff2') }}")
+          format("woff2");
+      }
+
+      @font-face {
+        font-family: "Barlow";
+        font-style: normal;
+        font-weight: 700;
+        font-display: swap;
+        src: url("{{ url_for('static', filename='public/fonts/barlow-700.woff2') }}")
+          format("woff2");
+      }
+
+      @font-face {
+        font-family: "Barlow Condensed";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("{{ url_for('static', filename='public/fonts/barlow-condensed-400.woff2') }}")
+          format("woff2");
+      }
+
+      @font-face {
+        font-family: "Barlow Condensed";
+        font-style: normal;
+        font-weight: 500;
+        font-display: swap;
+        src: url("{{ url_for('static', filename='public/fonts/barlow-condensed-500.woff2') }}")
+          format("woff2");
+      }
+
+      @font-face {
+        font-family: "Barlow Condensed";
+        font-style: normal;
+        font-weight: 600;
+        font-display: swap;
+        src: url("{{ url_for('static', filename='public/fonts/barlow-condensed-600.woff2') }}")
+          format("woff2");
+      }
+    </style>
+    <style>
+      html {
+        overflow-y: scroll;
+      }
+      @supports (scrollbar-gutter: stable) {
+        html {
+          overflow-y: auto;
+          scrollbar-gutter: stable;
+        }
+      }
+      body.bg-white::before,
+      body.bg-white::after {
+        content: "";
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        width: max(0px, calc((100vw - 80rem) / 2));
+        z-index: -1;
+        pointer-events: none;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none' stroke='%23f6931d' stroke-width='1'><path d='M0 0v3M0 8v4M0 17v3M0 0h3M8 0h4M17 0h3'/></svg>");
+        background-size: 20px 20px;
+        opacity: 30%;
+      }
+      body.bg-white::before {
+        left: 0;
+        -webkit-mask-image: radial-gradient(ellipse 110% 90% at 0% 50%, #000 65%, transparent 98%);
+        mask-image: radial-gradient(ellipse 110% 90% at 0% 50%, #000 65%, transparent 98%);
+      }
+      body.bg-white::after {
+        right: 0;
+        -webkit-mask-image: radial-gradient(ellipse 110% 90% at 100% 50%, #000 65%, transparent 98%);
+        mask-image: radial-gradient(ellipse 110% 90% at 100% 50%, #000 65%, transparent 98%);
+      }
+      body.bg-white > nav.bg-white,
+      body.bg-white > footer > section.bg-white,
+      body.bg-white > footer > .bg-blue-950 {
+        background-color: transparent;
+        border-color: transparent;
+      }
+      body.bg-white > nav.bg-white > div.mx-auto,
+      body.bg-white > footer > section.bg-white > div.mx-auto {
+        background-color: #ffffff;
+      }
+      body.bg-white > footer > .bg-blue-950 > div.mx-auto {
+        background-color: #142f3f;
+      }
+    </style>
+  {% endblock %} {% endblock %}
 </head>
-<body class="{{ body_extra_class }}">
-{% block navbar %}
+
+<body class="flex min-h-screen flex-col bg-white font-body text-gray-800 antialiased {{ body_extra_class|default('') }}">
+
+  {% block navbar %}
     {% if not no_navbar %}
-        {% with active_page=active_page %}
-            {% include 'navbar.html' %}
-        {% endwith %}
+      {% with active_page=active_page %}
+        {% include 'navbar.html' %}
+      {% endwith %}
     {% endif %}
-{% endblock %}
+  {% endblock %}
 
-{% block container %}
-    <div class="container" id="main-container">
-        {{ macros.show_flashes() }}
-        {% block content %}{% endblock %}
-    </div>
-{% endblock %}
-{% block extra_content %}{% endblock %}
+  {% block container %}
+    <main class="mx-auto w-full max-w-7xl flex-1 border-x border-blue-900/10 px-4 pb-6 pt-8 sm:px-6 lg:px-8 lg:pt-12" id="main-container">
+      {{ macros.show_flashes() }}
+      {% block content %}{% endblock %}
+    </main>
+  {% endblock %}
 
-<footer>
+  {% block extra_content %}{% endblock %}
+
+  <footer class="mt-auto">
     {% block footer %}
-        {% block footerlogos %}
-            <div class="container">
-                <div class="row ">
-                    <div class="col-xs-2 logo" id="eulogo">
-                        <a href="https://ec.europa.eu/"><span class="helper"></span><img
-                                src="{{ config.get('URL_PREFIX', '') }}/static/public/images/EU_logo.jpg"
-                                alt="eu logo"/></a>
-                    </div>
-                    <div class="col-xs-2 logo" id="ullogo">
-                        <a href="https://www.uni.lu/lcsb"><span class="helper"></span><img
-                                src="{{ config.get('URL_PREFIX', '') }}/static/public/images/unilcsb.svg"
-                                alt="ul logo"/></a>
-                    </div>
-                    <div class="col-xs-2 logo" id="imilogo">
-                        <a href="https://www.imi.europa.eu"><span class="helper"></span><img
-                                src="{{ config.get('URL_PREFIX', '') }}/static/public/images/IMI_logo.png"
-                                alt="imi logo"/></a>
-                    </div>
+      {% block footerlogos %}
+        <section aria-labelledby="footer-partners-heading" class="border-t border-blue-900/10 bg-white">
+          <div class="mx-auto flex w-full max-w-7xl flex-col items-center gap-6 border-x border-blue-900/10 px-4 py-10 sm:px-6 lg:px-8 lg:py-12">
+            <h2 id="footer-partners-heading" class="font-display text-xs font-semibold uppercase tracking-[0.15em] text-gray-500">
+              Partners
+            </h2>
+            <ul class="grid w-full grid-cols-2 items-stretch gap-3 sm:grid-cols-4 lg:grid-cols-7">
+              <li><a href="https://ec.europa.eu/" class="flex h-20 w-full items-center justify-center rounded-sm border border-gray-200 px-4 py-3 opacity-80 transition hover:border-gray-300 hover:opacity-100"><img class="max-h-10 w-auto object-contain" src="{{ url_for('static', filename='public/images/EU_logo.jpg') }}" alt="European Commission"/></a></li>
+              <li><a href="https://www.uni.lu/lcsb" class="flex h-20 w-full items-center justify-center rounded-sm border border-gray-200 px-4 py-3 opacity-80 transition hover:border-gray-300 hover:opacity-100"><img class="max-h-10 w-auto object-contain" src="{{ url_for('static', filename='public/images/UNI_Logo_LCSB.svg') }}" alt="UNI LCSB"/></a></li>
+              <li><a href="https://www.imi.europa.eu" class="flex h-20 w-full items-center justify-center rounded-sm border border-gray-200 px-4 py-3 opacity-80 transition hover:border-gray-300 hover:opacity-100"><img class="max-h-10 w-auto object-contain" src="{{ url_for('static', filename='public/images/IMI_logo.png') }}" alt="IMI"/></a></li>
+              <li><a href="https://elixir-luxembourg.org/" class="flex h-20 w-full items-center justify-center rounded-sm border border-gray-200 px-4 py-3 opacity-80 transition hover:border-gray-300 hover:opacity-100"><img class="max-h-10 w-auto object-contain" src="{{ url_for('static', filename='public/images/Elixir_LU.svg') }}" alt="ELIXIR Luxembourg"/></a></li>
+              <li><a href="https://www.etriks.org/" class="flex h-20 w-full items-center justify-center rounded-sm border border-gray-200 px-4 py-3 opacity-80 transition hover:border-gray-300 hover:opacity-100"><img class="max-h-10 w-auto object-contain" src="{{ url_for('static', filename='public/images/etriks.png') }}" alt="eTRIKS"/></a></li>
+              <li><a href="https://fairplus-project.eu/" class="flex h-20 w-full items-center justify-center rounded-sm border border-gray-200 px-4 py-3 opacity-80 transition hover:border-gray-300 hover:opacity-100"><img class="max-h-10 w-auto object-contain" src="{{ url_for('static', filename='public/images/fairplus-logo.png') }}" alt="FAIRplus"/></a></li>
+              <li><a href="https://www.efpia.eu/" class="flex h-20 w-full items-center justify-center rounded-sm border border-gray-200 px-4 py-3 opacity-80 transition hover:border-gray-300 hover:opacity-100"><img class="max-h-10 w-auto object-contain" src="{{ url_for('static', filename='public/images/efpia_logo.png') }}" alt="EFPIA"/></a></li>
+            </ul>
+          </div>
+        </section>
+      {% endblock %}
 
+      <div class="bg-blue-950 text-white/85">
+        <div class="mx-auto grid w-full max-w-7xl grid-cols-1 gap-3 border-x border-white/10 px-4 py-5 text-xs text-white/70 sm:grid-cols-3 sm:items-center sm:px-6 lg:px-8">
+          <a href="https://elixir-luxembourg.org/"
+             class="inline-flex shrink-0 items-center gap-3 justify-self-center opacity-95 transition-opacity hover:opacity-100 sm:justify-self-start">
+            <img class="h-10 w-auto brightness-0 invert"
+                 src="{{ url_for('static', filename='public/images/Elixir_LU.svg') }}"
+                 alt="ELIXIR Luxembourg"/>
+            <span class="hidden h-5 w-px bg-white/20 sm:block" aria-hidden="true"></span>
+            <span class="hidden font-display text-sm font-semibold text-white sm:inline">
+              Data Catalogue
+            </span>
+          </a>
 
-                    <div class="col-xs-2 logo" id="elixirlogo">
-                        <a href="https://www.elixir-luxembourg.org"><span class="helper"></span><img
-                                src="{{ config.get('URL_PREFIX', '') }}/static/public/images/Elixir_LU.svg"
-                                alt="elixir luxembourg logo"/></a>
-                    </div>
-                    <div class="col-xs-2 logo" id="etrikslogo">
-                        <a href="https://www.etriks.org/"><span class="helper"></span><img
-                                src="{{ config.get('URL_PREFIX', '') }}/static/public/images/etriks.png"
-                                alt="etriks logo"/></a>
-                    </div>
-                    <div class="col-xs-2 logo" id="fairpluslogo">
-                        <a href="https://fairplus-project.eu/"><span class="helper"></span><img
-                                src="{{ config.get('URL_PREFIX', '') }}/static/public/images/fairplus-logo.png"
-                                alt="fairplus logo"/></a>
-                    </div>
-                    <div class="col-xs-2 logo" id="efpialogo">
-                        <a href="https://www.efpia.eu/"><span class="helper"></span><img
-                                src="{{ config.get('URL_PREFIX', '') }}/static/public/images/efpia_logo.png"
-                                alt="efpia logo"/></a>
-                    </div>
+          <p class="text-center sm:justify-self-center">&copy; Université du Luxembourg 2026</p>
 
-                </div>
-            </div>
-        {% endblock %}
-        {% block footercopyright %}
-            <p style='text-align:center;padding-bottom: 20px; margin:auto; max-width: 48ch'>
-                <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">
-                    <img style='width:88px; border-width:0'
-                         alt="Creative Commons License"
-                         src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png"/></a><br/><br/>This
-                work is licensed under a
-                <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons
-                    Attribution-NonCommercial-ShareAlike 4.0 International License</a>.
-            </p>
-        {% endblock %}
+          <a rel="license"
+             href="http://creativecommons.org/licenses/by-nc-sa/4.0/"
+             class="flex items-center gap-1.5 justify-self-center transition-colors hover:text-white sm:justify-self-end">
+            <img class="h-[18px] w-auto"
+                 alt="Creative Commons License"
+                 src="https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png"/>
+            <span>CC BY-NC-SA 4.0</span>
+          </a>
+        </div>
+      </div>
     {% endblock %}
-</footer>
-{% block js %}
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-            integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
-            crossorigin="anonymous"></script>
-    <script src="https://unpkg.com/popper.js@1.12.6/dist/umd/popper.js"
-            integrity="sha384-fA23ZRQ3G/J53mElWqVJEGJzU0sTs+SvzG8fXVWP+kJQ1lwFAOkcUOysnlKJC33U"
-            crossorigin="anonymous"></script>
-    {% assets "common_js" %}
-        <script type="text/javascript" src="{{ ASSET_URL }}"></script>
-    {% endassets %}
-{% endblock %}
+  </footer>
+
+  <script src="{{ url_for('static', filename='vendor/lucide/lucide.min.js') }}"></script>
+  <script>lucide.createIcons();</script>
+
+  <script src="{{ url_for('static', filename='js/react/bundle.js') }}"></script>
+
+  {% block js %}
+  {% endblock %}
 </body>
+
 </html>

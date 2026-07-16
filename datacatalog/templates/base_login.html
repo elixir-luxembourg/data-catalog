@@ -1,33 +1,44 @@
-{% extends 'layout.html' %}
+{% extends 'base_layout.html' %}
+{% import 'macros.html' as macros %}
 {% set active_page = "login" %}
 
+{% block navbar %}
+    {% if not no_navbar %}
+        {% with active_page=active_page %}
+            {% include 'navbar.html' %}
+        {% endwith %}
+    {% endif %}
+{% endblock %}
+
 {% macro render_text_field(field) %}
-    <div class="form-group {% if field.errors %}has-error{% endif %}">
-        {{ field.label(class="col-md-3 control-label") }}
-        <div class="col-md-6">
-            {{ field(class="form-control") }}
-            {% if field.errors %}
-                {% for error in field.errors %}<p class="help-block">{{ error }}</p>{% endfor %}
-            {% endif %}
-        </div>
+    <div class="mb-4">
+        {{ field.label(class="mb-1 block text-sm font-medium text-blue-900") }}
+        {% if field.errors %}
+            {{ field(class="block w-full rounded border border-red-900 bg-white px-3 py-2 text-blue-900 shadow-sm focus:border-red-900 focus:ring-1 focus:ring-red-900 focus:outline-none") }}
+            {% for error in field.errors %}<p class="mt-1 text-sm text-red-900">{{ error }}</p>{% endfor %}
+        {% else %}
+            {{ field(class="block w-full rounded border border-gray-300 bg-white px-3 py-2 text-blue-900 shadow-sm focus:border-blue-900 focus:ring-1 focus:ring-blue-900 focus:outline-none") }}
+        {% endif %}
     </div>
 {% endmacro %}
 
 {% block content %}
-    <div class="row">
-        <div class="well col-md-6 col-md-offset-3">
-            <form id="login-form"
-                  method="POST"
-                  action="{{ url_for('login') }}"
-                  role="form" class="form-horizontal">
-                {{ form.csrf_token }}
-                {{ form.next() }}
-                {{ render_text_field(form.username) }}
-                {{ render_text_field(form.password) }}
-                <div id="submit-login" class="form-group">
-                    <button type="submit" class="btn btn-primary btn-raised">Submit</button>
-                </div>
-            </form>
-        </div>
+    <div class="mx-auto max-w-md rounded border border-gray-200 bg-gray-50 px-6 py-8">
+        <form id="login-form"
+              method="POST"
+              action="{{ url_for('login') }}"
+              role="form"
+              class="space-y-1">
+            {{ form.csrf_token }}
+            {{ form.next() }}
+            {{ render_text_field(form.username) }}
+            {{ render_text_field(form.password) }}
+            <div id="submit-login" class="pt-2">
+                <button type="submit"
+                        class="inline-flex w-full items-center justify-center gap-2 bg-blue-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-2">
+                    Submit
+                </button>
+            </div>
+        </form>
     </div>
 {% endblock %}

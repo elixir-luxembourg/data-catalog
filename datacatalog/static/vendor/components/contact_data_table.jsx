@@ -16,6 +16,7 @@
 
 import React, {useMemo} from "react";
 import ReactDOM from "react-dom";
+import {ChevronRight} from "lucide-react";
 import ReactTable from "./ReactTable.jsx";
 
 let domContainer = document.querySelector("#contacts-datatable");
@@ -45,12 +46,16 @@ function replaceEmptyProperties(obj) {
 function DisplayTable() {
 
     const IconCell = ({row}) => {
+        const rotation = row.isExpanded ? "rotate-90" : "";
         return(
-            <div {...row.getToggleRowExpandedProps()}>
-                <div className={row.isExpanded ? "panel-row" : "panel-row collapsed"}>
-                    <span></span>
-                </div>
-            </div>
+            <button
+                type="button"
+                className="inline-flex items-center justify-center text-blue-900 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-1"
+                aria-label={row.isExpanded ? "Collapse row" : "Expand row"}
+                {...row.getToggleRowExpandedProps()}
+            >
+                <ChevronRight className={`h-4 w-4 transition-transform ${rotation}`} aria-hidden="true" />
+            </button>
         );
     };
 
@@ -64,7 +69,7 @@ function DisplayTable() {
             <>
                 {
                     mail ?
-                        <a href={mailto}>
+                        <a href={mailto} className="font-medium text-blue-900 hover:underline">
                             {cell.row.original["email"]}
                         </a> : "-"
                 }

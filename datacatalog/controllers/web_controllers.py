@@ -26,7 +26,6 @@ HTML endpoints:
     - request_access
 """
 
-import json
 import logging
 import re
 from typing import List, Tuple
@@ -712,6 +711,7 @@ def my_applications(entity_name):
         applications = [
             a for a in applications if a.state is not ApplicationState.approved
         ]
+    applications = [a for a in applications if a.state is not ApplicationState.closed]
     if any([a.state is None for a in applications]):
         logger.error(
             "An error occurred while loading some applications: Unknown state retrieved"
@@ -722,23 +722,23 @@ def my_applications(entity_name):
             "error",
         )
 
-    applications = json.dumps(
-        [
-            {
-                "ext_id": a.external_id,
-                "dataset": a.entity_title,
-                "state": a.state.value,
-                "creation_date_string": a.creation_date.strftime("%Y-%m-%dT%H:%M:%S"),
-                "entity_url": url_for(
-                    "entity_details",
-                    entity_id=a.entity_id,
-                    entity_name=entity_name,
-                ),
-            }
-            for a in applications
-            if a.state is not None
-        ]
-    )
+    applications = [
+        {
+            "id": a.id,
+            "ext_id": a.external_id,
+            "dataset": a.entity_title,
+            "state": a.state.value,
+            "creation_date_string": a.creation_date.strftime("%Y-%m-%dT%H:%M:%S"),
+            "entity_url": url_for(
+                "entity_details",
+                entity_id=a.entity_id,
+                entity_name=entity_name,
+            ),
+        }
+        for a in applications
+        if a.state is not None
+    ]
+    applications.sort(key=lambda a: a["creation_date_string"], reverse=True)
     return render_template(
         "my_applications.html",
         applications=applications,

@@ -1,10 +1,7 @@
-<div class="button-link input-group">
-    <div class="input-group-btn">
-        <i class="material-icons">visibility</i>
-    </div>
-    <a class="btn button-link-text"
-       title="{{ storage.location }}" href="{{ storage.location }}">Access Data
-        <div class="ripple-container"></div>
-    </a>
-
+{% import 'macros.html' as macros %}
+<div class="flex items-center gap-2">
+    <span class="inline-flex h-9 w-9 items-center justify-center rounded border border-gray-200 bg-gray-50 text-blue-900">
+        <i data-lucide="eye" class="h-4 w-4"></i>
+    </span>
+    {{ macros.btn_primary(storage.location, "Access Data", title=storage.location) }}
 </div>
