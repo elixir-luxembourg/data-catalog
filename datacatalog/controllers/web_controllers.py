@@ -738,6 +738,7 @@ def my_applications(entity_name):
         for a in applications
         if a.state is not None
     ]
+    applications.sort(key=lambda a: a["creation_date_string"], reverse=True)
     return render_template(
         "my_applications.html",
         applications=applications,
