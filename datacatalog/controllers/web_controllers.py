@@ -711,6 +711,7 @@ def my_applications(entity_name):
         applications = [
             a for a in applications if a.state is not ApplicationState.approved
         ]
+    applications = [a for a in applications if a.state is not ApplicationState.closed]
     if any([a.state is None for a in applications]):
         logger.error(
             "An error occurred while loading some applications: Unknown state retrieved"

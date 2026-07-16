@@ -39,7 +39,7 @@
         {% for entity in entities_with_access %}
           <li>
             <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=entity.id) }}"
-               class="group flex items-center justify-between gap-4 py-3 hover:bg-gray-50">
+               class="group flex items-center gap-2 py-3 hover:bg-gray-50">
               <span class="text-base font-semibold leading-snug text-blue-900 group-hover:text-blue-800 group-hover:underline group-hover:underline-offset-2 lg:text-lg">{{ entity.title }}</span>
               <i data-lucide="circle-check" class="h-5 w-5 shrink-0 text-blue-900"></i>
             </a>
