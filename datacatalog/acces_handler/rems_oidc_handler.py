@@ -17,14 +17,38 @@ import logging
 
 from flask_login import current_user
 
+from .. import app
 from .access_handler import ApplicationState
 from .rems_handler import RemsAccessHandler
+from .multiple_rems_handler import MultipleRemsAccessHandler
 
 logger = logging.getLogger(__name__)
 
 
 class RemsOidcAccessHandler(RemsAccessHandler):
     HIDE_APPROVED = True
+
+    def has_access(self, dataset):
+        logger.info(
+            "Checking if user %s has access to dataset %s", current_user.id, dataset.id
+        )
+        application_state = super().has_access(dataset)
+        logger.debug("RemsAccessHandler access from rems: %s", application_state)
+        oidc_access = dataset.id in current_user.accesses
+        logger.debug("access status from OIDC accesses: %s", oidc_access)
+        if oidc_access:
+            logger.info("approved access found")
+            return ApplicationState.approved
+        elif application_state is ApplicationState.submitted:
+            logger.info("no approved access found but pending application")
+            return application_state
+        else:
+            logger.info("no approved access found nor pending application")
+            return False
+
+
+class MultipleRemsOidcAccessHandler(MultipleRemsAccessHandler):
+    HIDE_APPROVED = app.config.get("HIDE_APPROVED", True)
 
     def has_access(self, dataset):
         logger.info(

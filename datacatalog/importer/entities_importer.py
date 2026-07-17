@@ -62,6 +62,8 @@ class EntitiesImporter(object):
             for entity in entities:
                 entity.set_computed_values()
                 entity.connector_name = connector.__class__.__name__
+                if hasattr(connector, "instance_id"):
+                    entity.instance_id = connector.instance_id
                 # soft commit required for relationships to work correctly
                 entity.save(soft_commit=True)
                 count += 1

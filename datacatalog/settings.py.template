@@ -210,6 +210,12 @@ class Config(object):
         "dataset": os.environ.get("DAISY_API_URLS_DATASET", ""),
         "project": os.environ.get("DAISY_API_URLS_PROJECT", ""),
     }
+
+    # multiple instances configuration
+    CONNECTED_INSTANCES = []
+    DAISY_INSTANCES = {}
+    REMS_INSTANCES = {}
+
     # Logger configuration
     LOGGING_CONFIG = {
         "version": 1,

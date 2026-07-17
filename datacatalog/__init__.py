@@ -84,13 +84,27 @@ def get_access_handler(user, entity_name):
         if not user:
             return None
         if access_handler_string == "Rems":
-            from .acces_handler.rems_handler import RemsAccessHandler
+            if app.config.get("CONNECTED_INSTANCES"):
+                from .acces_handler.multiple_rems_handler import (
+                    MultipleRemsAccessHandler,
+                )
 
-            rems_class = RemsAccessHandler
+                rems_class = MultipleRemsAccessHandler
+            else:
+                from .acces_handler.rems_handler import RemsAccessHandler
+
+                rems_class = RemsAccessHandler
         elif access_handler_string == "RemsOidc":
-            from .acces_handler.rems_oidc_handler import RemsOidcAccessHandler
+            if app.config.get("CONNECTED_INSTANCES"):
+                from .acces_handler.rems_oidc_handler import (
+                    MultipleRemsOidcAccessHandler,
+                )
 
-            rems_class = RemsOidcAccessHandler
+                rems_class = MultipleRemsOidcAccessHandler
+            else:
+                from .acces_handler.rems_oidc_handler import RemsOidcAccessHandler
+
+                rems_class = RemsOidcAccessHandler
         else:
             raise ValueError("Unknown access handler")
         if user.is_authenticated:

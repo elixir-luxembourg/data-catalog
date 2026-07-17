@@ -29,6 +29,7 @@ import json
 import logging
 from json import JSONDecodeError
 from typing import Type, Generator
+from math import isnan
 
 import requests
 
@@ -71,7 +72,11 @@ class DaisyConnector(ImportEntitiesConnector):
     """
 
     def __init__(
-        self, daisy_url: str, entity_class: Type[SolrEntity], verify_ssl: bool = True
+        self,
+        daisy_url: str,
+        entity_class: Type[SolrEntity],
+        verify_ssl: bool = True,
+        instance_id: str = "",
     ) -> None:
         """
         Initialize a DaisyConnector instance configuring the daisy url and the entity class
@@ -89,6 +94,7 @@ class DaisyConnector(ImportEntitiesConnector):
         self.daisy_url = daisy_url
         self.dats_connector = DATSConnector("", entity_class)
         self.verify_ssl = verify_ssl
+        self.instance_id = instance_id
 
     def build_all_entities(self) -> Generator[SolrEntity, None, None]:
         """
@@ -101,7 +107,7 @@ class DaisyConnector(ImportEntitiesConnector):
                 "name": "title",
                 "external_id": "id",
             }
-            dataset = Dataset()
+            dataset = self.entity_class()
             # we enable the e2e flow for all daisy datasets
             dataset.e2e = True
             dataset.hosted = True
@@ -133,7 +139,6 @@ class DaisyConnector(ImportEntitiesConnector):
                 form_id = None
 
             dataset.form_id = form_id
-            dataset.request_pdf_enabled = item.get("request_pdf_enabled") is True
 
             data_types_set = set()
             dataset.use_conditions = []
@@ -251,6 +256,71 @@ class DaisyConnector(ImportEntitiesConnector):
                     project.reference_publications.append(publication["citation"])
             yield project
 
+        def _build_separate_dataset(item):
+            logger.debug("building a dataset instance")
+            MAPPING_FIELDS = {
+                "name": "title",
+                "external_id": "id",
+            }
+            dataset = self.entity_class()
+            # we enable the e2e flow for all daisy datasets
+            dataset.e2e = True
+            dataset.hosted = True
+            dataset.description = item.get("description", None)
+            deprecated = item.get("deprecated")
+            dataset.deprecated = "Deprecated" if deprecated else "Active"
+            dataset.deprecation_date = item.get("deprecation_date", None)
+            dataset.deprecation_notes = item.get("deprecation_notes", None)
+            dataset.released_on = item.get("released_date", None)
+
+            if "metadata" in item:
+                try:
+                    metadata = json.loads(item["metadata"])
+                    if metadata.get("docs"):
+                        for entity in metadata["docs"]:
+                            for key in entity:
+                                value = entity[key]
+                                if isinstance(value, float) and isnan(value):
+                                    value = None
+                                setattr(dataset, key, value)
+                    dataset.former_ids = [dataset.id]
+                except JSONDecodeError as e:
+                    logger.error("invalid json", exc_info=e)
+
+            for field, attribute in MAPPING_FIELDS.items():
+                setattr(dataset, attribute, item.get(field))
+            logger.debug("dataset title is %s", dataset.title)
+            try:
+                form_id = int(item.get("form_id", None))
+            except (ValueError, TypeError) as e:
+                logger.error(
+                    "dataset %s form_id is not an integer.", dataset.id, exc_info=e
+                )
+                form_id = None
+
+            dataset.form_id = form_id
+
+            data_types_set = set()
+            dataset.use_conditions = []
+            for data_declaration in item["data_declarations"]:
+                data_types_set.update(data_declaration.get("data_types", []))
+                dataset.use_conditions.extend(
+                    data_declaration.get("use_conditions", [])
+                )
+            dataset.storages = []
+            for storage in item.get("storages", []):
+                dataset.storages.append(
+                    {
+                        "location": storage.get("location"),
+                        "platform": storage.get("platform"),
+                    }
+                )
+            dataset.data_types = list(data_types_set)
+            dataset.instance_id = self.instance_id
+            dataset.access_granted_users = ["-"]
+            dataset.has_access = False
+            return dataset
+
         logger.info("Calling daisy API")
         response = requests.get(self.daisy_url, verify=self.verify_ssl)
         response_json = response.json()
@@ -260,6 +330,8 @@ class DaisyConnector(ImportEntitiesConnector):
         for item in items:
             if self.entity_class == Dataset:
                 yield _build_dataset(item)
-            if self.entity_class == Project:
+            elif self.entity_class == Project:
                 for entity in _build_project(item):
                     yield entity
+            elif self.entity_class.__name__ == "Dataset":
+                yield _build_separate_dataset(item)
