@@ -51,20 +51,14 @@ class AuthenticationException(DataCatalogException):
         self.status = status
 
 
-class SolrIndexerException(DataCatalogException):
-    """
-    All exceptions linked to a problem with Solr
-    """
-
-    pass
-
-
-class SolrQueryException(SolrIndexerException):
-    """
-    Exception for Solr queries errors
-    """
-
-    pass
+# The Solr exception hierarchy now lives in the standalone ``solrorm`` package
+# (they are raised by the ORM). They are re-exported here so that existing
+# ``from datacatalog.exceptions import SolrQueryException`` imports keep
+# resolving to the exact class the ORM raises.
+from solrorm.exceptions import (  # noqa: E402,F401
+    SolrError as SolrIndexerException,
+    SolrQueryException,
+)
 
 
 class PostRequestException(DataCatalogException):

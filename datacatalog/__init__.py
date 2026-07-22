@@ -33,6 +33,7 @@ from typing import Optional, List
 
 import jinja2
 import ldap
+import solrorm
 
 from datacatalog.solr.solr_orm_fields import SolrField
 from flask import Flask, request, redirect, url_for
@@ -232,6 +233,10 @@ def create_application() -> Flask:
     # make sure main settings have priority over plugin settings
     new_app.config.from_object(config_object)
     new_app.config["ENV"] = env
+    # point the standalone solrorm library at this app's config. A reference is
+    # stored, so entries added later (the ``entities`` registry and the
+    # ``_solr_orm`` instance set by configure_solr_orm) remain visible.
+    solrorm.configure(new_app.config)
     url_prefix = new_app.config.get("URL_PREFIX")
     if url_prefix:
         new_app.config["REVERSE_PROXY_PATH"] = url_prefix

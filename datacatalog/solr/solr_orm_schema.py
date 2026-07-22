@@ -13,121 +13,14 @@
 #
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 """
  datacatalog.solr.solr_orm_schema
- -------------------
+ --------------------------------
 
-Module containing the SolrSchemaAdmin class
-
+Compatibility shim. The Solr ORM now lives in the standalone ``solrorm``
+package; this module re-exports it so that existing
+``datacatalog.solr.solr_orm_schema`` imports keep working.
 """
 
-import logging
-
-import requests
-
-from .. import app
-
-logger = logging.getLogger(__name__)
-
-
-class SolrSchemaAdmin:
-    """
-    Class to manipulate solr schema
-    Create and delete fields
-    """
-
-    def __init__(self, url):
-        self.url = url
-        self.solr_query_fields = app.config.get(
-            "SOLR_QUERY_TEXT_FIELD",
-            {"dataset": ["title"], "project": ["title"], "study": ["title"]},
-        )
-        if app.config.get("SOLR_QUERY_SEARCH_EXTENDED"):
-            if "datasets_metadata" not in self.solr_query_fields.get("project"):
-                self.solr_query_fields.get("project").extend(
-                    ["datasets_metadata", "studies_metadata"]
-                )
-            if not app.config.get(
-                "SOLR_QUERY_SEARCH_EXTENDED_2_WAY_INDEX"
-            ) and "datasets_metadata" not in self.solr_query_fields.get("study"):
-                self.solr_query_fields.get("study").append("datasets_metadata")
-            if app.config.get(
-                "SOLR_QUERY_SEARCH_EXTENDED_2_WAY_INDEX"
-            ) and "projects_metadata" not in self.solr_query_fields.get("study"):
-                self.solr_query_fields.get("study").extend(
-                    ["datasets_metadata", "projects_metadata"]
-                )
-                self.solr_query_fields.get("dataset").extend(
-                    ["studies_metadata", "projects_metadata"]
-                )
-
-    def create_field(
-        self,
-        field_name: str,
-        field_type: str,
-        index: bool = True,
-        store: bool = False,
-        multivalued: bool = False,
-    ) -> None:
-        """
-        Create a solr field
-        @param field_name: name of the field to create
-        @param field_type: type of the field to create
-        @param index: should the field be marked as indexed
-        @param store: should the field be marked as stored
-        @param multivalued: should the field be marked as multivalued
-        """
-        logger.debug("creating field %s", field_name)
-        json_create = {
-            "add-field": {
-                "name": field_name,
-                "type": field_type,
-                "stored": store,
-                "indexed": index,
-                "multiValued": multivalued,
-            }
-        }
-        ret = requests.post(self.url, json=json_create)
-        ret.raise_for_status()
-
-    def update_field(
-        self,
-        field_name: str,
-        field_type: str,
-        index: bool = True,
-        store: bool = False,
-        multivalued: bool = False,
-    ) -> None:
-        """
-        Update a solr field
-        @param field_name: name of the field to update
-        @param field_type: type of the field to update
-        @param index: should the field be marked as indexed
-        @param store: should the field be marked as stored
-        @param multivalued: should the field be marked as multivalued
-        """
-        logger.debug("updating field %s", field_name)
-        ret = requests.post(
-            self.url,
-            json={
-                "replace-field": {
-                    "name": field_name,
-                    "type": field_type,
-                    "stored": store,
-                    "indexed": index,
-                    "multiValued": multivalued,
-                }
-            },
-        )
-        ret.raise_for_status()
-
-    def delete_field(self, field_name: str) -> None:
-        """
-        Delete a solr field
-        @param field_name: the field to delete
-        @return: raises an exception if not successful
-        """
-        logger.debug("deleting field %s", field_name)
-        ret = requests.post(self.url, json={"delete-field": {"name": field_name}})
-        ret.raise_for_status()
+from solrorm.solr_orm_schema import *  # noqa: F401,F403
+from solrorm.solr_orm_schema import SolrSchemaAdmin  # noqa: F401
