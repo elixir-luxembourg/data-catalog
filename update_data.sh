@@ -1,5 +1,6 @@
 echo "CLEARING INDEX"
-flask clear_index all
+flask indexer clear all
+flask indexer commit
 echo "REINDEXING COHORTS"
 flask indexer init
 flask import entities Daisy project

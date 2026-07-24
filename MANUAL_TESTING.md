@@ -21,8 +21,6 @@ Record: environment URL, commit SHA, tester/date, browser, test account/role, se
 - [ ] Sign in and out through OIDC; confirm the user returns to the catalogue with the expected identity.
 - [ ] With a user who already has dataset access, sign in and confirm the dataset appears under **Accessible datasets** in **My Applications**.
 
-Accesses are read from OIDC roles during login in `datacatalog/authentication/pyoidc_views.py` (`extract_accesses`) and displayed by `datacatalog/controllers/web_controllers.py` (`my_applications`).
-
 ### DAISY import, Solr sync and REMS export
 
 - [ ] Run the affected import or synchronisation and confirm the expected records appear in Search.
