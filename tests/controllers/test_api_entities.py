@@ -92,7 +92,7 @@ class TestApiEntities(BaseTest):
         self.assert200(api_entities("study"))
         self.assert200(api_entities("project"))
 
-    @patch("datacatalog.solr.solr_orm_entity.SolrEntity.list_attached_files")
+    @patch("solrorm.entity.SolrEntity.list_attached_files")
     def test_api_entity_attachment(self, mock_list):
         dataset = list(Dataset.query.all())
         study = list(Study.query.all())

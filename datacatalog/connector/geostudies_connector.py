@@ -29,7 +29,7 @@ from .. import app
 from ..models.dataset import Dataset
 from ..models.project import Project
 from ..models.study import Study
-from ..solr.solr_orm_entity import SolrEntity
+from solrorm import SolrEntity
 
 """
     datacatalog.connector.geostudies_connector

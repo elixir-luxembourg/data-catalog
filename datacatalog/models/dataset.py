@@ -29,15 +29,15 @@ from dataclasses import dataclass, field, InitVar
 
 from . import EntityWithSlugs
 from .. import app, DEFAULT_USE_CONDITIONS_ICONS
-from ..solr.solr_orm import SolrAutomaticQuery
-from ..solr.solr_orm_entity import SolrEntity
-from ..solr.solr_orm_fields import (
-    SolrField,
-    SolrDateTimeField,
-    SolrFloatField,
-    SolrJsonField,
+from solrorm import (
+    SolrAutomaticQuery,
     SolrBooleanField,
+    SolrDateTimeField,
+    SolrEntity,
+    SolrField,
+    SolrFloatField,
     SolrIntField,
+    SolrJsonField,
 )
 
 logger = logging.getLogger(__name__)

@@ -30,7 +30,7 @@ import logging
 from typing import Type, Generator
 
 from .entities_connector import ImportEntitiesConnector
-from ..solr.solr_orm_entity import SolrEntity
+from solrorm import SolrEntity
 
 __author__ = "Valentin Grouès"
 

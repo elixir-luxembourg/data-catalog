@@ -20,7 +20,7 @@ from tests.base_test import BaseTest
 
 from datacatalog import app
 from datacatalog.models.dataset import Dataset
-from datacatalog.solr.facets import Range, Facet, FacetRange
+from solrorm import Facet, FacetRange, Range
 
 __author__ = "Nirmeen Sallam"
 
