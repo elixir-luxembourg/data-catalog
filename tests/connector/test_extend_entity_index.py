@@ -87,6 +87,50 @@ class TestExtendEntityIndex(BaseTest):
             self.assertEqual(datasets_found, datasets_metadata_found)
             self.assertEqual(studies_found, studies_metadata_found)
 
+    def test_extend_project_index_skips_a_dangling_reference(self):
+        """A reference to an unindexed entity must not abandon the whole run.
+
+        The extender reports the dangling id and carries on, so the referring
+        project is still indexed -- only that one contribution is missing.
+        """
+        if not app.config.get("SOLR_QUERY_SEARCH_EXTENDED"):
+            return
+        solr_orm = app.config["_solr_orm"]
+        # The pair the extender has to tell apart -- one reference that resolves
+        # next to one that does not -- is built here rather than looked for in
+        # the imported entities, none of which references a dataset.
+        dataset = Dataset(
+            title="A dataset that is indexed", entity_id="resolvable-dataset"
+        )
+        dataset.save()
+        project = Project("dangling-reference-project")
+        project.title = "Project referencing an unindexed dataset"
+        project.datasets = [dataset.id, "no-such-dataset"]
+        project.save()
+        solr_orm.commit()
+
+        try:
+            with self.assertLogs(
+                "datacatalog.connector.extend_entity_index", level="WARNING"
+            ) as logged:
+                EntitiesIndexExtender.extend_project_index()
+            self.assertTrue(
+                any("no-such-dataset" in line for line in logged.output),
+                f"the skipped reference was not reported: {logged.output}",
+            )
+
+            extended = Project.query.get(project.id)
+            self.assertTrue(
+                extended.datasets_metadata,
+                "the resolvable reference was dropped along with the dangling one",
+            )
+            if self.assert_with_title:
+                self.assertIn(dataset.title, extended.datasets_metadata)
+        finally:
+            solr_orm.delete(entity_id=f"project_{project.id}")
+            solr_orm.delete(entity_id=f"dataset_{dataset.id}")
+            solr_orm.commit()
+
     def test_extend_study_index(self):
         if app.config.get("SOLR_QUERY_SEARCH_EXTENDED"):
             EntitiesIndexExtender.extend_study_index()

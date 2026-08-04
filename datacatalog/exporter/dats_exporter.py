@@ -36,29 +36,9 @@ from ..models.study import Study
 
 __author__ = "Nirmeen Sallam, Abetare Shabani"
 
-from solrorm import SolrEntity, SolrEntityNotFound
+from solrorm import SolrEntity
 
 logger = logging.getLogger(__name__)
-
-
-def _get_or_raise(entity_class, entity_id: str) -> SolrEntity:
-    """
-    Retrieve an entity by id, refusing to export a dangling reference.
-
-    The exporter runs outside a request context -- from the CLI as well as from
-    a view -- so a missing entity is an error to raise, not a 404 to abort with.
-
-    @param entity_class: the SolrEntity subclass to look the id up in
-    @param entity_id: id of the entity referenced by the entity being exported
-    @return: the entity
-    @raise SolrEntityNotFound: if no entity carries that id
-    """
-    entity = entity_class.query.get(entity_id)
-    if entity is None:
-        raise SolrEntityNotFound(
-            f"No {entity_class.__name__.lower()} with id {entity_id!r}"
-        )
-    return entity
 
 
 w3id_base_url = "https://w3id.org/dats/context/sdo/"
@@ -296,14 +276,14 @@ class DATSExporter:
         if project.studies or project.datasets:
             if project.studies:
                 for study in project.studies:
-                    entity = _get_or_raise(Study, study)
+                    entity = Study.query.get_or_raise(study)
                     metadata["projectAssets"].append(
                         DATSExporter.build_dats_study({}, entity)
                     )
 
             if project.datasets:
                 for dataset in project.datasets:
-                    entity = _get_or_raise(Dataset, dataset)
+                    entity = Dataset.query.get_or_raise(dataset)
                     metadata["projectAssets"].append(
                         DATSExporter.build_dats_dataset({}, entity)
                     )
@@ -852,7 +832,7 @@ class DATSExporter:
         if study.datasets:
             template["output"] = []
             for dataset in study.datasets:
-                entity = _get_or_raise(Dataset, dataset)
+                entity = Dataset.query.get_or_raise(dataset)
                 template["output"].append(
                     DATSExporter.build_dats_dataset(metadata, entity)
                 )

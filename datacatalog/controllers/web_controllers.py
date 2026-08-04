@@ -51,13 +51,12 @@ from .. import login_manager, get_access_handler, app
 from ..acces_handler.access_handler import ApplicationState
 from ..exceptions import (
     CouldNotCloseApplicationException,
-    SolrQueryException,
     AuthenticationException,
     DataCatalogException,
 )
 from ..exporter.dats_exporter import DATSExporter
 from ..pagination import Pagination
-from solrorm import Facet, SolrEntity, SolrQuery
+from solrorm import Facet, SolrEntity, SolrQuery, SolrQueryException
 from datacatalog.models.dataset import StudyDataset
 
 logger = logging.getLogger(__name__)

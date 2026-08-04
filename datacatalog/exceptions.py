@@ -51,16 +51,6 @@ class AuthenticationException(DataCatalogException):
         self.status = status
 
 
-# The Solr exception hierarchy now lives in the standalone ``solrorm`` package
-# (they are raised by the ORM). They are re-exported here so that existing
-# ``from datacatalog.exceptions import SolrQueryException`` imports keep
-# resolving to the exact class the ORM raises.
-from solrorm import (  # noqa: E402,F401
-    SolrORMError as SolrIndexerException,
-    SolrQueryException,
-)
-
-
 class PostRequestException(DataCatalogException):
     """
     Exception for error happening during post request hook
