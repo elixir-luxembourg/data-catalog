@@ -28,8 +28,6 @@ Module containing the DATSExporter class
 import logging
 from typing import Dict
 
-import werkzeug.exceptions
-
 from ..models.dataset import Dataset
 from ..models.project import Project
 from ..models.study import Study
@@ -866,20 +864,27 @@ class DATSExporter:
         return template
 
     @staticmethod
-    def get_entity_parent(entity: SolrEntity) -> SolrEntity:
-        try:
-            entity_name = f"{entity.__class__.__name__}".lower()
-            if entity_name == "dataset":
-                if entity.study_entity:
-                    child_entity = entity.study_entity
-                    parent_entity = child_entity.project_entity
-                else:
-                    parent_entity = entity.project_entity
-                return parent_entity
-            elif entity_name == "study":
-                return entity.project_entity
+    def get_entity_parent(entity: SolrEntity) -> SolrEntity | None:
+        """
+        The entity one level up the project / study / dataset hierarchy.
+
+        A reference that is not indexed resolves to nothing rather than raising:
+        the accessors answer with an empty list, which is normalised to None
+        here so that "no parent" has one spelling.
+
+        @param entity: the entity to look up the parent of
+        @return: the parent entity, or None at the top of the hierarchy
+        """
+        entity_name = f"{entity.__class__.__name__}".lower()
+        if entity_name == "dataset":
+            if entity.study_entity:
+                child_entity = entity.study_entity
+                parent_entity = child_entity.project_entity
             else:
-                logger.info("Reached parent in the hierarchy")
-                return None
-        except werkzeug.exceptions.NotFound as e:
-            logger.error(e)
+                parent_entity = entity.project_entity
+            return parent_entity or None
+        elif entity_name == "study":
+            return entity.project_entity or None
+        else:
+            logger.info("Reached parent in the hierarchy")
+            return None
