@@ -1,5 +1,3 @@
-import os
-
 from datacatalog import app
 from datacatalog.connector.dats_connector import DATSConnector
 from datacatalog.connector.extend_entity_index import EntitiesIndexExtender
@@ -8,31 +6,17 @@ from datacatalog.importer.entities_importer import EntitiesImporter
 from datacatalog.models.dataset import Dataset
 from datacatalog.models.project import Project
 from datacatalog.models.study import Study
-from tests.base_test import BaseTest
+from tests.base_test import BaseTest, get_resource_path
 
 __author__ = "Nirmeen Sallam"
 
 
 class TestExtendEntityIndex(BaseTest):
+    dats_folder = get_resource_path("imi_projects_test")
     connector = [
-        DATSConnector(
-            os.path.join(
-                os.path.dirname(os.path.realpath(__file__)), "../../data/imi_projects"
-            ),
-            Project,
-        ),
-        DATSConnector(
-            os.path.join(
-                os.path.dirname(os.path.realpath(__file__)), "../../data/imi_projects"
-            ),
-            Study,
-        ),
-        DATSConnector(
-            os.path.join(
-                os.path.dirname(os.path.realpath(__file__)), "../../data/imi_projects"
-            ),
-            Dataset,
-        ),
+        DATSConnector(dats_folder, Project),
+        DATSConnector(dats_folder, Study),
+        DATSConnector(dats_folder, Dataset),
     ]
     entities_importer = EntitiesImporter(connector)
 
@@ -97,8 +81,9 @@ class TestExtendEntityIndex(BaseTest):
             return
         solr_orm = app.config["_solr_orm"]
         # The pair the extender has to tell apart -- one reference that resolves
-        # next to one that does not -- is built here rather than looked for in
-        # the imported entities, none of which references a dataset.
+        # next to one that does not -- is built here rather than assembled from
+        # the imported entities, so the case holds whatever the fixture happens
+        # to reference and cleanup is a delete rather than a restore.
         dataset = Dataset(
             title="A dataset that is indexed", entity_id="resolvable-dataset"
         )
