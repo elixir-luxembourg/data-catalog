@@ -27,7 +27,7 @@ REST endpoints:
 
 import logging
 
-from flask import jsonify, request, Response
+from flask import abort, jsonify, request, Response
 from flask_login import current_user, login_required
 
 from .. import app, csrf, get_access_handler, get_downloads_handler
@@ -48,7 +48,9 @@ def api_entity(entity_name: str, entity_id: str) -> Response:
     @return: entity as json
     """
     entity_class = app.config["entities"][entity_name]
-    entity = entity_class.query.get_or_404(entity_id)
+    entity = entity_class.query.get(entity_id)
+    if entity is None:
+        abort(404)
     return jsonify(**{"data": entity.to_api_dict()})
 
 
@@ -62,7 +64,9 @@ def api_entity_attachments(entity_name: str, entity_id: str) -> Response:
     @return: list of attachments as a json
     """
     entity_class = app.config["entities"][entity_name]
-    entity = entity_class.query.get_or_404(entity_id)
+    entity = entity_class.query.get(entity_id)
+    if entity is None:
+        abort(404)
     if entity.attachment_exists():
         return jsonify(**{"data": entity.list_attached_files()})
     else:

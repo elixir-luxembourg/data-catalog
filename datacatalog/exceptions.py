@@ -51,22 +51,6 @@ class AuthenticationException(DataCatalogException):
         self.status = status
 
 
-class SolrIndexerException(DataCatalogException):
-    """
-    All exceptions linked to a problem with Solr
-    """
-
-    pass
-
-
-class SolrQueryException(SolrIndexerException):
-    """
-    Exception for Solr queries errors
-    """
-
-    pass
-
-
 class PostRequestException(DataCatalogException):
     """
     Exception for error happening during post request hook

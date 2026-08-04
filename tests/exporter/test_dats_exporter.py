@@ -121,9 +121,9 @@ class TestDATSExporter(BaseTest):
         project.save()
         app.config["_solr_orm"].commit()
 
-        test_project = Project.query.get_or_404("this-is-a-test-project-identifier")
-        test_study = Study.query.get_or_404("this-is-a-test-study-identifier")
-        test_dataset = Dataset.query.get_or_404("this-is-a-test-dataset-identifier")
+        test_project = Project.query.get("this-is-a-test-project-identifier")
+        test_study = Study.query.get("this-is-a-test-study-identifier")
+        test_dataset = Dataset.query.get("this-is-a-test-dataset-identifier")
 
         test_dats_project = dats_exporter.export_dats_entity(test_project)
         test_dats_study = dats_exporter.export_dats_entity(test_study)
@@ -146,8 +146,8 @@ class TestDATSExporter(BaseTest):
         project.save()
         app.config["_solr_orm"].commit()
 
-        test_project = Project.query.get_or_404("this-is-a-test-project-identifier")
-        test_dataset = Dataset.query.get_or_404("this-is-a-test-dataset-identifier")
+        test_project = Project.query.get("this-is-a-test-project-identifier")
+        test_dataset = Dataset.query.get("this-is-a-test-dataset-identifier")
 
         test_dats_project = dats_exporter.export_dats_entity(test_project)
         test_dats_dataset = dats_exporter.export_dats_entity(test_dataset)
@@ -173,7 +173,7 @@ class TestDATSExporter(BaseTest):
         project.save()
         app.config["_solr_orm"].commit()
 
-        test_project = Project.query.get_or_404("this-is-a-test-project-identifier")
+        test_project = Project.query.get("this-is-a-test-project-identifier")
         test_dats_project = dats_exporter.export_dats_entity(test_project)
 
         self.assertEqual(len(test_dats_project["projectAssets"]), 3)
@@ -201,7 +201,7 @@ class TestDATSExporter(BaseTest):
         project.save()
         app.config["_solr_orm"].commit()
 
-        test_study = Study.query.get_or_404("this-is-a-test-study-identifier")
+        test_study = Study.query.get("this-is-a-test-study-identifier")
         test_dats_project = dats_exporter.export_dats_entity(test_study)
 
         self.assertEqual(len(test_dats_project["projectAssets"][0]["output"]), 3)
@@ -234,7 +234,7 @@ class TestDATSExporter(BaseTest):
         project.save()
         app.config["_solr_orm"].commit()
 
-        test_project = Project.query.get_or_404("this-is-a-test-project-identifier")
+        test_project = Project.query.get("this-is-a-test-project-identifier")
         test_dats_project = dats_exporter.export_dats_entity(test_project)
 
         file = None

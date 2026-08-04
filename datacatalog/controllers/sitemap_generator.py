@@ -28,7 +28,7 @@ from typing import Type
 import flask.wrappers
 from flask import url_for, render_template, make_response
 
-from datacatalog.solr.solr_orm_entity import SolrEntity
+from solrorm import SolrEntity
 from .. import app
 
 __author__ = "Abetare Shabani"

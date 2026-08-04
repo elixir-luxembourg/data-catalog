@@ -25,8 +25,10 @@ Package containing SolrEntity subclasses and corresponding SolrQuery subclasses
 import logging
 
 from .. import app
-from ..solr.solr_orm import SolrQuery
-from ..solr.solr_orm_fields import SolrField
+from solrorm import SolrField, SolrQuery
+
+# installs the attachment helpers on solrorm's SolrEntity for every model
+from . import entity_attachments  # noqa: F401
 
 logger = logging.getLogger(__name__)
 

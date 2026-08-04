@@ -103,25 +103,34 @@ class TestConfig(Config):
 
     }
 
-    # WHICH FIELDS ARE USED FOR DEFAULT SEARCH
+    # WHICH FIELDS ARE USED FOR DEFAULT SEARCH.
+    # The *_metadata entries are what the extended search contributes: solrorm
+    # copies exactly the fields listed here into the _text_ catch-all and no
+    # longer derives any from the SOLR_QUERY_SEARCH_EXTENDED* flags below.
     SOLR_QUERY_TEXT_FIELD = {
         'dataset': [
             "title",
             "disease",
             "data_types",
-            "data_standards"
+            "data_standards",
+            'studies_metadata',
+            'projects_metadata',
         ],
         'project': [
             'keywords',
             'title',
-            'types'
+            'types',
+            'datasets_metadata',
+            'studies_metadata',
         ],
         'study': [
             'title',
             'organisms',
             'disease',
             'samples_type',
-            'types'
+            'types',
+            'datasets_metadata',
+            'projects_metadata',
         ]
 
     }

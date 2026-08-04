@@ -29,14 +29,14 @@ import logging
 
 from . import EntityWithSlugs
 from .contact import Contact
-from ..solr.solr_orm import SolrAutomaticQuery
-from ..solr.solr_orm_entity import SolrEntity
-from ..solr.solr_orm_fields import (
-    SolrField,
-    SolrTextField,
-    SolrForeignKeyField,
+from solrorm import (
+    SolrAutomaticQuery,
     SolrDateTimeField,
+    SolrEntity,
+    SolrField,
+    SolrForeignKeyField,
     SolrJsonField,
+    SolrTextField,
 )
 
 logger = logging.getLogger(__name__)

@@ -34,7 +34,7 @@ from typing import Optional, List
 import jinja2
 import ldap
 
-from datacatalog.solr.solr_orm_fields import SolrField
+from solrorm import SolrField
 from flask import Flask, request, redirect, url_for
 from flask_assets import Environment
 from flask_caching import Cache
@@ -172,12 +172,12 @@ def configure_solr_orm(new_app) -> None:
         entity_class = getattr(entity_module, entity_class_string_class)
         entities[entity_name] = entity_class
 
+    # the registry must be complete here: Settings reads it eagerly, so an
+    # entity registered after the ORM is built would not be seen
     new_app.config["entities"] = entities
-    from .solr.solr_orm import SolrORM
+    from solrorm import Settings, SolrORM
 
-    new_app.config["_solr_orm"] = SolrORM(
-        app.config["SOLR_ENDPOINT"], app.config["SOLR_COLLECTION"]
-    )
+    new_app.config["_solr_orm"] = SolrORM(Settings.from_mapping(new_app.config))
 
 
 def get_downloads_handler():
