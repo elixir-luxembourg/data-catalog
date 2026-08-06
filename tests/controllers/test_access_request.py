@@ -98,6 +98,41 @@ class TestAccessRequest(BaseTest):
         )
         self.assertEqual(rv.status_code, 200)
 
+    @patch("flask_login.utils._get_user")
+    def test_email_valid_form_sends_the_request(self, current_user):
+        """A valid submission must bind the posted data and send the email,
+        the form used to be built without the request data."""
+        app.config["ACCESS_HANDLERS"] = {"dataset": "Email"}
+        current_user.return_value = User("test", "test@example.org", "Test User")
+        with mail.record_messages() as outbox:
+            rv = app.test_client().post(
+                url_for(
+                    "request_access", entity_name="dataset", entity_id=self.dataset_id
+                ),
+                data={"message": "I would like to study this dataset"},
+            )
+        self.assertEqual(rv.status_code, 302)
+        self.assertEqual(len(outbox), 1)
+        self.assertIn("I would like to study this dataset", outbox[0].body)
+
+    def test_email_valid_form_sends_the_request_anonymous(self):
+        app.config["ACCESS_HANDLERS"] = {"dataset": "Email"}
+        app.config["REQUIRE_LOGIN_ACCESS_REQUEST"] = False
+        with mail.record_messages() as outbox:
+            rv = app.test_client().post(
+                url_for(
+                    "request_access", entity_name="dataset", entity_id=self.dataset_id
+                ),
+                data={
+                    "name": "Someone",
+                    "email": "someone@example.org",
+                    "message": "Please give me access",
+                },
+            )
+        self.assertEqual(rv.status_code, 302)
+        self.assertEqual(len(outbox), 1)
+        self.assertIn("someone@example.org", outbox[0].body)
+
     @unittest.skip("Not included in the test")
     def test_mail(self):
         with mail.record_messages() as outbox:

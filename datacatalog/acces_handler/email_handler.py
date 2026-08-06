@@ -84,7 +84,9 @@ class EmailAccessHandler(AccessHandler):
 
     def create_form(self, dataset, form_data):
         logger.debug("Creating form for email request")
-        form = RequestAccess(form_data)
+        # passing formdata=None explicitly stops FlaskForm from picking up
+        # request.form, so leave it out entirely when there is no data
+        form = RequestAccess() if form_data is None else RequestAccess(form_data)
         if self.user.is_authenticated:
             self.email = self.user.email or self.user.id
             self.name = self.user.id
