@@ -18,12 +18,16 @@
 
 
 import unittest
+from unittest.mock import patch
 
 from flask import url_for
+from flask_login import AnonymousUserMixin
 
 from tests.base_test import BaseTest
 from datacatalog import app, mail
+from datacatalog.acces_handler.email_handler import EmailAccessHandler
 from datacatalog.models.dataset import Dataset
+from datacatalog.models.user import User
 
 app.testing = True
 
@@ -66,6 +70,33 @@ class TestAccessRequest(BaseTest):
             )
             self.assertEqual(rv.status_code, 302)
             self.assertIn(url_for("login"), rv.location)
+
+    def test_email_form_drops_recaptcha_for_logged_in_user(self):
+        dataset = Dataset.query.get(self.dataset_id)
+        with app.test_request_context():
+            handler = EmailAccessHandler(User("test", "test@example.org", "Test User"))
+            form = handler.create_form(dataset, None)
+            # wtforms sets deleted fields to None instead of dropping the
+            # attribute, _fields is what drives validation and rendering
+            self.assertNotIn("recaptcha", form._fields)
+
+    def test_email_form_keeps_recaptcha_for_anonymous_user(self):
+        dataset = Dataset.query.get(self.dataset_id)
+        with app.test_request_context():
+            handler = EmailAccessHandler(AnonymousUserMixin())
+            form = handler.create_form(dataset, None)
+            self.assertIn("recaptcha", form._fields)
+
+    @patch("flask_login.utils._get_user")
+    def test_email_invalid_form_logged_in_user(self, current_user):
+        """An empty submission must re-render the form, not fail on the
+        recaptcha field the handler just deleted."""
+        app.config["ACCESS_HANDLERS"] = {"dataset": "Email"}
+        current_user.return_value = User("test", "test@example.org", "Test User")
+        rv = app.test_client().post(
+            url_for("request_access", entity_name="dataset", entity_id=self.dataset_id)
+        )
+        self.assertEqual(rv.status_code, 200)
 
     @unittest.skip("Not included in the test")
     def test_mail(self):

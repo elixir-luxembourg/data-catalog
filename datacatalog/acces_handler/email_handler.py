@@ -90,4 +90,7 @@ class EmailAccessHandler(AccessHandler):
             self.name = self.user.id
             del form.email
             del form.name
+            # the captcha guards against anonymous bot submissions, login
+            # already establishes the identity
+            del form.recaptcha
         return form

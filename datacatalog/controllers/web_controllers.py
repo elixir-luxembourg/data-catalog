@@ -649,7 +649,9 @@ def request_access(entity_name: str, entity_id: str) -> Response:
         url_submit += f"?type={specified_type}"
     if request.method == "POST":
         if not form.validate():
-            if hasattr(form, "recaptcha") and form.recaptcha.errors:
+            # the field is absent on the rems forms and set to None once
+            # deleted for a logged in user, so hasattr is not enough
+            if getattr(form, "recaptcha", None) and form.recaptcha.errors:
                 flash("The Captcha response parameter is missing.", category="error")
             logger.info("invalid form")
             return render_template(template, form=form, **kwargs)
