@@ -46,12 +46,26 @@ class TestAccessRequest(BaseTest):
     def test_email_request_access(self):
         with app.test_client() as client:
             app.config["ACCESS_HANDLERS"] = {"dataset": "Email"}
+            # the email handler only accepts anonymous requests once the
+            # catalogue-wide login requirement is lifted
+            app.config["REQUIRE_LOGIN_ACCESS_REQUEST"] = False
             rv = client.post(
                 url_for(
                     "request_access", entity_name="dataset", entity_id=self.dataset_id
                 )
             )
             self.assertEqual(rv.status_code, 200)
+
+    def test_email_request_access_requires_login_by_default(self):
+        with app.test_client() as client:
+            app.config["ACCESS_HANDLERS"] = {"dataset": "Email"}
+            rv = client.get(
+                url_for(
+                    "request_access", entity_name="dataset", entity_id=self.dataset_id
+                )
+            )
+            self.assertEqual(rv.status_code, 302)
+            self.assertIn(url_for("login"), rv.location)
 
     @unittest.skip("Not included in the test")
     def test_mail(self):
@@ -63,5 +77,6 @@ class TestAccessRequest(BaseTest):
             assert outbox[0].subject == "testing"
 
     def tearDown(self):
+        app.config["REQUIRE_LOGIN_ACCESS_REQUEST"] = True
         app.config["_solr_orm"].delete(query="*:*")
         app.config["_solr_orm"].commit()

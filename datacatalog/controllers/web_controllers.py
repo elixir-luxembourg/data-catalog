@@ -621,7 +621,10 @@ def request_access(entity_name: str, entity_id: str) -> Response:
     logger.info(
         "Using handler %s with template %s", handler.__class__.__name__, template
     )
-    if handler.requires_logged_in_user(entity) and not current_user.is_authenticated:
+    require_login = app.config.get(
+        "REQUIRE_LOGIN_ACCESS_REQUEST", True
+    ) or handler.requires_logged_in_user(entity)
+    if require_login and not current_user.is_authenticated:
         logger.info("Redirecting user to login")
         here = request.full_path
         redirect_url = url_for("login") + f"?next={here}"
