@@ -626,8 +626,7 @@ def request_access(entity_name: str, entity_id: str) -> Response:
     ) or handler.requires_logged_in_user(entity)
     if require_login and not current_user.is_authenticated:
         logger.info("Redirecting user to login")
-        here = request.full_path
-        redirect_url = url_for("login") + f"?next={here}"
+        redirect_url = url_for("login", next=request.full_path)
         return redirect(redirect_url), 302
 
     # FlaskForm automatically handles request.form and request.files
