@@ -621,10 +621,12 @@ def request_access(entity_name: str, entity_id: str) -> Response:
     logger.info(
         "Using handler %s with template %s", handler.__class__.__name__, template
     )
-    if handler.requires_logged_in_user(entity) and not current_user.is_authenticated:
+    require_login = app.config.get(
+        "REQUIRE_LOGIN_ACCESS_REQUEST", True
+    ) or handler.requires_logged_in_user(entity)
+    if require_login and not current_user.is_authenticated:
         logger.info("Redirecting user to login")
-        here = request.full_path
-        redirect_url = url_for("login") + f"?next={here}"
+        redirect_url = url_for("login", next=request.full_path)
         return redirect(redirect_url), 302
 
     # FlaskForm automatically handles request.form and request.files
@@ -646,7 +648,9 @@ def request_access(entity_name: str, entity_id: str) -> Response:
         url_submit += f"?type={specified_type}"
     if request.method == "POST":
         if not form.validate():
-            if hasattr(form, "recaptcha") and form.recaptcha.errors:
+            # the field is absent on the rems forms and set to None once
+            # deleted for a logged in user, so hasattr is not enough
+            if getattr(form, "recaptcha", None) and form.recaptcha.errors:
                 flash("The Captcha response parameter is missing.", category="error")
             logger.info("invalid form")
             return render_template(template, form=form, **kwargs)
