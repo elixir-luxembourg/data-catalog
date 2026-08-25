@@ -192,6 +192,9 @@ class Config(object):
     PYOIDC_IDP_URL = os.environ.get("PYOIDC_IDP_URL", "")
     # DISPLAY THE 'LOGIN' LINK IN NAVBAR
     SHOW_LOGIN = False
+    # IF TRUE, USERS MUST BE LOGGED IN TO SUBMIT AN ACCESS REQUEST, WHATEVER THE ACCESS HANDLER
+    # SET TO FALSE TO LET THE HANDLER DECIDE (E.G. ANONYMOUS EMAIL REQUESTS)
+    REQUIRE_LOGIN_ACCESS_REQUEST = True
     # ACCESS HANDLER (used for access requests)
     # Rems, RemsOidc or Email
     # RemsOidc handler will use rems to create access requests and pull requests statuses but actual accesses will be
