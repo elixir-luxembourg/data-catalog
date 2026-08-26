@@ -231,7 +231,13 @@ class PyOIDCAuthentication(RemoteAuthentication):
             return TokenErrorResponse(**response)
         else:
             token = AccessTokenResponse(**response)
-            token.verify(keyjar=self.oidc_client.keyjar, skew=SKEW)
+            # pass client_id so the id_token "aud" (and "azp") claim is verified;
+            # without it pyoidc silently skips the audience check
+            token.verify(
+                keyjar=self.oidc_client.keyjar,
+                skew=SKEW,
+                client_id=self.oidc_client.client_id,
+            )
             # check nonce in id_token
             id_token = token["id_token"]
             if id_token["nonce"] != session.get("nonce", "undefined"):
