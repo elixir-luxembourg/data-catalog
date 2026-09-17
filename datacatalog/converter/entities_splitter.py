@@ -24,7 +24,7 @@ from typing import TextIO
 from datacatalog.models.dataset import Dataset
 from datacatalog.models.project import Project
 from datacatalog.models.study import Study
-from datacatalog.solr.solr_orm_entity import DATETIME_FORMAT, DATETIME_FORMAT_NO_MICRO
+from solrorm.entity import DATETIME_FORMAT, DATETIME_FORMAT_NO_MICRO
 
 logger = logging.getLogger(__name__)
 LOREM = """

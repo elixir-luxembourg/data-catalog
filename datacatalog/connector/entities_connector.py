@@ -30,12 +30,12 @@ import re
 from abc import ABCMeta, abstractmethod
 from typing import List
 
-from ..solr.solr_orm_entity import SolrEntity
-from ..solr.solr_orm_fields import (
+from solrorm import (
+    SolrBooleanField,
     SolrDateTimeField,
+    SolrEntity,
     SolrFloatField,
     SolrIntField,
-    SolrBooleanField,
 )
 
 __author__ = "Valentin Grouès"

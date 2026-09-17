@@ -127,7 +127,13 @@ class Config(object):
         3: {"class": "bad", "text": "bad"},
     }
 
-    # WHICH FIELDS ARE USED FOR DEFAULT SEARCH
+    # WHICH FIELDS ARE USED FOR DEFAULT SEARCH.
+    # The *_metadata entries are what the extended search contributes: solrorm
+    # copies exactly the fields listed here into the _text_ catch-all and no
+    # longer derives any from SOLR_QUERY_SEARCH_EXTENDED*, so a field must be
+    # named here to be searchable. Those flags still drive whether
+    # connector/extend_entity_index.py populates the *_metadata fields, so
+    # switching one off means dropping the matching entries below too.
     SOLR_QUERY_TEXT_FIELD = {
         "dataset": [
             "id",
@@ -135,6 +141,8 @@ class Config(object):
             "disease",
             "data_types",
             "data_standards",
+            "studies_metadata",
+            "projects_metadata",
         ],
         "project": [
             "id",
@@ -143,6 +151,8 @@ class Config(object):
             "title",
             "project_name",
             "types",
+            "datasets_metadata",
+            "studies_metadata",
         ],
         "study": [
             "id",
@@ -151,6 +161,8 @@ class Config(object):
             "disease",
             "samples_type",
             "types",
+            "datasets_metadata",
+            "projects_metadata",
         ],
     }
     # the entities that appears in the menu / navbar

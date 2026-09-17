@@ -33,6 +33,7 @@ The code is available under **AGPL-3.0 license**.
     * [Modifying the datasets](#modifying-the-datasets)
 * [Single Docker deployment](#single-docker-deployment)
 * [Development](#development)
+* [Manual testing for merge requests](#manual-testing-for-merge-requests)
 
 ## Local installation
 
@@ -368,3 +369,7 @@ Install the pre-commit hooks (ruff, ty, eslint):
 ```
 uvx pre-commit install
 ```
+
+## Manual testing for merge requests
+
+Use the [manual testing checklist](./MANUAL_TESTING.md) for every merge request merged to `main`.

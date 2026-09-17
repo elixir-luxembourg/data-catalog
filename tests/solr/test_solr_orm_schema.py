@@ -22,7 +22,7 @@ import pytest
 import requests
 
 from datacatalog import app
-from datacatalog.solr.solr_orm import _SOLR_JSON_ENCODER
+from solrorm.orm import _SOLR_JSON_ENCODER
 from tests.base_test import BaseTest
 
 __author__ = "Nirmeen Sallam"
@@ -54,28 +54,25 @@ class TestModels(BaseTest):
         self.solr_orm.commit()
 
     def test_initialize_solr_query_fields(self):
-        self.solr_orm.create_fields()
-        self.solr_query_fields = app.config.get(
-            "SOLR_QUERY_TEXT_FIELD",
-            {
-                "project": ["datasets_metadata", "studies_metadata"],
-                "dataset": ["title", "studies_metadata", "projects_metadata"],
-                "study": ["title", "datasets_metadata", "projects_metadata"],
-            },
-        )
-        if app.config.get("SOLR_QUERY_SEARCH_EXTENDED"):
-            self.assertIn("datasets_metadata", self.solr_query_fields.get("project"))
-            self.assertIn("studies_metadata", self.solr_query_fields.get("project"))
-            if not app.config.get("SOLR_QUERY_SEARCH_EXTENDED_2_WAY_INDEX"):
-                self.assertIn("datasets_metadata", self.solr_query_fields.get("study"))
-            if app.config.get("SOLR_QUERY_SEARCH_EXTENDED_2_WAY_INDEX"):
-                self.assertIn("datasets_metadata", self.solr_query_fields.get("study"))
-                self.assertIn("projects_metadata", self.solr_query_fields.get("study"))
+        """Every field named in SOLR_QUERY_TEXT_FIELD is copied into _text_.
 
-                self.assertIn("studies_metadata", self.solr_query_fields.get("dataset"))
-                self.assertIn(
-                    "projects_metadata", self.solr_query_fields.get("dataset")
-                )
+        The configuration is now the whole story: solrorm no longer derives any
+        source from SOLR_QUERY_SEARCH_EXTENDED*, so a field is searchable if,
+        and only if, it is listed. Asserting against the live schema is what
+        catches a field that was listed but never reached solr.
+        """
+        self.solr_orm.create_fields()
+        directives = {
+            (directive["source"], directive["dest"])
+            for directive in self.solr_orm.indexer_schema.copy_fields()
+        }
+        for entity_name in app.config["entities"]:
+            # ask the ORM, not the config: this resolves the per-entity fallback
+            # for an entity SOLR_QUERY_TEXT_FIELD does not mention
+            for field_name in self.solr_orm.query_fields_for_entity(entity_name):
+                # "id" is the one source every entity shares, so it is unprefixed
+                source = "id" if field_name == "id" else f"{entity_name}_{field_name}"
+                self.assertIn((source, f"{entity_name}_text_"), directives)
 
     def test_create_field(self):
         self.solr_orm.indexer_schema.create_field(

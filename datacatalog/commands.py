@@ -20,12 +20,12 @@
  -------------------
 
 Entry points for CLI operations:
-   - test: run the unit tests
-   - init_index: initialize the solr index by creating the fields
-   - update_index: update the solr index by updating the fields
-   - clear_index: delete entities from index
-   - commit changes: triggers a solr commit
-   - import_entities: import entities into solr
+   - indexer init: initialize the solr index by creating the fields
+   - indexer update: update the solr index by updating the fields
+   - indexer clear: delete entities from index
+   - indexer commit: triggers a solr commit
+   - import entities: import entities into solr
+   - export entities: export entities to a target connector
 
 """
 
@@ -37,6 +37,54 @@ import requests
 
 
 def register_cli(app: Flask):
+    def exit_if_schema_incomplete(solr_orm, entity_name):
+        """
+        Abort the command if the solr schema misses fields the entity declares.
+        The library only reports which fields are missing; naming the command
+        that recreates the schema is up to us.
+        @param solr_orm: the SolrORM instance
+        @param entity_name: type of the entities being processed, e.g. dataset
+        """
+        try:
+            missing = solr_orm.missing_fields(entity_name)
+        except KeyError:
+            app.logger.error("unknown entity name %s", entity_name)
+            exit(1)
+        if missing:
+            app.logger.error(
+                "The solr schema is incomplete for entity '%s': %d field(s) "
+                "missing (%s). Run `flask indexer init` first.",
+                entity_name,
+                len(missing),
+                ", ".join(missing),
+            )
+            exit(1)
+
+    def exit_if_field_types_mismatch(solr_orm, entity_name):
+        """
+        Abort the command if a field type differs between the solr schema and
+        the entity definition. As above, the library reports the mismatches and
+        we name the command that fixes them.
+        @param solr_orm: the SolrORM instance
+        @param entity_name: type of the entities being processed, e.g. dataset
+        """
+        try:
+            mismatches = solr_orm.mismatched_fields(entity_name)
+        except KeyError:
+            app.logger.error("unknown entity name %s", entity_name)
+            exit(1)
+        if mismatches:
+            app.logger.error(
+                "Solr field type mismatch for entity '%s': %s. "
+                "Run `flask indexer init` to rebuild the schema.",
+                entity_name,
+                "; ".join(
+                    f"{name} is {actual} in the schema but declared as {expected}"
+                    for name, expected, actual in mismatches
+                ),
+            )
+            exit(1)
+
     def register_indexer_commands():
         indexer_cli = AppGroup("indexer")
 
@@ -44,20 +92,36 @@ def register_cli(app: Flask):
         def init_index():
             """
             Initialize the solr schema by creating the fields defined by the different SolrEntity subclasses
-            The fields should not exist before executing this operation.
+            Safe to re-run: fields that already exist are left as they are.
 
-            Drop any existing field in the schema before running anything else in the init index
-                purpose: update index in case of error from check_schema
+            Use 'indexer update' instead to change the definition of a field
+            that already exists, which does require a reindex.
             """
             solr_orm = app.config["_solr_orm"]
             try:
-                if solr_orm.check_fields_existence():
-                    app.logger.info("Existing fields are being deleted")
-                    solr_orm.delete_fields()
+                # create_fields only adds what the schema lacks, so an existing
+                # collection no longer has to be emptied of its fields first --
+                # which used to discard everything indexed in it
                 solr_orm.create_fields()
                 solr_orm.solr_config_update()
             except requests.exceptions.HTTPError as e:
                 app.logger.warning(e)
+                app.logger.error("The solr schema was not fully initialized.")
+                exit(1)
+            entity_names = ", ".join(sorted(app.config["entities"]))
+            incomplete = [
+                entity_name
+                for entity_name in sorted(app.config["entities"])
+                if solr_orm.missing_fields(entity_name)
+            ]
+            if incomplete:
+                app.logger.error(
+                    "The solr schema is still incomplete for: %s. "
+                    "Check the warnings above.",
+                    ", ".join(incomplete),
+                )
+                exit(1)
+            app.logger.info("Solr schema initialized for %s.", entity_names)
 
         @indexer_cli.command("update")
         def update_index():
@@ -119,73 +183,82 @@ def register_cli(app: Flask):
             @type entity_name: type of the entities to delete
             """
             solr_orm = app.config["_solr_orm"]
-            if solr_orm.check_schema(entity_name):
-                if entity_name not in app.config["entities"]:
-                    app.logger.error("unknown entity name")
-                    exit(1)
-                entity_class = app.config["entities"][entity_name]
-                connector = get_importer_connector(connector_name, entity_class)
-                if solr_orm.field_type_mismatch(entity_name):
-                    app.logger.error("Type mismatch run init_index to fix")
-                    exit(1)
-                if not connector:
-                    app.logger.error("no known connector found")
-                    exit(1)
-
-                solr_orm.delete(
-                    query=f"{entity_name}_connector_name:{connector.__class__.__name__}"
-                )
-                solr_orm.commit()
-                app.logger.info(
-                    f"All {entity_name}(s) of {connector.__class__.__name__} were deleted"
-                )
-                app.cache.clear()
-            else:
-                app.logger.error("Please run init_index first! ")
+            exit_if_schema_incomplete(solr_orm, entity_name)
+            if entity_name not in app.config["entities"]:
+                app.logger.error("unknown entity name")
                 exit(1)
+            entity_class = app.config["entities"][entity_name]
+            connector = get_importer_connector(connector_name, entity_class)
+            exit_if_field_types_mismatch(solr_orm, entity_name)
+            if not connector:
+                app.logger.error("no known connector found")
+                exit(1)
+
+            solr_orm.delete(
+                query=f"{entity_name}_connector_name:{connector.__class__.__name__}"
+            )
+            solr_orm.commit()
+            app.logger.info(
+                f"All {entity_name}(s) of {connector.__class__.__name__} were deleted"
+            )
+            app.cache.clear()
 
         app.cli.add_command(indexer_cli)
 
     def register_importer_commands():
-        importer_cli = AppGroup("import")
+        importer_cli = AppGroup(
+            "import", help="Import entities from a source connector into the index."
+        )
 
-        @importer_cli.command("entities")
-        @click.argument("connector_name")
-        @click.argument("entity_name")
-        @click.option("--sitemap/--no-sitemap", default=False)
+        @importer_cli.command(
+            "entities",
+            short_help="Import entities of one type from a connector.",
+        )
+        @click.argument("connector_name", metavar="CONNECTOR")
+        @click.argument("entity_name", metavar="ENTITY")
+        @click.option(
+            "--sitemap/--no-sitemap",
+            default=False,
+            help="Regenerate the sitemaps after the import (default: --no-sitemap).",
+        )
         def import_entities(connector_name, entity_name, sitemap=False):
-            """
-            Import entities of type entity_name using the connector specified by connector_name
-            Doesn't trigger a commit but will clear the cache.
-            Checks if the schema exits and if it has been populated
-            Checks for type mismatch for each field
-            @param connector_name: Short name of the connector to use, e.g. Json. See method get_importer_connector
-            @param sitemap: flag dedicated for initiating the sitemap
-            @type entity_name: type of the entities to import
+            """Import entities of type ENTITY using the CONNECTOR source.
+
+            \b
+            CONNECTOR  source to read from, one of:
+                       Dats, Json, csv, Geo, Daisy, Limesurvey,
+                       plus any name declared in the IMPORTERS_EXTRA setting.
+            ENTITY     entity type to import: study, project or dataset
+                       (the keys of the ENTITIES setting).
+
+            The connector must be listed in the entity's COMPATIBLE_CONNECTORS,
+            and the Solr schema must already exist -- run `flask indexer init`
+            first. The import clears the application cache but does not commit
+            to Solr; run `flask indexer commit` when done.
+
+            \b
+            Examples:
+              flask import entities Dats study
+              flask import entities Dats dataset --sitemap
             """
             solr_orm = app.config["_solr_orm"]
-            if solr_orm.check_schema(entity_name):
-                if entity_name not in app.config["entities"]:
-                    app.logger.error("unknown entity name")
-                    exit(1)
-                entity_class = app.config["entities"][entity_name]
-                connector = get_importer_connector(connector_name, entity_class)
-                if solr_orm.field_type_mismatch(entity_name):
-                    app.logger.error("Type mismatch run init_index to fix")
-                    exit(1)
-                if not connector:
-                    app.logger.error("no known connector found")
-                    exit(1)
-                from datacatalog.importer.entities_importer import EntitiesImporter
-
-                importer = EntitiesImporter([connector])
-                importer.import_all()
-                if sitemap:
-                    generate_sitemaps()
-                app.cache.clear()
-            else:
-                app.logger.error("Please run init_index first! ")
+            exit_if_schema_incomplete(solr_orm, entity_name)
+            if entity_name not in app.config["entities"]:
+                app.logger.error("unknown entity name")
                 exit(1)
+            entity_class = app.config["entities"][entity_name]
+            connector = get_importer_connector(connector_name, entity_class)
+            exit_if_field_types_mismatch(solr_orm, entity_name)
+            if not connector:
+                app.logger.error("no known connector found")
+                exit(1)
+            from datacatalog.importer.entities_importer import EntitiesImporter
+
+            importer = EntitiesImporter([connector])
+            importer.import_all()
+            if sitemap:
+                generate_sitemaps()
+            app.cache.clear()
 
         app.cli.add_command(importer_cli)
 

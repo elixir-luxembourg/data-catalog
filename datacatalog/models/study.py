@@ -26,14 +26,14 @@ import logging
 
 from flask import url_for
 
-from datacatalog.solr.solr_orm import SolrAutomaticQuery
-from datacatalog.solr.solr_orm_entity import SolrEntity
-from datacatalog.solr.solr_orm_fields import (
+from solrorm import (
+    SolrAutomaticQuery,
     SolrBooleanField,
+    SolrEntity,
     SolrField,
-    SolrTextField,
     SolrForeignKeyField,
     SolrIntField,
+    SolrTextField,
 )
 from . import EntityWithSlugs
 

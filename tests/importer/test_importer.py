@@ -26,7 +26,7 @@ from datacatalog.importer.entities_importer import EntitiesImporter
 from datacatalog.models.dataset import Dataset
 from datacatalog.models.project import Project
 from datacatalog.models.study import Study
-from datacatalog.solr.solr_orm_fields import SolrJsonField
+from solrorm import SolrJsonField
 from tests.base_test import BaseTest, get_resource_path
 
 __author__ = "Valentin Grouès"

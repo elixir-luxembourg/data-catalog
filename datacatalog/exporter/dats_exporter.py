@@ -28,17 +28,16 @@ Module containing the DATSExporter class
 import logging
 from typing import Dict
 
-import werkzeug.exceptions
-
 from ..models.dataset import Dataset
 from ..models.project import Project
 from ..models.study import Study
 
 __author__ = "Nirmeen Sallam, Abetare Shabani"
 
-from ..solr.solr_orm_entity import SolrEntity
+from solrorm import SolrEntity
 
 logger = logging.getLogger(__name__)
+
 
 w3id_base_url = "https://w3id.org/dats/context/sdo/"
 w3id_annotation = w3id_base_url + "annotation_sdo_context.jsonld"
@@ -275,14 +274,14 @@ class DATSExporter:
         if project.studies or project.datasets:
             if project.studies:
                 for study in project.studies:
-                    entity = Study.query.get_or_404(study)
+                    entity = Study.query.get_or_raise(study)
                     metadata["projectAssets"].append(
                         DATSExporter.build_dats_study({}, entity)
                     )
 
             if project.datasets:
                 for dataset in project.datasets:
-                    entity = Dataset.query.get_or_404(dataset)
+                    entity = Dataset.query.get_or_raise(dataset)
                     metadata["projectAssets"].append(
                         DATSExporter.build_dats_dataset({}, entity)
                     )
@@ -831,7 +830,7 @@ class DATSExporter:
         if study.datasets:
             template["output"] = []
             for dataset in study.datasets:
-                entity = Dataset.query.get_or_404(dataset)
+                entity = Dataset.query.get_or_raise(dataset)
                 template["output"].append(
                     DATSExporter.build_dats_dataset(metadata, entity)
                 )
@@ -865,20 +864,27 @@ class DATSExporter:
         return template
 
     @staticmethod
-    def get_entity_parent(entity: SolrEntity) -> SolrEntity:
-        try:
-            entity_name = f"{entity.__class__.__name__}".lower()
-            if entity_name == "dataset":
-                if entity.study_entity:
-                    child_entity = entity.study_entity
-                    parent_entity = child_entity.project_entity
-                else:
-                    parent_entity = entity.project_entity
-                return parent_entity
-            elif entity_name == "study":
-                return entity.project_entity
+    def get_entity_parent(entity: SolrEntity) -> SolrEntity | None:
+        """
+        The entity one level up the project / study / dataset hierarchy.
+
+        A reference that is not indexed resolves to nothing rather than raising:
+        the accessors answer with an empty list, which is normalised to None
+        here so that "no parent" has one spelling.
+
+        @param entity: the entity to look up the parent of
+        @return: the parent entity, or None at the top of the hierarchy
+        """
+        entity_name = f"{entity.__class__.__name__}".lower()
+        if entity_name == "dataset":
+            if entity.study_entity:
+                child_entity = entity.study_entity
+                parent_entity = child_entity.project_entity
             else:
-                logger.info("Reached parent in the hierarchy")
-                return None
-        except werkzeug.exceptions.NotFound as e:
-            logger.error(e)
+                parent_entity = entity.project_entity
+            return parent_entity or None
+        elif entity_name == "study":
+            return entity.project_entity or None
+        else:
+            logger.info("Reached parent in the hierarchy")
+            return None

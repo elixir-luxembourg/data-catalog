@@ -38,7 +38,7 @@ from ..models.contact import Contact
 from ..models.dataset import Dataset
 from ..models.project import Project
 from ..models.study import Study
-from ..solr.solr_orm_entity import SolrEntity
+from solrorm import SolrEntity
 
 __author__ = "Valentin Grouès"
 

@@ -28,7 +28,6 @@ Module containing the EntitiesIndexExtender class
 import logging
 
 from .. import app
-from ..controllers.web_controllers import get_entity
 from ..models.dataset import Dataset
 from ..models.project import Project
 from ..models.study import Study
@@ -36,6 +35,29 @@ from ..models.study import Study
 __author__ = "Nirmeen Sallam"
 
 logger = logging.getLogger(__name__)
+
+
+def _get_referenced_entity(entity_name: str, entity_id: str):
+    """
+    Retrieve a referenced entity, tolerating a reference that resolves to nothing.
+
+    This runs from the 'indexer extend' command, where there is no request to
+    answer with a 404: one entity referencing an id that is not indexed must
+    not abandon the whole run, so it is reported and skipped. The metadata
+    built for the referring entity is then simply missing that contribution.
+
+    @param entity_name: name of the entity class, e.g. dataset
+    @param entity_id: id of the referenced entity
+    @return: the entity, or None if no entity carries that id
+    """
+    entity = app.config["entities"][entity_name].query.get(entity_id)
+    if entity is None:
+        logger.warning(
+            "skipping %s %s: referenced but not found in the index",
+            entity_name,
+            entity_id,
+        )
+    return entity
 
 
 class EntitiesIndexExtender(object):
@@ -59,7 +81,9 @@ class EntitiesIndexExtender(object):
             study_data = []
             logger.debug("indexing project's datasets")
             for dataset in project.datasets or []:
-                curr_dataset = get_entity("dataset", dataset)
+                curr_dataset = _get_referenced_entity("dataset", dataset)
+                if curr_dataset is None:
+                    continue
                 for field in (
                     app.config.get("SOLR_QUERY_TEXT_FIELD_EXTENDED", {}).get("dataset")
                     or []
@@ -71,7 +95,9 @@ class EntitiesIndexExtender(object):
 
             logger.debug("indexing project's studies")
             for study in project.studies or []:
-                curr_study = get_entity("study", study)
+                curr_study = _get_referenced_entity("study", study)
+                if curr_study is None:
+                    continue
                 for field in (
                     app.config.get("SOLR_QUERY_TEXT_FIELD_EXTENDED", {}).get("study")
                     or []
@@ -83,7 +109,9 @@ class EntitiesIndexExtender(object):
 
                 logger.debug("indexing study's datasets")
                 for dataset in curr_study.datasets or []:
-                    curr_dataset = get_entity("dataset", dataset)
+                    curr_dataset = _get_referenced_entity("dataset", dataset)
+                    if curr_dataset is None:
+                        continue
                     for field in (
                         app.config.get("SOLR_QUERY_TEXT_FIELD_EXTENDED", {}).get(
                             "dataset"
@@ -120,7 +148,9 @@ class EntitiesIndexExtender(object):
             project_data = []
             logger.debug("indexing study's dataset")
             for dataset in study.datasets or []:
-                curr_dataset = get_entity("dataset", dataset)
+                curr_dataset = _get_referenced_entity("dataset", dataset)
+                if curr_dataset is None:
+                    continue
                 for field in (
                     app.config.get("SOLR_QUERY_TEXT_FIELD_EXTENDED", {}).get("dataset")
                     or []

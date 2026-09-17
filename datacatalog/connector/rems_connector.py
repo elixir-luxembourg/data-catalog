@@ -27,7 +27,7 @@ from ..exceptions import (
     CouldNotCloseApplicationException,
     CouldNotSubmitApplicationException,
 )
-from ..solr.solr_orm_entity import SolrEntity
+from solrorm import SolrEntity
 
 logger = logging.getLogger(__name__)
 

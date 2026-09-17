@@ -51,15 +51,12 @@ from .. import login_manager, get_access_handler, app
 from ..acces_handler.access_handler import ApplicationState
 from ..exceptions import (
     CouldNotCloseApplicationException,
-    SolrQueryException,
     AuthenticationException,
     DataCatalogException,
 )
 from ..exporter.dats_exporter import DATSExporter
 from ..pagination import Pagination
-from ..solr.facets import Facet
-from ..solr.solr_orm_entity import SolrEntity
-from ..solr.solr_orm import SolrQuery
+from solrorm import Facet, SolrEntity, SolrQuery, SolrQueryException
 from datacatalog.models.dataset import StudyDataset
 
 logger = logging.getLogger(__name__)
@@ -322,7 +319,8 @@ def default_search(
     total_count = results.hits if results else 0
     pagination = Pagination(page, results_per_page, total_count)
     ordered_facets = []
-    for attribute_name, label in facets_order:
+    # a FACETS_ORDER entry may carry default values as a third element
+    for attribute_name, *_ in facets_order:
         facet = facets.get(attribute_name, None)
         if facet is not None:
             ordered_facets.append(facet)
@@ -475,7 +473,9 @@ def entity_by_slug(entity_name: str, slug_name: str) -> Response:
         entity_class = app.config["entities"][entity_name]
     except KeyError:
         abort(404)
-    entity = entity_class.query.get_by_slug_or_404(slugify(slug_name))
+    entity = entity_class.query.get_by_slug(slugify(slug_name))
+    if entity is None:
+        abort(404)
     return redirect(
         url_for("entity_details", entity_name=entity_name, entity_id=entity.id),
         code=301,
@@ -493,7 +493,9 @@ def get_entity(entity_name: str, entity_id: str) -> SolrEntity:
         entity_class = app.config["entities"][entity_name]
     except KeyError:
         abort(404)
-    entity = entity_class.query.get_or_404(entity_id)
+    entity = entity_class.query.get(entity_id)
+    if entity is None:
+        abort(404)
     return entity
 
 
@@ -528,7 +530,8 @@ def get_entity_with_facets(
         return redirect(
             url_for("entity_details", entity_name=entity_name, entity_id=entity.id)
         )
-    for attribute_name, label in facets_order:
+    # a FACETS_ORDER entry may carry default values as a third element
+    for attribute_name, *_ in facets_order:
         facet = facets.get(attribute_name, None)
         if facet is not None:
             values = getattr(entity, attribute_name)
