@@ -226,6 +226,9 @@ class Config(object):
         "project": os.environ.get("DAISY_API_URLS_PROJECT", ""),
     }
     # Logger configuration
+    LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO").upper()
+    # Daily rotation; the handler deletes anything older than this at rollover.
+    LOG_RETENTION_DAYS = int(os.environ.get("LOG_RETENTION_DAYS", "90"))
     LOGGING_CONFIG = {
         "version": 1,
         "disable_existing_loggers": True,
@@ -234,18 +237,19 @@ class Config(object):
         },
         "handlers": {
             "default": {
-                "level": "DEBUG",
+                "level": LOG_LEVEL,
                 "formatter": "standard",
                 "class": "logging.StreamHandler",
                 "stream": "ext://sys.stdout",
             },
             "file": {
-                "level": "DEBUG",
+                "level": LOG_LEVEL,
                 "formatter": "standard",
-                "class": "logging.handlers.RotatingFileHandler",
+                "class": "logging.handlers.TimedRotatingFileHandler",
                 "filename": "datacatalog.log",
-                "maxBytes": 50_000_000,
-                "backupCount": 4,
+                "when": "midnight",
+                "backupCount": LOG_RETENTION_DAYS,
+                "encoding": "utf-8",
             },
         },
         "loggers": {
@@ -255,7 +259,7 @@ class Config(object):
                 "propagate": True,
             },
             "datacatalog": {
-                "level": "DEBUG",
+                "level": LOG_LEVEL,
             },
             "werkzeug": {"level": "INFO"},
         },
