@@ -184,7 +184,7 @@
             </button>
 
             {% if config.get('ALLOW_ENTITY_EXPORT', False) %}
-              {{ macros.btn_secondary(url_for('export_dats_entity', entity_name='dataset', entity_id=dataset.id), "Export as DATS", icon="download") }}
+              {{ macros.btn_secondary(url_for('export_dats_entity', entity_name='dataset', entity_id=dataset.id), "Export record metadata", icon="download", title="Download the metadata as DATS JSON") }}
             {% endif %}
           </div>
         </section>
