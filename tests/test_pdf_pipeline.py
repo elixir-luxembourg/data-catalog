@@ -24,6 +24,7 @@ from pypdf import PdfReader
 
 from datacatalog.converter.pdf_converter import merge, render_form, to_pdf
 from datacatalog.exporter.rems_pdf_exporter import build_payload
+from datacatalog.models.dataset import Dataset
 from tests.base_test import BaseTest
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -37,28 +38,32 @@ class TestPdfPipeline(BaseTest):
     """
 
     def test_build_payload(self):
-        dataset = Mock(
-            title="Genomic Dataset Alpha",
-            id="DS-001",
-            version="1.0",
-            description="Whole-genome sequencing data",
-            data_types=["Genomic"],
-            access_mode="Controlled",
-            platform="Test Platform",
-            dataset_contact="normal user",
-            dataset_email="normal@uni.lu",
-            dataset_affiliation="University of Luxembourg",
-            dataset_owner="LCSB",
-            use_conditions=[
-                {
-                    "use_condition_note": "Research only",
-                    "use_class": "DUO:0000007",
-                    "use_class_label": "Disease specific research",
-                    "use_condition_rule": "OBLIGATION",
-                    "use_class_note": "",
-                }
-            ],
-        )
+        dataset = Dataset(title="Genomic Dataset Alpha")
+        dataset.id = "DS-001"
+        dataset.version = "1.0"
+        dataset.description = "Whole-genome sequencing data"
+        dataset.data_types = ["Genomic"]
+        dataset.access_mode = "Controlled"
+        dataset.platform = "Test Platform"
+        dataset.dataset_owner = "LCSB"
+        dataset.dataset_owner_email = "lcsb@uni.lu"
+        dataset.dataset_contacts = [
+            {
+                "name": "normal user",
+                "affiliation": "University of Luxembourg",
+                "email": "normal@uni.lu",
+            },
+            {"name": "second user", "affiliation": None, "email": None},
+        ]
+        dataset.use_conditions = [
+            {
+                "use_condition_note": "Research only",
+                "use_class": "DUO:0000007",
+                "use_class_label": "Disease specific research",
+                "use_condition_rule": "OBLIGATION",
+                "use_class_note": "",
+            }
+        ]
         text_field = Mock(
             fieldid="purpose",
             fieldtype="text",
@@ -94,6 +99,11 @@ class TestPdfPipeline(BaseTest):
         self.assertEqual(payload["dataset_title"], "Genomic Dataset Alpha")
         self.assertEqual(payload["requester"]["name"], "Jane Doe")
         self.assertEqual(payload["requester"]["email"], "jane@uni.lu")
+        metadata = payload["dataset_metadata"]
+        self.assertEqual(metadata["contact"], "second user")
+        self.assertEqual(metadata["email"], "normal@uni.lu")
+        self.assertEqual(metadata["affiliation"], "University of Luxembourg")
+        self.assertEqual(metadata["owner"], "LCSB")
 
     def test_to_pdf_conversions(self):
         png_result = to_pdf((FIXTURES / "sample_circles.png").read_bytes(), "img.png")

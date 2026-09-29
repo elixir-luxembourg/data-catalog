@@ -617,26 +617,28 @@ class DATSConnector(ImportEntitiesConnector):
                     dataset.checksum_algorithm = check_algo["value"]
 
         if "creators" in metadata:
-            if (
-                metadata["creators"][0]["@type"] == "Organization"
-                and metadata["creators"][0]["name"] != ""
-            ) or (
-                metadata["creators"][0]["@type"] == "Person"
-                and metadata["creators"][0]["fullName"] != ""
-            ):
-                for creator in metadata["creators"]:
-                    if creator["@type"] == "Organization":
-                        dataset.dataset_owner = creator["name"]
-
-                    elif creator["@type"] == "Person":
-                        dataset.dataset_contact = creator["fullName"]
-                        if "affiliations" in creator:
-                            dataset.dataset_affiliation = creator["affiliations"][0][
-                                "name"
-                            ]
-
-                    if "email" in creator:
-                        dataset.dataset_email = creator["email"]
+            # every Person is kept as one contact, its name, affiliation and email
+            # together
+            contacts = []
+            for creator in metadata["creators"]:
+                if creator.get("@type") == "Organization" and creator.get("name"):
+                    dataset.dataset_owner = creator["name"]
+                    dataset.dataset_owner_email = (
+                        creator.get("email") or dataset.dataset_owner_email
+                    )
+                elif creator.get("@type") == "Person" and creator.get("fullName"):
+                    affiliations = creator.get("affiliations") or []
+                    contacts.append(
+                        {
+                            "name": creator["fullName"],
+                            "affiliation": (
+                                affiliations[0].get("name") if affiliations else None
+                            ),
+                            "email": creator.get("email"),
+                        }
+                    )
+            if contacts:
+                dataset.dataset_contacts = contacts
         return dataset
 
     def build_all_entities_for_dict(self, data, filename: str = None):

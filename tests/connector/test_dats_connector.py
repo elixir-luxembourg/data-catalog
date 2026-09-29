@@ -95,3 +95,56 @@ class TestDatsConnector(BaseTest):
         studies_to_check = filter(lambda x: x.id in studies_ids, studies)
         for study in studies_to_check:
             self.assertEqual(study.project, "TEST-1-ED9C37-1")
+
+    def test_build_dataset_keeps_every_person_creator(self):
+        # every Person creator is kept, not only the last one
+        metadata = {
+            "identifier": {"identifier": "dataset-with-two-contacts"},
+            "title": "Dataset with two contacts",
+            "creators": [
+                {"@type": "Organization", "name": "LCSB"},
+                {
+                    "@type": "Person",
+                    "fullName": "Alice Martin",
+                    "email": "alice.martin@example.org",
+                    "affiliations": [
+                        {"@type": "Organization", "name": "University of Luxembourg"}
+                    ],
+                },
+                {
+                    "@type": "Person",
+                    "fullName": "Bob Weber",
+                    "affiliations": [{"@type": "Organization", "name": "LIH"}],
+                },
+            ],
+        }
+        dataset = DATSConnector.build_dataset(metadata, Dataset())
+        self.assertEqual("LCSB", dataset.dataset_owner)
+        self.assertEqual(
+            [
+                {
+                    "name": "Alice Martin",
+                    "affiliation": "University of Luxembourg",
+                    "email": "alice.martin@example.org",
+                },
+                {"name": "Bob Weber", "affiliation": "LIH", "email": None},
+            ],
+            dataset.dataset_contacts,
+        )
+
+    def test_build_dataset_keeps_the_owner_email_without_contact(self):
+        metadata = {
+            "identifier": {"identifier": "dataset-with-owner-email"},
+            "title": "Dataset with an owner email",
+            "creators": [
+                {
+                    "@type": "Organization",
+                    "name": "LCSB",
+                    "email": "lcsb@example.org",
+                },
+            ],
+        }
+        dataset = DATSConnector.build_dataset(metadata, Dataset())
+        self.assertEqual("LCSB", dataset.dataset_owner)
+        self.assertEqual("lcsb@example.org", dataset.dataset_owner_email)
+        self.assertEqual([], dataset.contact_persons)
