@@ -110,8 +110,10 @@ sudo systemctl enable --now redis
     ```
     uv run flask indexer init
     ```
-1. Index the provided studies, projects and datasets.
-For local development, change `JSON_FILE_PATH` from `'data/imi_projects'`to `'tests/data/imi_projects_test'` or use data from [dats-elixir-files](https://gitlab.lcsb.uni.lu/core-services/datacatalog/dats-elixir-files).
+1. Index the studies, projects and datasets.
+The records are read from the DATS JSON files in the folders set by `JSON_FILE_PATH` in `datacatalog/settings.py`
+(one folder per entity type). By default (`settings.py.template`) the three entries point to `tests/data/imi_projects_test`, the test data shipped
+with the repository.
 
      ```
      uv run flask import entities Dats study
@@ -310,9 +312,11 @@ docker-compose down --volumes
 
 ### Modifying the datasets
 
-The datasets, projects and studies are all defined in the files located in the folder `data/imi_projects`. Those files
-can me modified to add, delete and modify those entities. After saving the files, rebuild and restart docker-compose
-with:
+The datasets, projects and studies are read from the DATS JSON files in the folders set by `JSON_FILE_PATH` in
+`datacatalog/settings.py` (paths are relative to the repository root, which is mounted at `/code` in the container).
+By default (`settings.py.template`) they point to `tests/data/imi_projects_test`, the test data shipped with the
+repository. Those files can be modified to add, delete and modify those entities. After saving the files, rebuild and restart
+docker-compose with:
 
 ```
 CTLR+D
