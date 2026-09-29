@@ -71,6 +71,8 @@ class Dataset(SolrEntity, EntityWithSlugs):
     COMPATIBLE_CONNECTORS = ["Limesurvey", "Geo", "Json", "Dats", "Daisy"]
 
     id = SolrField("id")
+    # indexed so that a search on a former id finds the entity
+    former_ids = SolrField("former_ids", multivalued=True)
     title = SolrField("title")
     description = SolrField("description")
     data_standards = SolrField("data_standards", multivalued=True)
