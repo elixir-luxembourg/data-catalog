@@ -206,6 +206,59 @@ class TestWebControllers(BaseTest):
         entity_clean_text = get_clean_html_body(entity)
         self.assertIn(datasets[0].title, entity_clean_text)
 
+    def test_entity_details_citation_of_the_record(self):
+        dataset = Dataset(title="Cited dataset", entity_id="cited-dataset")
+        dataset.version = "2"
+        dataset.use_conditions = [
+            {
+                "use_condition_note": "Use for research only",
+                "use_class": "RS",
+                "use_class_label": "Research",
+                "use_condition_rule": "PERMISSION",
+                "use_class_note": "",
+            }
+        ]
+        dataset.save()
+        self.solr_orm.commit()
+        with self.client as client:
+            response = client.get(
+                url_for("entity_details", entity_name="dataset", entity_id=dataset.id)
+            )
+        self.assert200(response)
+        html = response.data.decode("utf-8")
+        clean_text = get_clean_html_body(response)
+        self.assertIn("Cite this record", clean_text)
+        self.assertNotIn("Cite this dataset", clean_text)
+        self.assertIn(
+            "To cite this catalogue record, use the following citation:", clean_text
+        )
+        record_url = url_for(
+            "entity_details",
+            entity_name="dataset",
+            entity_id=dataset.id,
+            _external=True,
+        )
+        self.assertIn(
+            f">Cited dataset</i> ({dataset.id}) [Dataset record]. {record_url}", html
+        )
+        self.assertNotIn("[Data set]", html)
+        self.assertIn('href="#use-conditions-fields"', html)
+        self.assertIn('id="use-conditions-fields"', html)
+
+    def test_entity_details_citation_without_use_conditions_has_no_link(self):
+        dataset = Dataset(title="Dataset without conditions", entity_id="no-conditions")
+        dataset.version = "1"
+        dataset.save()
+        self.solr_orm.commit()
+        with self.client as client:
+            response = client.get(
+                url_for("entity_details", entity_name="dataset", entity_id=dataset.id)
+            )
+        self.assert200(response)
+        html = response.data.decode("utf-8")
+        self.assertIn("Data use conditions", get_clean_html_body(response))
+        self.assertNotIn('href="#use-conditions-fields"', html)
+
     def test_entity_by_slug(self):
         dataset = Dataset.query.get("d6ab9395-1ae3-453b-aa0e-c1de613905d8")
         with self.client as client:
