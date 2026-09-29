@@ -16,6 +16,8 @@
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import base64
+import json
 import os
 import re
 import shutil
@@ -860,6 +862,109 @@ class TestWebControllers(BaseTest):
             "An error occurred while loading some applications: Unknown state retrieved"
             in logs.output[0]
         )
+
+    @staticmethod
+    def _unsigned_jwt(claims):
+        def encode(part):
+            return (
+                base64.urlsafe_b64encode(json.dumps(part).encode()).decode().rstrip("=")
+            )
+
+        return f"{encode({'alg': 'none'})}.{encode(claims)}.signature"
+
+    def _get_page_logged_in(self, endpoint, config, user):
+        base_config = {"SHOW_LOGIN": True, "ACCESS_HANDLERS": {"dataset": "Email"}}
+        with (
+            patch.dict(app.config, {**base_config, **config}),
+            patch("flask_login.utils._get_user") as current_user,
+        ):
+            current_user.return_value = user
+            return app.test_client().get(url_for(endpoint))
+
+    def _oidc_user(self, claims=None, accesses=None):
+        id_token = self._unsigned_jwt(claims or {"name": "Test"})
+        return User(
+            "test",
+            "test@example.com",
+            "Test",
+            True,
+            accesses,
+            extra={"id_token": id_token, "access_token": "secret-access-token"},
+        )
+
+    def test_my_account_lists_identity_claims(self):
+        claims = {
+            "name": "Jane Doe",
+            "email": "jane@example.com",
+            "preferred_username": "jane.doe|ul",
+            "acr": "bronze",
+            "realm_access": {"roles": ["ACCESS::dataset-1", "offline_access"]},
+            "groups": ["staff", "researchers"],
+            "nonce": "technical-nonce-value",
+            "exp": 1234567890,
+            "custom_claim": "custom-value",
+        }
+        user = self._oidc_user(claims, accesses=["dataset-1"])
+        response = self._get_page_logged_in(
+            "my_account",
+            {"AUTHENTICATION_METHOD": "PYOIDC"},
+            user,
+        )
+        self.assert200(response)
+        page = response.data.decode("utf-8")
+        self.assertIn("<h1", page)
+        self.assertIn("My account", page)
+        self.assertIn("Jane Doe", page)
+        self.assertIn("jane@example.com", page)
+        self.assertIn("jane.doe|ul", page)
+        self.assertIn("Username", page)
+        self.assertNotIn("bronze", page)
+        self.assertNotIn("realm_access", page)
+        self.assertNotIn("offline_access", page)
+        self.assertIn("staff, researchers", page)
+        self.assertIn("custom_claim", page)
+        self.assertIn("custom-value", page)
+        self.assertIn("dataset-1", page)
+        self.assertNotIn("technical-nonce-value", page)
+        self.assertNotIn("1234567890", page)
+        self.assertNotIn(user.extra["id_token"], page)
+        self.assertNotIn("secret-access-token", page)
+
+    def test_my_account_not_found_without_pyoidc(self):
+        response = self._get_page_logged_in(
+            "my_account", {"AUTHENTICATION_METHOD": "LDAP"}, self._oidc_user()
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_my_account_requires_login(self):
+        with patch.dict(app.config, {"AUTHENTICATION_METHOD": "PYOIDC"}):
+            response = app.test_client().get(url_for("my_account"))
+        self.assertEqual(response.status_code, 302)
+        self.assertNotIn("account", response.location.split("?")[0])
+
+    def test_user_menu_account_link_with_pyoidc(self):
+        response = self._get_page_logged_in(
+            "about", {"AUTHENTICATION_METHOD": "PYOIDC"}, self._oidc_user()
+        )
+        page = response.data.decode("utf-8")
+        self.assertIn('id="account_link"', page)
+        self.assertIn(f'href="{url_for("my_account")}"', page)
+        self.assertNotIn("Account (opens in a new tab)", page)
+
+    def test_user_menu_no_account_link_with_ldap(self):
+        response = self._get_page_logged_in(
+            "about", {"AUTHENTICATION_METHOD": "LDAP"}, self._oidc_user()
+        )
+        page = response.data.decode("utf-8")
+        self.assertIn('id="logout_btn"', page)
+        self.assertNotIn('id="account_link"', page)
+
+    def test_user_menu_no_account_link_when_anonymous(self):
+        with patch.dict(
+            app.config, {"SHOW_LOGIN": True, "AUTHENTICATION_METHOD": "PYOIDC"}
+        ):
+            page = app.test_client().get(url_for("about")).data.decode("utf-8")
+        self.assertNotIn('id="account_link"', page)
 
     def tearDown(self):
         app.config["_solr_orm"].delete(query="*:*")

@@ -54,6 +54,7 @@ from ..exceptions import (
     AuthenticationException,
     DataCatalogException,
 )
+from ..authentication.identity_claims import extract_identity_claims
 from ..exporter.dats_exporter import DATSExporter
 from ..pagination import Pagination
 from solrorm import (
@@ -754,6 +755,19 @@ def request_access(entity_name: str, entity_id: str) -> Response:
 @app.route("/static_plugin/<path:filename>")
 def custom_static(filename):
     return send_from_directory(app.config["CUSTOM_STATIC_PATH"], filename)
+
+
+@app.route("/user/account")
+@login_required
+def my_account():
+    if app.config.get("AUTHENTICATION_METHOD") != "PYOIDC":
+        abort(404)
+    id_token = (current_user.extra or {}).get("id_token")
+    return render_template(
+        "my_account.html",
+        claims=extract_identity_claims(id_token) if id_token else [],
+        accesses=current_user.accesses,
+    )
 
 
 @app.route("/user/my-data-access-requests/<entity_name>")
