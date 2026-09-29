@@ -97,9 +97,9 @@ class Config(object):
     USE_CURSOR_PAGINATION = False
     # FOR ENTITIES IMPORT FROM JSON FILES
     JSON_FILE_PATH = {
-        "dataset": "data/imi_projects",
-        "project": "data/imi_projects",
-        "study": "data/imi_projects",
+        "dataset": "tests/data/imi_projects_test",
+        "project": "tests/data/imi_projects_test",
+        "study": "tests/data/imi_projects_test",
     }
     # EMAIL ADDRESS TO SEND ACCESS REQUEST TO
     EMAIL_RECIPIENT = ["data-catalog@elixir-luxembourg.org"]
