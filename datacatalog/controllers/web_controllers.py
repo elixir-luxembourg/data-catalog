@@ -56,7 +56,14 @@ from ..exceptions import (
 )
 from ..exporter.dats_exporter import DATSExporter
 from ..pagination import Pagination
-from solrorm import Facet, SolrEntity, SolrQuery, SolrQueryException
+from solrorm import (
+    Facet,
+    SolrEntity,
+    SolrQuery,
+    SolrQueryException,
+    escape_solr_value,
+)
+from solrorm.orm import fuzzy_search_suffix
 from datacatalog.models.dataset import StudyDataset
 
 logger = logging.getLogger(__name__)
@@ -200,6 +207,40 @@ def search() -> Response:
     return default_search(request, exporter=exporter, entity=default_entity)
 
 
+# constant score given to the entity whose id (or former id) is the query, far
+# above any text relevance score so that it always comes first
+EXACT_ID_MATCH_SCORE = 1000000
+
+
+def build_query_with_exact_id_match(searcher: SolrQuery, query: str) -> str:
+    """
+    Build the fuzzy text query solrorm builds for a search, plus the entity
+    whose id or former id is the query, listed first.
+    The text part is the query solrorm's C{search(query, fuzzy=True)} sends, so
+    the other results and their scores are unchanged: the id clauses match at
+    most one more entity and score nothing on the others.
+    @param searcher: the query object of the searched entity
+    @param query: the user query, not empty
+    @return: the solr query, to pass to C{search} with C{edismax=True}
+    """
+    entity_name = escape_solr_value(searcher.entity_name)
+    fuzzy_suffix = fuzzy_search_suffix(searcher.solr_orm.settings)
+    text_query = (
+        f"({entity_name}_text_:'{query}' "
+        f"OR {entity_name}_textfuzzy_:{query}{fuzzy_suffix})"
+    )
+    if getattr(searcher.class_object, "ADD_PREFIX_ID", True):
+        solr_id = f"{searcher.entity_name}_{query}"
+    else:
+        solr_id = query
+    return (
+        f"({text_query}"
+        f' OR id:"{escape_solr_value(solr_id)}"^={EXACT_ID_MATCH_SCORE}'
+        f' OR {entity_name}_former_ids:"{escape_solr_value(query)}"'
+        f"^={EXACT_ID_MATCH_SCORE})"
+    )
+
+
 def default_search(
     search_request: Request,
     extra_filter: List[str] = None,
@@ -290,14 +331,28 @@ def default_search(
                 fq = []
             fq.append(entity_filter)
 
+        # a query naming a solr field (e.g. dataset_title:x) becomes a filter
+        # in solrorm and is left as it is
+        if (
+            query
+            and query != "*:*"
+            and not (":" in query and searcher.query_has_solr_query_field(query))
+        ):
+            # sent as it is (edismax), the fuzzy text part being built here
+            solr_query = build_query_with_exact_id_match(searcher, query)
+            fuzzy, edismax = False, True
+        else:
+            solr_query = query
+            fuzzy, edismax = True, False
         results = searcher.search(
-            query,
+            solr_query,
             rows=rows,
             start=start,
             sort=sort_by,
             sort_order=sort_order,
             facets=facets.values(),
-            fuzzy=True,
+            fuzzy=fuzzy,
+            edismax=edismax,
             fq=fq,
             cursor=cursor,
         )

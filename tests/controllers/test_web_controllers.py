@@ -148,6 +148,51 @@ class TestWebControllers(BaseTest):
             self.assertIn("search-results", search_result_desc.data.decode("utf-8"))
             self.assertIn("search-results", search_result_asc.data.decode("utf-8"))
 
+    def listed_entity_ids(self, response, entity_name):
+        """The ids of the entities a search page lists, in order"""
+        links = re.findall(
+            rf'href="/e/{entity_name}/([^"#/]+)"', response.data.decode("utf-8")
+        )
+        return list(dict.fromkeys(links))
+
+    def test_search_by_id_lists_that_entity_first(self):
+        # searching an entity id lists that entity first, although the fuzzy
+        # text query doesn't look at ids
+        for entity_class in (Dataset, Project, Study):
+            entity_name = entity_class.__name__.lower()
+            searched = list(entity_class.query.all())[-1]
+            with self.client as client:
+                response = client.get(f"/{entity_name}s?query={searched.id}")
+            self.assert200(response)
+            self.assertEqual(
+                searched.id,
+                self.listed_entity_ids(response, entity_name)[0],
+                entity_name,
+            )
+
+    def test_search_by_former_id_lists_that_entity_first(self):
+        # a former id (e.g. of a Daisy dataset) finds the entity as well
+        searched = list(Dataset.query.all())[-1]
+        searched.former_ids = ["former-dataset-id-74"]
+        searched.save()
+        self.solr_orm.commit()
+        with self.client as client:
+            response = client.get("/datasets?query=former-dataset-id-74")
+        self.assert200(response)
+        self.assertEqual(searched.id, self.listed_entity_ids(response, "dataset")[0])
+
+    def test_search_by_text_is_not_changed_by_id_match(self):
+        # the id clauses leave the results of a text search unchanged
+        query = "disease"
+        expected = Dataset.query.search(
+            query, sort="", sort_order="desc", fuzzy=True, fq=["type:dataset"]
+        )
+        expected_ids = [dataset.id for dataset in expected.entities][:20]
+        self.assertTrue(expected_ids)
+        with self.client as client:
+            response = client.get(f"/datasets?query={query}")
+        self.assertEqual(expected_ids, self.listed_entity_ids(response, "dataset"))
+
     def test_entity_details(self):
         datasets = list(Dataset.query.all())
         with self.client as client:

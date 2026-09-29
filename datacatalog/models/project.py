@@ -51,6 +51,8 @@ class Project(SolrEntity, EntityWithSlugs):
     COMPATIBLE_CONNECTORS = ["Json", "Dats", "Geo", "Daisy"]
     query_class = SolrAutomaticQuery
     id = SolrField("id")
+    # indexed so that a search on a former id finds the entity
+    former_ids = SolrField("former_ids", multivalued=True)
     business_fax_number = SolrField("business_fax_number", indexed=False)
     datasets = SolrForeignKeyField(
         "datasets",

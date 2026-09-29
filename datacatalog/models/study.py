@@ -52,6 +52,8 @@ class Study(SolrEntity, EntityWithSlugs):
     # bmi_range = SolrField("bmi_range", indexed=False)
 
     id = SolrField("id")
+    # indexed so that a search on a former id finds the entity
+    former_ids = SolrField("former_ids", multivalued=True)
     cohort_characteristics = SolrField("cohort_characteristics", multivalued=True)
 
     cohorts_description = SolrField("cohorts_description")
