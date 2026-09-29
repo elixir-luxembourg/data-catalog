@@ -1,6 +1,7 @@
 {% extends 'request_access.html' %}
 {% import 'macros.html' as macros %}
 {% set conditions_fields, icons = form | use_conditions %}
+{% set condition_field_ids = conditions_fields.values() | sum(start=[]) | map(attribute='name') | list %}
 
 {% block form %}
     {{ macros.quick_form(form, include_form_tag=False, show_submit=False, render_rw_filter='use_condition_rule') }}
@@ -32,8 +33,49 @@
             <a href="https://www.ga4gh.org/wp-content/uploads/DataUseBeacon_160209_tab_0.pdf"
                class="text-blue-900 underline underline-offset-2 hover:text-blue-800">GA4GH website</a>.
         </p>
+        {% if condition_field_ids | length > 1 %}
+            <div class="flex items-start gap-2 rounded border border-blue-900 bg-blue-50 p-4">
+                <input id="accept-all-use-conditions" type="checkbox"
+                       aria-controls="{{ condition_field_ids | join(' ') }}"
+                       class="mt-1 h-4 w-4 rounded border-gray-300 text-blue-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-900 focus-visible:ring-offset-2"/>
+                <label for="accept-all-use-conditions" class="text-sm font-semibold text-blue-900">
+                    I accept all the use conditions above
+                </label>
+            </div>
+        {% endif %}
     {% endif %}
     <div class="mt-6 flex justify-end">
         {{ form.submit(class_="inline-flex items-center justify-center gap-2 bg-blue-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-2") }}
     </div>
+{% endblock %}
+
+{% block js %}
+{{ super() }}
+<script>
+    (function () {
+        const acceptAllCheckbox = document.getElementById('accept-all-use-conditions');
+        if (!acceptAllCheckbox) return;
+        const conditionCheckboxes = acceptAllCheckbox.getAttribute('aria-controls')
+            .split(' ')
+            .map((identifier) => document.getElementById(identifier))
+            .filter((checkbox) => checkbox !== null);
+
+        function updateAcceptAllState() {
+            const checkedCount = conditionCheckboxes.filter((checkbox) => checkbox.checked).length;
+            acceptAllCheckbox.checked = checkedCount === conditionCheckboxes.length;
+            acceptAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < conditionCheckboxes.length;
+        }
+
+        acceptAllCheckbox.addEventListener('change', () => {
+            conditionCheckboxes.forEach((checkbox) => {
+                checkbox.checked = acceptAllCheckbox.checked;
+            });
+            acceptAllCheckbox.indeterminate = false;
+        });
+        conditionCheckboxes.forEach((checkbox) => {
+            checkbox.addEventListener('change', updateAcceptAllState);
+        });
+        updateAcceptAllState();
+    })();
+</script>
 {% endblock %}
