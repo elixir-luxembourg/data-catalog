@@ -33,7 +33,7 @@ from wtforms import (
     FieldList,
     FormField,
 )
-from wtforms.fields import EmailField
+from wtforms.fields import EmailField, TelField
 from wtforms.validators import DataRequired, Length, Email, AnyOf, Optional
 
 from .access_handler import AccessHandler, ApplicationState, Application
@@ -168,7 +168,11 @@ class RemsAccessHandler(AccessHandler):
         application_id = self.rems_connector.create_application([catalogue_item.id])
         for field in rems_form.fields:
             rems_field_id = field.fieldid
-            wtf_field = FieldBuilder.build_field_builder(field)
+            try:
+                wtf_field = FieldBuilder.build_field_builder(field)
+            except UnsupportedFieldType:
+                logger.error(f"unsupported field type {field.fieldtype}")
+                continue
             if not wtf_field.submits_value():
                 continue
             flask_form_value = getattr(form, rems_field_id).data
@@ -529,15 +533,19 @@ class EmailFieldBuilder(FieldBuilder):
         )
 
 
+class PhoneNumberFieldBuilder(FieldBuilder):
+    SUPPORTED_FIELD_TYPE = ["phone-number"]
+
+    def build(self):
+        return TelField(
+            self.label, validators=self.validators, render_kw=self.render_kw
+        )
+
+
 class TableFieldBuilder(FieldBuilder):
     SUPPORTED_FIELD_TYPE = ["table"]
 
     def build(self):
-        if not self.rems_field.fieldcolumns:
-            return TextAreaField(
-                self.label, validators=self.validators, render_kw={"rows": 8}
-            )
-
         class TableWtfForm(FlaskForm):
             pass
 
