@@ -90,13 +90,22 @@ def resolve_field_value(field, value):
         return ", ".join(labels.get(key, key) for key in keys)
 
     if field.fieldtype == "table" and isinstance(value, list):
+        column_keys = [column.get("key") for column in field.fieldcolumns or []]
         return [
-            [cell.get("value") for cell in row]
+            _table_row_values(row, column_keys)
             for row in value
             if isinstance(row, list)
         ]
 
     return value
+
+
+def _table_row_values(row, column_keys):
+    # Blank cells are not stored, so cells are matched to columns by their key.
+    if not column_keys:
+        return [cell.get("value") for cell in row]
+    values_by_column = {cell.get("column"): cell.get("value") for cell in row}
+    return [values_by_column.get(key, "") for key in column_keys]
 
 
 def collect_use_conditions(dataset, form):
