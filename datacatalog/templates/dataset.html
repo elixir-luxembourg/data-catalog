@@ -261,7 +261,8 @@
           </dl>
         </section>
       {% endif %}
-      {% if not is_deprecated and (dataset.version or dataset.dataset_created or dataset.dataset_modified or dataset.data_standards or dataset.data_types or dataset.samples_type or study.samples_type or dataset.samples_number or dataset.disease or dataset.treatment_category or dataset.treatment_name) %}
+      {% if not is_deprecated %}
+        {% if dataset.version or dataset.dataset_created or dataset.dataset_modified or dataset.data_standards or dataset.data_types or dataset.samples_type or study.samples_type or dataset.samples_number or dataset.disease or dataset.treatment_category or dataset.treatment_name %}
         {{ macros.start_panel("General information", "general", expanded=True) }}
         <div class="mb-4 flex flex-wrap gap-x-12 gap-y-4">
           {% if dataset.version %}
@@ -307,6 +308,7 @@
         {{ macros.show_field_list(dataset.treatment_category, "Treatment or experiment categories", facet_url=facets_url.treatment_category) }}
         {{ macros.show_field_list(dataset.treatment_name, "Treatment or experiment names", facet_url=facets_url.treatment_name) }}
         {{ macros.end_panel() }}
+        {% endif %}
 
         {% if dataset.checksum or dataset.checksum_algorithm or dataset.file_formats or dataset.size or dataset.number_of_files %}
           {{ macros.start_panel("Technical information", "technical") }}
@@ -320,12 +322,26 @@
           {{ macros.end_panel() }}
         {% endif %}
 
-        {% if dataset.dataset_owner or dataset.dataset_contact %}
-          {{ macros.start_panel("Dataset contacts", "contacts") }}
-          {{ macros.show_field_text(dataset.dataset_owner, "Data owner") }}
-          {{ macros.show_field_text(dataset.dataset_contact, "Main contact") }}
-          {{ macros.show_field_text(dataset.dataset_email, "Email") }}
-          {{ macros.show_field_text(dataset.dataset_affiliation, "Affiliation") }}
+        {% set contact_persons = dataset.contact_persons %}
+        {% if contact_persons %}
+          {{ macros.start_panel("Creators", "contacts") }}
+          <dd class="mt-1 text-sm leading-relaxed text-blue-900 lg:text-base">
+            <ul role="list" class="space-y-3">
+              {% for contact in contact_persons %}
+                <li class="dataset-contact">
+                  <span class="block font-medium">{{ contact.name }}</span>
+                  {% if contact.affiliation %}
+                    <span class="block text-gray-700">{{ contact.affiliation }}</span>
+                  {% endif %}
+                  {% if contact.email %}
+                    <a href="mailto:{{ contact.email }}"
+                       aria-label="Email {{ contact.name }} ({{ contact.email }})"
+                       class="text-blue-900 underline underline-offset-2 hover:text-blue-800">{{ contact.email }}</a>
+                  {% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+          </dd>
           {{ macros.end_panel() }}
         {% endif %}
 

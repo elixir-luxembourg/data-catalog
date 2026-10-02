@@ -115,10 +115,8 @@ class Dataset(SolrEntity, EntityWithSlugs):
     treatment_name = SolrField("treatment_name", multivalued=True)
     disease = SolrField("disease", multivalued=True)
     samples_type = SolrField("samples_type", multivalued=True)
-    dataset_contact = SolrField("dataset_contact")
-    dataset_email = SolrField("dataset_email", indexed=False)
-    dataset_affiliation = SolrField("dataset_affiliation")
-    dataset_owner = SolrField("dataset_owner")
+    # every contact person as {"name", "affiliation", "email"}
+    dataset_contacts = SolrJsonField("dataset_contacts")
     form_id = SolrIntField("form_id")
     request_pdf_enabled = SolrBooleanField("request_pdf_enabled")
     deprecated = SolrField("deprecated")
@@ -171,6 +169,35 @@ class Dataset(SolrEntity, EntityWithSlugs):
         for condition_type in results:
             icons[condition_type] = mapping_icons.get(condition_type)
         return results, icons
+
+    @property
+    def contact_persons(self):
+        """
+        The contact persons of the dataset, each a dict with name, affiliation
+        and email.
+        """
+        return self.dataset_contacts or []
+
+    def access_request_contact(self):
+        """
+        The single contact the access request PDF and the study author need: the
+        name of the last contact person, the affiliation and the email of the last
+        contact persons that have one.
+
+        @return: dict with the keys name, affiliation and email, None when unknown
+        """
+        contacts = self.contact_persons
+        return {
+            "name": contacts[-1]["name"] if contacts else None,
+            "affiliation": next(
+                (c["affiliation"] for c in reversed(contacts) if c.get("affiliation")),
+                None,
+            ),
+            "email": next(
+                (c["email"] for c in reversed(contacts) if c.get("email")),
+                None,
+            ),
+        }
 
     def get_keywords(self):
         keywords = [

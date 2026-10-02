@@ -261,6 +261,66 @@ class TestWebControllers(BaseTest):
         self.assertIn("Data use conditions", get_clean_html_body(response))
         self.assertNotIn('href="#use-conditions-fields"', html)
 
+    def test_entity_details_lists_every_dataset_contact(self):
+        dataset = Dataset(title="Dataset with two contacts", entity_id="two-contacts")
+        dataset.dataset_contacts = [
+            {
+                "name": "Alice Martin",
+                "affiliation": "University of Luxembourg",
+                "email": "alice.martin@example.org",
+            },
+            {"name": "Bob Weber", "affiliation": "LIH", "email": None},
+        ]
+        dataset.save()
+        self.solr_orm.commit()
+        with self.client as client:
+            response = client.get(
+                url_for("entity_details", entity_name="dataset", entity_id=dataset.id)
+            )
+        self.assert200(response)
+        html = response.data.decode("utf-8")
+        self.assertEqual(2, html.count('class="dataset-contact"'))
+        self.assertIn('href="mailto:alice.martin@example.org"', html)
+        clean_text = get_clean_html_body(response)
+        for expected in ("Creators", "Alice Martin", "University of Luxembourg"):
+            self.assertIn(expected, clean_text)
+        self.assertNotIn("Data owner", clean_text)
+        self.assertIn("Bob Weber", clean_text)
+        self.assertIn("LIH", clean_text)
+
+    def test_entity_details_hides_the_creators_panel_without_contacts(self):
+        dataset = Dataset(title="Dataset without contacts", entity_id="no-contacts")
+        dataset.save()
+        self.solr_orm.commit()
+        with self.client as client:
+            response = client.get(
+                url_for("entity_details", entity_name="dataset", entity_id=dataset.id)
+            )
+        self.assert200(response)
+        html = response.data.decode("utf-8")
+        self.assertEqual(0, html.count('class="dataset-contact"'))
+        self.assertNotIn("Data owner", html)
+        self.assertNotIn("Creators", html)
+
+    def test_search_finds_a_dataset_by_any_contact_name(self):
+        dataset = Dataset(title="Dataset with two contacts", entity_id="two-contacts")
+        dataset.dataset_contacts = [
+            {"name": "Alice Martin", "affiliation": "LCSB", "email": None},
+            {"name": "Bob Weber", "affiliation": "LIH", "email": None},
+        ]
+        dataset.save()
+        self.solr_orm.commit()
+        for query in ("Alice", "Bob", "Weber"):
+            with self.subTest(query=query):
+                with self.client as client:
+                    response = client.get(
+                        url_for("entities_search", entity_name="dataset", query=query)
+                    )
+                self.assert200(response)
+                self.assertIn(
+                    "Dataset with two contacts", get_clean_html_body(response)
+                )
+
     def test_entity_by_slug(self):
         dataset = Dataset.query.get("d6ab9395-1ae3-453b-aa0e-c1de613905d8")
         with self.client as client:

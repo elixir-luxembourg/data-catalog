@@ -93,15 +93,11 @@ class Study(SolrEntity, EntityWithSlugs):
 
     def get_author(self):
         for dataset in self.datasets_entities:
-            if dataset.dataset_contact:
+            contact_name = dataset.access_request_contact()["name"]
+            if contact_name:
                 return {
                     "type": "Person",
-                    "name": dataset.dataset_contact,
-                }
-            elif dataset.dataset_owner:
-                return {
-                    "type": "Organisation",
-                    "name": dataset.dataset_owner,
+                    "name": contact_name,
                 }
 
         parent = self.project_entity
