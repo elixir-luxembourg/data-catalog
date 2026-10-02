@@ -46,7 +46,6 @@ class TestPdfPipeline(BaseTest):
         dataset.access_mode = "Controlled"
         dataset.platform = "Test Platform"
         dataset.dataset_owner = "LCSB"
-        dataset.dataset_owner_email = "lcsb@uni.lu"
         dataset.dataset_contacts = [
             {
                 "name": "normal user",

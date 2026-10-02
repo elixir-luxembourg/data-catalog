@@ -132,19 +132,12 @@ class TestDatsConnector(BaseTest):
             dataset.dataset_contacts,
         )
 
-    def test_build_dataset_keeps_the_owner_email_without_contact(self):
+    def test_build_dataset_keeps_the_owner_without_contact(self):
         metadata = {
-            "identifier": {"identifier": "dataset-with-owner-email"},
-            "title": "Dataset with an owner email",
-            "creators": [
-                {
-                    "@type": "Organization",
-                    "name": "LCSB",
-                    "email": "lcsb@example.org",
-                },
-            ],
+            "identifier": {"identifier": "dataset-with-owner-only"},
+            "title": "Dataset with an owner only",
+            "creators": [{"@type": "Organization", "name": "LCSB"}],
         }
         dataset = DATSConnector.build_dataset(metadata, Dataset())
         self.assertEqual("LCSB", dataset.dataset_owner)
-        self.assertEqual("lcsb@example.org", dataset.dataset_owner_email)
         self.assertEqual([], dataset.contact_persons)

@@ -283,15 +283,15 @@ class TestWebControllers(BaseTest):
         self.assertEqual(2, html.count('class="dataset-contact"'))
         self.assertIn('href="mailto:alice.martin@example.org"', html)
         clean_text = get_clean_html_body(response)
-        for expected in ("LCSB", "Alice Martin", "University of Luxembourg"):
+        for expected in ("Creators", "Alice Martin", "University of Luxembourg"):
             self.assertIn(expected, clean_text)
+        self.assertNotIn("Data owner", clean_text)
         self.assertIn("Bob Weber", clean_text)
         self.assertIn("LIH", clean_text)
 
-    def test_entity_details_shows_the_owner_email_without_contact(self):
+    def test_entity_details_hides_the_owner(self):
         dataset = Dataset(title="Dataset with an owner only", entity_id="owner-only")
         dataset.dataset_owner = "LCSB"
-        dataset.dataset_owner_email = "lcsb@example.org"
         dataset.save()
         self.solr_orm.commit()
         with self.client as client:
@@ -301,7 +301,8 @@ class TestWebControllers(BaseTest):
         self.assert200(response)
         html = response.data.decode("utf-8")
         self.assertEqual(0, html.count('class="dataset-contact"'))
-        self.assertIn('href="mailto:lcsb@example.org"', html)
+        self.assertNotIn("Data owner", html)
+        self.assertNotIn("Creators", html)
 
     def test_search_finds_a_dataset_by_any_contact_name(self):
         dataset = Dataset(title="Dataset with two contacts", entity_id="two-contacts")

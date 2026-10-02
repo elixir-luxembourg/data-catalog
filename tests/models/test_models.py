@@ -129,7 +129,6 @@ class TestModels(BaseTest):
 
     def test_access_request_contact_takes_the_last_values(self):
         dataset = Dataset("Two contacts")
-        dataset.dataset_owner_email = "lcsb@example.org"
         dataset.dataset_contacts = [
             {
                 "name": "Alice Martin",
@@ -147,12 +146,11 @@ class TestModels(BaseTest):
             dataset.access_request_contact(),
         )
 
-    def test_access_request_contact_falls_back_on_the_owner_email(self):
+    def test_access_request_contact_is_empty_for_an_owner_only(self):
         dataset = Dataset("Owner only")
         dataset.dataset_owner = "LCSB"
-        dataset.dataset_owner_email = "lcsb@example.org"
         self.assertEqual(
-            {"name": None, "affiliation": None, "email": "lcsb@example.org"},
+            {"name": None, "affiliation": None, "email": None},
             dataset.access_request_contact(),
         )
 

@@ -323,32 +323,25 @@
         {% endif %}
 
         {% set contact_persons = dataset.contact_persons %}
-        {% if dataset.dataset_owner or dataset.dataset_owner_email or contact_persons %}
-          {{ macros.start_panel("Dataset contacts", "contacts") }}
-          {{ macros.show_field_text(dataset.dataset_owner, "Data owner") }}
-          {% if dataset.dataset_owner_email %}
-            {{ macros.show_field_email(dataset.dataset_owner_email, "Data owner email", dataset.dataset_owner_email) }}
-          {% endif %}
-          {% if contact_persons %}
-            <dt class="mt-2.5 text-xs font-medium text-gray-500">Contact{% if contact_persons | length != 1 %}s{% endif %}</dt>
-            <dd class="mt-1 text-sm leading-relaxed text-blue-900 lg:text-base">
-              <ul role="list" class="space-y-3">
-                {% for contact in contact_persons %}
-                  <li class="dataset-contact">
-                    <span class="block font-medium">{{ contact.name }}</span>
-                    {% if contact.affiliation %}
-                      <span class="block text-gray-700">{{ contact.affiliation }}</span>
-                    {% endif %}
-                    {% if contact.email %}
-                      <a href="mailto:{{ contact.email }}"
-                         aria-label="Email {{ contact.name }} ({{ contact.email }})"
-                         class="text-blue-900 underline underline-offset-2 hover:text-blue-800">{{ contact.email }}</a>
-                    {% endif %}
-                  </li>
-                {% endfor %}
-              </ul>
-            </dd>
-          {% endif %}
+        {% if contact_persons %}
+          {{ macros.start_panel("Creators", "contacts") }}
+          <dd class="mt-1 text-sm leading-relaxed text-blue-900 lg:text-base">
+            <ul role="list" class="space-y-3">
+              {% for contact in contact_persons %}
+                <li class="dataset-contact">
+                  <span class="block font-medium">{{ contact.name }}</span>
+                  {% if contact.affiliation %}
+                    <span class="block text-gray-700">{{ contact.affiliation }}</span>
+                  {% endif %}
+                  {% if contact.email %}
+                    <a href="mailto:{{ contact.email }}"
+                       aria-label="Email {{ contact.name }} ({{ contact.email }})"
+                       class="text-blue-900 underline underline-offset-2 hover:text-blue-800">{{ contact.email }}</a>
+                  {% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+          </dd>
           {{ macros.end_panel() }}
         {% endif %}
 

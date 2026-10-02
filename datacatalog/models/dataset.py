@@ -118,7 +118,6 @@ class Dataset(SolrEntity, EntityWithSlugs):
     # every contact person as {"name", "affiliation", "email"}
     dataset_contacts = SolrJsonField("dataset_contacts")
     dataset_owner = SolrField("dataset_owner")
-    dataset_owner_email = SolrField("dataset_owner_email", indexed=False)
     form_id = SolrIntField("form_id")
     request_pdf_enabled = SolrBooleanField("request_pdf_enabled")
     deprecated = SolrField("deprecated")
@@ -184,8 +183,7 @@ class Dataset(SolrEntity, EntityWithSlugs):
         """
         The single contact the access request PDF and the study author need: the
         name of the last contact person, the affiliation and the email of the last
-        contact persons that have one, the email of the data owner when no contact
-        person has an email.
+        contact persons that have one.
 
         @return: dict with the keys name, affiliation and email, None when unknown
         """
@@ -198,7 +196,7 @@ class Dataset(SolrEntity, EntityWithSlugs):
             ),
             "email": next(
                 (c["email"] for c in reversed(contacts) if c.get("email")),
-                self.dataset_owner_email,
+                None,
             ),
         }
 
