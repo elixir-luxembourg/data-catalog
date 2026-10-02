@@ -63,7 +63,6 @@ def build_payload(
             "contact": contact["name"],
             "email": contact["email"],
             "affiliation": contact["affiliation"],
-            "owner": dataset.dataset_owner,
             "dataset_link_href": dataset.dataset_link_href,
             "released_on": dataset.released_on,
         },

@@ -146,9 +146,8 @@ class TestModels(BaseTest):
             dataset.access_request_contact(),
         )
 
-    def test_access_request_contact_is_empty_for_an_owner_only(self):
-        dataset = Dataset("Owner only")
-        dataset.dataset_owner = "LCSB"
+    def test_access_request_contact_is_empty_without_contacts(self):
+        dataset = Dataset("No contacts")
         self.assertEqual(
             {"name": None, "affiliation": None, "email": None},
             dataset.access_request_contact(),
@@ -160,15 +159,12 @@ class TestModels(BaseTest):
             {"name": "Alice Martin", "affiliation": None, "email": None},
             {"name": "Bob Weber", "affiliation": None, "email": None},
         ]
-        owner_only = Dataset("Owner only")
-        owner_only.dataset_owner = "LCSB"
+        without_contacts = Dataset("Without contacts")
         study = Study("Study")
 
         with patch.object(Study, "datasets_entities", [with_contacts], create=True):
             self.assertEqual(
                 {"type": "Person", "name": "Bob Weber"}, study.get_author()
             )
-        with patch.object(Study, "datasets_entities", [owner_only], create=True):
-            self.assertEqual(
-                {"type": "Organisation", "name": "LCSB"}, study.get_author()
-            )
+        with patch.object(Study, "datasets_entities", [without_contacts], create=True):
+            self.assertIsNone(study.get_author())

@@ -99,11 +99,6 @@ class Study(SolrEntity, EntityWithSlugs):
                     "type": "Person",
                     "name": contact_name,
                 }
-            elif dataset.dataset_owner:
-                return {
-                    "type": "Organisation",
-                    "name": dataset.dataset_owner,
-                }
 
         parent = self.project_entity
         if parent and parent.contacts:

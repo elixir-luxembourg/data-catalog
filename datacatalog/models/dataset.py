@@ -117,7 +117,6 @@ class Dataset(SolrEntity, EntityWithSlugs):
     samples_type = SolrField("samples_type", multivalued=True)
     # every contact person as {"name", "affiliation", "email"}
     dataset_contacts = SolrJsonField("dataset_contacts")
-    dataset_owner = SolrField("dataset_owner")
     form_id = SolrIntField("form_id")
     request_pdf_enabled = SolrBooleanField("request_pdf_enabled")
     deprecated = SolrField("deprecated")

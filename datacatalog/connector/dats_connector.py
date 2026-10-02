@@ -621,9 +621,7 @@ class DATSConnector(ImportEntitiesConnector):
             # together
             contacts = []
             for creator in metadata["creators"]:
-                if creator.get("@type") == "Organization" and creator.get("name"):
-                    dataset.dataset_owner = creator["name"]
-                elif creator.get("@type") == "Person" and creator.get("fullName"):
+                if creator.get("@type") == "Person" and creator.get("fullName"):
                     affiliations = creator.get("affiliations") or []
                     contacts.append(
                         {

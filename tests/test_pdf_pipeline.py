@@ -45,7 +45,6 @@ class TestPdfPipeline(BaseTest):
         dataset.data_types = ["Genomic"]
         dataset.access_mode = "Controlled"
         dataset.platform = "Test Platform"
-        dataset.dataset_owner = "LCSB"
         dataset.dataset_contacts = [
             {
                 "name": "normal user",
@@ -102,7 +101,7 @@ class TestPdfPipeline(BaseTest):
         self.assertEqual(metadata["contact"], "second user")
         self.assertEqual(metadata["email"], "normal@uni.lu")
         self.assertEqual(metadata["affiliation"], "University of Luxembourg")
-        self.assertEqual(metadata["owner"], "LCSB")
+        self.assertNotIn("owner", metadata)
 
     def test_to_pdf_conversions(self):
         png_result = to_pdf((FIXTURES / "sample_circles.png").read_bytes(), "img.png")

@@ -263,7 +263,6 @@ class TestWebControllers(BaseTest):
 
     def test_entity_details_lists_every_dataset_contact(self):
         dataset = Dataset(title="Dataset with two contacts", entity_id="two-contacts")
-        dataset.dataset_owner = "LCSB"
         dataset.dataset_contacts = [
             {
                 "name": "Alice Martin",
@@ -289,9 +288,8 @@ class TestWebControllers(BaseTest):
         self.assertIn("Bob Weber", clean_text)
         self.assertIn("LIH", clean_text)
 
-    def test_entity_details_hides_the_owner(self):
-        dataset = Dataset(title="Dataset with an owner only", entity_id="owner-only")
-        dataset.dataset_owner = "LCSB"
+    def test_entity_details_hides_the_creators_panel_without_contacts(self):
+        dataset = Dataset(title="Dataset without contacts", entity_id="no-contacts")
         dataset.save()
         self.solr_orm.commit()
         with self.client as client:
