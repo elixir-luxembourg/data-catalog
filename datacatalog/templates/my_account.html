@@ -1,0 +1,48 @@
+{% extends 'layout.html' %}
+
+{% block title %}My account{% endblock %}
+
+{% block meta %}
+{{ super() }}
+<meta property="og:title" content="My account – {{ config.get('TITLE', 'Data Catalogue') }}">
+{% endblock %}
+
+{% block content %}
+<section aria-labelledby="page-heading" class="space-y-10 pb-12 lg:space-y-14 lg:pb-16">
+  <header class="space-y-2">
+    <h1 id="page-heading" class="font-display text-4xl font-semibold tracking-tight text-blue-900 lg:text-6xl">My account</h1>
+    <p class="max-w-prose text-sm leading-relaxed text-gray-800">The identity you are logged in with, as reported by your identity provider.</p>
+  </header>
+
+  <section aria-labelledby="identity-heading" class="space-y-4">
+    <header class="border-b border-gray-200 pb-2">
+      <h2 id="identity-heading" class="font-display text-2xl font-semibold leading-tight text-blue-900 lg:text-3xl">Identity</h2>
+    </header>
+    {% if claims %}
+      <dl class="divide-y divide-gray-100">
+        {% for claim in claims %}
+          <div class="grid gap-1 py-3 sm:grid-cols-3 sm:gap-4">
+            <dt class="text-sm font-semibold text-gray-800">{{ claim.label }}</dt>
+            <dd class="min-w-0 break-words text-base text-blue-900 sm:col-span-2">{{ claim.value }}</dd>
+          </div>
+        {% endfor %}
+      </dl>
+    {% else %}
+      <p class="max-w-prose text-sm leading-relaxed text-gray-800"><strong class="font-semibold text-blue-900">No identity information available.</strong></p>
+    {% endif %}
+  </section>
+
+  {% if accesses %}
+    <section aria-labelledby="accesses-heading" class="space-y-4">
+      <header class="border-b border-gray-200 pb-2">
+        <h2 id="accesses-heading" class="font-display text-2xl font-semibold leading-tight text-blue-900 lg:text-3xl">Access roles</h2>
+      </header>
+      <ul class="divide-y divide-gray-100">
+        {% for access in accesses %}
+          <li class="break-words py-3 text-base text-blue-900">{{ access }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endif %}
+</section>
+{% endblock %}
