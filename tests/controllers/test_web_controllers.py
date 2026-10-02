@@ -570,7 +570,9 @@ class TestWebControllers(BaseTest):
                     request_access_response.data.decode("utf-8"),
                 )
 
-    def _mock_rems_requests(self, m, field_type="text", license_id=2):
+    def _mock_rems_requests(
+        self, m, field_type="text", license_id=2, use_conditions=None
+    ):
         """Common setup for REMS request access tests"""
         m.real_http = True
         m.post(f"{REMS_URL}/api/users/create", json={"success": True})
@@ -580,6 +582,8 @@ class TestWebControllers(BaseTest):
         self.assertIsNotNone(dataset, "No datasets available for testing")
         dataset.e2e = True
         dataset.form_id = 1
+        if use_conditions is not None:
+            dataset.use_conditions = use_conditions
         dataset.save(commit=True)
 
         if field_type == "attachment":
@@ -695,6 +699,108 @@ class TestWebControllers(BaseTest):
         )
         response_text = re.sub(r"\s+", " ", response_text)
         self.assertIn(f"Request access to {dataset.title}", response_text)
+
+    TWO_USE_CONDITIONS = [
+        {
+            "use_condition_note": "Use for research only",
+            "use_class": "RS",
+            "use_class_label": "Research",
+            "use_condition_rule": "PERMISSION",
+            "use_class_note": "",
+        },
+        {
+            "use_condition_note": "Publish the results",
+            "use_class": "PUB",
+            "use_class_label": "Publication required",
+            "use_condition_rule": "OBLIGATION",
+            "use_class_note": "",
+        },
+    ]
+
+    @patch("flask_login.utils._get_user")
+    @requests_mock.Mocker()
+    def test_request_access_accept_all_use_conditions_helper(self, current_user, m):
+        """one checkbox ticks all the use conditions (UI helper only)"""
+        dataset = self._mock_rems_requests(
+            m, license_id=2, use_conditions=self.TWO_USE_CONDITIONS
+        )
+        current_user.return_value = User("test", "test", "test")
+        client = app.test_client()
+        response = client.get(
+            url_for("request_access", entity_name="dataset", entity_id=dataset.id)
+        )
+        self.assertEqual(200, response.status_code)
+        page = response.data.decode("utf-8")
+        self.assertIn('id="accept-all-use-conditions"', page)
+        self.assertIn('aria-controls="use_condition_0 use_condition_1"', page)
+        self.assertIn('<label for="accept-all-use-conditions"', page)
+        self.assertIn('id="use_condition_0"', page)
+        self.assertIn('id="use_condition_1"', page)
+
+    @patch("flask_login.utils._get_user")
+    @requests_mock.Mocker()
+    def test_request_access_accept_all_helper_hidden_without_conditions(
+        self, current_user, m
+    ):
+        """the helper is only rendered when there are 2+ use conditions"""
+        dataset = self._mock_rems_requests(m, license_id=2, use_conditions=[])
+        current_user.return_value = User("test", "test", "test")
+        client = app.test_client()
+        response = client.get(
+            url_for("request_access", entity_name="dataset", entity_id=dataset.id)
+        )
+        self.assertEqual(200, response.status_code)
+        self.assertNotIn('id="accept-all-use-conditions"', response.data.decode())
+
+        dataset = self._mock_rems_requests(
+            m, license_id=2, use_conditions=self.TWO_USE_CONDITIONS[:1]
+        )
+        response = client.get(
+            url_for("request_access", entity_name="dataset", entity_id=dataset.id)
+        )
+        self.assertEqual(200, response.status_code)
+        page = response.data.decode()
+        self.assertIn('id="use_condition_0"', page)
+        self.assertNotIn('id="accept-all-use-conditions"', page)
+
+    @patch("flask_login.utils._get_user")
+    @requests_mock.Mocker()
+    def test_request_access_use_conditions_still_validated(self, current_user, m):
+        """the helper is not a form field, each condition is still required"""
+        dataset = self._mock_rems_requests(
+            m, license_id=2, use_conditions=self.TWO_USE_CONDITIONS
+        )
+        current_user.return_value = User("test", "test", "test")
+        client = app.test_client()
+        response = client.post(
+            url_for("request_access", entity_name="dataset", entity_id=dataset.id),
+            data={
+                "fld1": "test",
+                "license_2": "on",
+                "use_condition_0": "on",
+                "submit": "Send",
+            },
+        )
+        self.assertEqual(200, response.status_code)
+        self.assertIn("You must accept this condition", response.data.decode())
+        self.assertFalse(
+            any(
+                request.path == "/api/applications/submit"
+                for request in m.request_history
+            )
+        )
+
+        response = client.post(
+            url_for("request_access", entity_name="dataset", entity_id=dataset.id),
+            data={
+                "fld1": "test",
+                "license_2": "on",
+                "use_condition_0": "on",
+                "use_condition_1": "on",
+                "submit": "Send",
+            },
+        )
+        self.assertEqual(302, response.status_code)
 
     @patch("flask_login.utils._get_user")
     @requests_mock.Mocker()
