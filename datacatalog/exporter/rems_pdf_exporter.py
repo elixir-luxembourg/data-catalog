@@ -48,6 +48,8 @@ def build_payload(
             }
         )
 
+    contact = dataset.access_request_contact()
+
     return {
         "application_id": application_id,
         "dataset_title": dataset.title,
@@ -58,10 +60,9 @@ def build_payload(
             "data_types": dataset.data_types,
             "access_mode": dataset.access_mode,
             "platform": dataset.platform,
-            "contact": dataset.dataset_contact,
-            "email": dataset.dataset_email,
-            "affiliation": dataset.dataset_affiliation,
-            "owner": dataset.dataset_owner,
+            "contact": contact["name"],
+            "email": contact["email"],
+            "affiliation": contact["affiliation"],
             "dataset_link_href": dataset.dataset_link_href,
             "released_on": dataset.released_on,
         },

@@ -16,6 +16,8 @@
 #  You should have received a copy of the GNU Affero General Public License
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from unittest.mock import patch
+
 from tests.base_test import BaseTest
 from datacatalog import app
 from datacatalog.models.dataset import Dataset
@@ -124,3 +126,45 @@ class TestModels(BaseTest):
     def tearDown(self):
         app.config["_solr_orm"].delete(query="*:*")
         app.config["_solr_orm"].commit()
+
+    def test_access_request_contact_takes_the_last_values(self):
+        dataset = Dataset("Two contacts")
+        dataset.dataset_contacts = [
+            {
+                "name": "Alice Martin",
+                "affiliation": "LCSB",
+                "email": "alice.martin@example.org",
+            },
+            {"name": "Bob Weber", "affiliation": None, "email": None},
+        ]
+        self.assertEqual(
+            {
+                "name": "Bob Weber",
+                "affiliation": "LCSB",
+                "email": "alice.martin@example.org",
+            },
+            dataset.access_request_contact(),
+        )
+
+    def test_access_request_contact_is_empty_without_contacts(self):
+        dataset = Dataset("No contacts")
+        self.assertEqual(
+            {"name": None, "affiliation": None, "email": None},
+            dataset.access_request_contact(),
+        )
+
+    def test_study_author_is_the_last_dataset_contact(self):
+        with_contacts = Dataset("With contacts")
+        with_contacts.dataset_contacts = [
+            {"name": "Alice Martin", "affiliation": None, "email": None},
+            {"name": "Bob Weber", "affiliation": None, "email": None},
+        ]
+        without_contacts = Dataset("Without contacts")
+        study = Study("Study")
+
+        with patch.object(Study, "datasets_entities", [with_contacts], create=True):
+            self.assertEqual(
+                {"type": "Person", "name": "Bob Weber"}, study.get_author()
+            )
+        with patch.object(Study, "datasets_entities", [without_contacts], create=True):
+            self.assertIsNone(study.get_author())

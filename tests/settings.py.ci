@@ -113,6 +113,7 @@ class TestConfig(Config):
             "disease",
             "data_types",
             "data_standards",
+            "dataset_contacts",
             'studies_metadata',
             'projects_metadata',
         ],
