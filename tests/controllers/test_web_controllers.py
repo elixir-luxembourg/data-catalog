@@ -22,6 +22,7 @@ import os
 import re
 import shutil
 import tempfile
+from datetime import datetime
 from io import BytesIO
 from os import path
 from unittest.mock import MagicMock, patch
@@ -47,7 +48,7 @@ from datacatalog.models.dataset import Dataset
 from datacatalog.models.project import Project
 from datacatalog.models.study import Study
 from datacatalog.models.user import User
-from datacatalog.acces_handler.access_handler import Application
+from datacatalog.acces_handler.access_handler import Application, ApplicationState
 from tests.base_test import BaseTest, get_resource_path, get_clean_html_body
 
 __author__ = "Nirmeen Sallam"
@@ -1184,6 +1185,88 @@ class TestWebControllers(BaseTest):
         ):
             page = app.test_client().get(url_for("about")).data.decode("utf-8")
         self.assertNotIn('id="account_link"', page)
+
+    @patch("datacatalog.acces_handler.rems_handler.RemsAccessHandler.my_applications")
+    @patch("flask_login.utils._get_user")
+    @requests_mock.Mocker()
+    def test_my_applications_rems_links(self, current_user, my_applications, m):
+        """
+        Each request listed in "My data access requests" links to its page in REMS
+        """
+        m.real_http = True
+        m.post(
+            f"{REMS_URL}/api/users/create",
+            json={"success": True},
+            status_code=200,
+            real_http=False,
+        )
+        app.config["ACCESS_HANDLERS"] = {"dataset": "Rems"}
+        user = User("test", "test", "test")
+        current_user.return_value = user
+        my_applications.return_value = [
+            Application(
+                application_id=123,
+                state=ApplicationState.submitted,
+                entity_id=1,
+                entity_title="Test dataset",
+                creation_date=datetime(2023, 9, 1),
+                applicant_id=user.id,
+                external_id="2023/1",
+            )
+        ]
+
+        client = app.test_client()
+        res = client.get(url_for("my_applications", entity_name="dataset"))
+        self.assert200(res)
+        res_text = res.data.decode("utf-8")
+        expected_url = f"{REMS_URL.rstrip('/')}/application/123"
+        self.assertIn(f'href="{expected_url}"', res_text)
+        self.assertIn('target="_blank" rel="noopener"', res_text)
+        self.assertIn('title="Open in REMS"', res_text)
+        self.assertNotIn("align-top", res_text)
+        self.assertIn('class="hidden py-3 pr-4 align-middle', res_text)
+        self.assertIn(
+            'aria-label="Open request 2023/1 for Test dataset in REMS (opens in a new tab)"',
+            res_text,
+        )
+
+    @patch("datacatalog.controllers.web_controllers.get_access_handler")
+    @patch("flask_login.utils._get_user")
+    def test_my_applications_no_rems_links_without_rems(
+        self, current_user, get_access_handler
+    ):
+        """
+        Without a REMS access handler, requests don't link to REMS
+        """
+
+        class NonRemsHandler:
+            ALLOW_USER_ACTIONS = False
+            HIDE_APPROVED = False
+
+            def my_applications(self):
+                return [
+                    Application(
+                        application_id=123,
+                        state=ApplicationState.submitted,
+                        entity_id=1,
+                        entity_title="Test dataset",
+                        creation_date=datetime(2023, 9, 1),
+                        applicant_id="test",
+                    )
+                ]
+
+        get_access_handler.return_value = NonRemsHandler()
+        current_user.return_value = User("test", "test", "test")
+        # the navbar builds its own handler from this setting, keep it away from REMS
+        app.config["ACCESS_HANDLERS"] = {"dataset": "Email"}
+
+        client = app.test_client()
+        res = client.get(url_for("my_applications", entity_name="dataset"))
+        self.assert200(res)
+        res_text = res.data.decode("utf-8")
+        self.assertIn("Test dataset", res_text)
+        self.assertNotIn("data-rems-link", res_text)
+        self.assertNotIn("/application/123", res_text)
 
     def tearDown(self):
         app.config["_solr_orm"].delete(query="*:*")

@@ -61,15 +61,29 @@
       {% endif %}
     </header>
 
+{% macro request_id(a) -%}
+  {%- if a.rems_url -%}
+    <a href="{{ a.rems_url }}" target="_blank" rel="noopener"
+       title="Open in REMS"
+       aria-label="Open request {{ a.ext_id or a.id }} for {{ a.dataset }} in REMS (opens in a new tab)"
+       data-rems-link
+       class="inline-flex items-center gap-1 text-gray-600 hover:text-blue-900 hover:underline hover:underline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-900">
+      {{ a.ext_id or a.id }}
+      <i data-lucide="external-link" class="h-3 w-3 shrink-0" aria-hidden="true"></i>
+    </a>
+  {%- else -%}
+    {{ a.ext_id or a.id }}
+  {%- endif -%}
+{%- endmacro %}
     {% if applications %}
       <div class="overflow-x-auto">
         <table class="w-full border-collapse" data-paginated-table data-page-size="10">
           <thead>
             <tr class="border-b border-gray-200">
-              <th scope="col" class="hidden w-32 py-3 pr-4 text-left font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500 lg:table-cell">Id</th>
+              <th scope="col" class="hidden w-32 py-3 pr-4 text-left font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500 lg:table-cell">Request ID</th>
               <th scope="col" class="py-3 pr-4 text-left font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Dataset</th>
               <th scope="col" class="w-48 py-3 pr-4 text-left font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">State</th>
-              <th scope="col" class="hidden w-32 py-3 text-left font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500 md:table-cell">Created on</th>
+              <th scope="col" class="hidden w-32 py-3 text-left font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500 md:table-cell">Requested on</th>
               {% if actions_allowed %}
                 <th scope="col" class="w-20 py-3 text-right font-display text-[11px] font-semibold uppercase tracking-[0.15em] text-gray-500">Actions</th>
               {% endif %}
@@ -78,20 +92,20 @@
           <tbody class="divide-y divide-gray-100">
             {% for a in applications %}
               <tr class="group hover:bg-gray-50">
-                <td class="hidden py-3 pr-4 align-top font-mono text-xs tabular-nums text-gray-500 lg:table-cell">{{ a.ext_id or a.id }}</td>
-                <td class="py-3 pr-4 align-top">
+                <td class="hidden py-3 pr-4 align-middle font-mono text-xs tabular-nums text-gray-500 lg:table-cell">{{ request_id(a) }}</td>
+                <td class="py-3 pr-4 align-middle">
                   <a href="{{ a.entity_url }}"
                      class="text-base font-semibold leading-snug text-blue-900 hover:text-blue-800 group-hover:underline group-hover:underline-offset-2 lg:text-lg">{{ a.dataset }}</a>
                   <p class="mt-1 text-xs text-gray-500 md:hidden">
-                    Created <span class="tabular-nums">{{ a.creation_date_string[:10] }}</span> &middot; ID <span class="tabular-nums">{{ a.ext_id or a.id }}</span>
+                    Requested <span class="tabular-nums">{{ a.creation_date_string[:10] }}</span> &middot; Request ID <span class="tabular-nums">{{ request_id(a) }}</span>
                   </p>
                 </td>
-                <td class="py-3 pr-4 align-top">
+                <td class="py-3 pr-4 align-middle">
                   <span title="{{ a.state }}" aria-label="{{ a.state }}" class="inline-flex">{{ state_icon(a.state) }}</span>
                 </td>
-                <td class="hidden py-3 align-top text-sm tabular-nums text-gray-600 md:table-cell">{{ a.creation_date_string[:10] }}</td>
+                <td class="hidden py-3 align-middle text-sm tabular-nums text-gray-600 md:table-cell">{{ a.creation_date_string[:10] }}</td>
                 {% if actions_allowed %}
-                  <td class="py-3 align-top text-right">
+                  <td class="py-3 align-middle text-right">
                     <form method="post"
                           action="{{ url_for('close_application', entity_name=entity_name, application_id=a.id) }}"
                           data-close-application-form>
