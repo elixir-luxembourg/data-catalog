@@ -49,6 +49,7 @@ from werkzeug.wrappers import response
 
 from .. import login_manager, get_access_handler, app
 from ..acces_handler.access_handler import ApplicationState
+from ..acces_handler.rems_handler import RemsAccessHandler
 from ..exceptions import (
     CouldNotCloseApplicationException,
     AuthenticationException,
@@ -815,6 +816,11 @@ def my_applications(entity_name):
         if a.state is not None
     ]
     applications.sort(key=lambda a: a["creation_date_string"], reverse=True)
+    # link each request to its page in REMS, so requesters can follow up there
+    rems_url = app.config.get("REMS_URL", "").rstrip("/")
+    if isinstance(handler, RemsAccessHandler) and rems_url:
+        for application in applications:
+            application["rems_url"] = f"{rems_url}/application/{application['id']}"
     return render_template(
         "my_applications.html",
         applications=applications,
