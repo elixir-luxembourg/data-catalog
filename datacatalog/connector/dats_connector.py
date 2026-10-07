@@ -289,10 +289,10 @@ class DATSConnector(ImportEntitiesConnector):
         else:
             logger.warning("Study entity has no identifier")
         if "name" in metadata:
-            study.primary_purpose = metadata["name"]
+            study.title = metadata["name"]
 
         if "acronym" in metadata:
-            study.title = metadata["acronym"]
+            study.acronym = metadata["acronym"]
         logger.debug("study title is %s", study.title)
 
         if "description" in metadata:

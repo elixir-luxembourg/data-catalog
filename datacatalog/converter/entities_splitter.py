@@ -42,7 +42,6 @@ PRESERVED_STUDY_ATTRIBUTES = [
     "multi_center_study",
 ]
 MAPPED_STUDY_ATTRIBUTES = {
-    "study_primary_purpose": "primary_purpose",
     "study_phase": "phase",
     "study_type": "types",
     "organism": "organisms",
