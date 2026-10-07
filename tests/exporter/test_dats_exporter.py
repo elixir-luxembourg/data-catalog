@@ -97,7 +97,7 @@ class TestDATSExporter(BaseTest):
             dats_entity = dats_exporter.export_dats_entity(study)
             if dats_entity and len(dats_entity["projectAssets"]) > 0:
                 studies_list = [
-                    x.get("acronym")
+                    x.get("name")
                     for x in dats_entity["projectAssets"]
                     if x["@type"] == "Study"
                 ]
@@ -218,12 +218,12 @@ class TestDATSExporter(BaseTest):
         dataset2.save()
         study_title = "Study with project parent and dataset child"
         study1 = Study(study_title, "this-is-a-test-study-identifier")
-        study1.primary_purpose = "Study1 Name"
+        study1.acronym = "S1"
         study1.save()
         study1.datasets = [dataset1.id, dataset2.id]
         study1.save()
         study2 = Study(study_title, "this-is-second-test-study-identifier")
-        study2.primary_purpose = "Study2 Name"
+        study2.acronym = "S2"
         study2.save()
         project_title = "Project with study and dataset children"
         project = Project(project_title, "this-is-a-test-project-identifier")
@@ -274,3 +274,12 @@ class TestDATSExporter(BaseTest):
     def tearDown(self):
         app.config["_solr_orm"].delete(query="*:*")
         app.config["_solr_orm"].commit()
+
+
+class TestDatsStudyNameAndAcronym(BaseTest):
+    def test_title_is_exported_as_name_and_acronym_as_acronym(self):
+        study = Study("A long descriptive study name", "study-1")
+        study.acronym = "ALDSN"
+        template = DATSExporter.build_dats_study({}, study)
+        self.assertEqual("A long descriptive study name", template["name"])
+        self.assertEqual("ALDSN", template["acronym"])

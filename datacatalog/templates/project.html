@@ -171,7 +171,7 @@
               <thead>
                 <tr class="text-left">
                   <th class="py-2.5 pr-3 text-xs font-medium text-gray-500">Title</th>
-                  <th class="px-3 py-2.5 text-xs font-medium text-gray-500">Primary purpose</th>
+                  <th class="px-3 py-2.5 text-xs font-medium text-gray-500">Acronym</th>
                   <th class="px-3 py-2.5 text-xs font-medium text-gray-500">Study type</th>
                   <th class="py-2.5 pl-3 text-xs font-medium text-gray-500">Organism</th>
                 </tr>
@@ -183,7 +183,7 @@
                       <a href="{{ url_for('entity_details', entity_name='study', entity_id=study.id) }}"
                          class="font-semibold text-blue-900 hover:text-blue-800 hover:underline underline-offset-2">{{ study.title }}</a>
                     </td>
-                    <td class="px-3 py-2.5 text-gray-800">{% if study.primary_purpose %}{{ study.primary_purpose }}{% else %}<span class="text-gray-400">—</span>{% endif %}</td>
+                    <td class="px-3 py-2.5 text-gray-800">{% if study.acronym and study.acronym != study.title %}{{ study.acronym }}{% else %}<span class="text-gray-400">—</span>{% endif %}</td>
                     <td class="px-3 py-2.5 text-gray-800">
                       <span class="flex flex-wrap gap-1.5 whitespace-nowrap">{{ macros.split_labels(study.types, empty="—") }}</span>
                     </td>

@@ -125,6 +125,7 @@ class TestConfig(Config):
         ],
         'study': [
             'title',
+            'acronym',
             'organisms',
             'disease',
             'samples_type',
@@ -153,6 +154,7 @@ class TestConfig(Config):
         ],
         'study': [
             'title',
+            'acronym',
             'organisms',
             'disease',
             'samples_type',

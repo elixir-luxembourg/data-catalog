@@ -224,10 +224,10 @@
             {{ study.title }}
           </a>
           <dl class="mt-3 space-y-2.5">
-            {% if study.primary_purpose %}
+            {% if study.acronym and study.acronym != study.title %}
               <div>
-                <dt class="text-xs font-medium text-gray-500">Primary purpose</dt>
-                <dd class="mt-1 text-sm leading-relaxed text-blue-900 lg:text-base">{{ study.primary_purpose }}</dd>
+                <dt class="text-xs font-medium text-gray-500">Acronym</dt>
+                <dd class="mt-1 text-sm leading-relaxed text-blue-900 lg:text-base">{{ study.acronym }}</dd>
               </div>
             {% endif %}
             {% if study.organisms %}

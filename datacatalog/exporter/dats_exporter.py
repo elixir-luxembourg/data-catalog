@@ -666,11 +666,11 @@ class DATSExporter:
         else:
             logger.warning("Study entity has no identifier: %s", study.title)
 
-        if study.title:
-            template["acronym"] = study.title
+        if study.acronym:
+            template["acronym"] = study.acronym
 
-        if study.primary_purpose:
-            template["name"] = study.primary_purpose
+        if study.title:
+            template["name"] = study.title
         else:
             template["name"] = "-"
 

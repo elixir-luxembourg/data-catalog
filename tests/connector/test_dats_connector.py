@@ -95,3 +95,18 @@ class TestDatsConnector(BaseTest):
         studies_to_check = filter(lambda x: x.id in studies_ids, studies)
         for study in studies_to_check:
             self.assertEqual(study.project, "TEST-1-ED9C37-1")
+
+
+class TestDatsStudyNameAndAcronym(BaseTest):
+    def test_name_becomes_title_and_acronym_is_kept(self):
+        study = Study()
+        DATSConnector.build_study(
+            {
+                "identifier": {"identifier": "study-1"},
+                "name": "A long descriptive study name",
+                "acronym": "ALDSN",
+            },
+            study,
+        )
+        self.assertEqual("A long descriptive study name", study.title)
+        self.assertEqual("ALDSN", study.acronym)

@@ -22,7 +22,8 @@
         "@id": "{{ study.id }}",
         "@type": "PropertyValue"
     },
-    "name": " {{ study.primary_purpose }}",
+    "name": {{ study.title | tojson }},
+    {% if study.acronym and study.acronym != study.title %}"alternateName": {{ study.acronym | tojson }},{% endif %}
     {% if study_author %}
     "author": {
         "@type": "{{ study_author['type'] }}",
@@ -81,6 +82,9 @@
     <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
       <div class="min-w-0 flex-1 space-y-4">
         <h1 class="font-display text-3xl font-semibold tracking-tight text-blue-900 lg:text-5xl">{{ study.title }}</h1>
+        {% if study.acronym and study.acronym != study.title %}
+          <p class="font-display text-lg font-semibold text-gray-700 lg:text-xl"><span class="sr-only">Acronym: </span>{{ study.acronym }}</p>
+        {% endif %}
         <p class="select-all break-all font-mono text-xs text-gray-500">{{ study.id }}</p>
         {% if study.description %}
           <p class="max-w-3xl text-lg leading-snug text-blue-900 lg:text-xl">{{ study.description }}</p>
@@ -193,9 +197,8 @@
       </section>
 
       <div class="space-y-1">
-      {% if study.primary_purpose or study.types or study.cohorts_description or study.study_characteristics %}
+      {% if study.types or study.cohorts_description or study.study_characteristics %}
         {{ macros.start_panel("Study description", "description", expanded=True) }}
-        {{ macros.show_field_text(study.primary_purpose, "Primary purpose", facet_url=facets_url.primary_purpose) }}
         {{ macros.show_field_list(study.types, "Study types", facet_url=facets_url.types) }}
         {{ macros.show_field_text_long(study.cohorts_description, "Description of cohorts") }}
         {{ macros.show_field_list(study.study_characteristics, "Study characteristics", facet_url=facets_url.study_characteristics) }}

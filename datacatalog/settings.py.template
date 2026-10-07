@@ -35,7 +35,7 @@ class Config(object):
     SOLR_BOOST = {
         "dataset": "dataset_title^5 dataset_text_^1",
         "project": "project_title^5 project_description^2 project_text_^1",
-        "study": "study_title^5 study_description^2 study_text_^1",
+        "study": "study_title^5 study_acronym^5 study_description^2 study_text_^1",
     }
 
     # DEFAULT SORT FIELD
@@ -81,6 +81,7 @@ class Config(object):
         ],
         "study": [
             "title",
+            "acronym",
             "organisms",
             "disease",
             "samples_type",
@@ -157,6 +158,7 @@ class Config(object):
         "study": [
             "id",
             "title",
+            "acronym",
             "organisms",
             "disease",
             "samples_type",

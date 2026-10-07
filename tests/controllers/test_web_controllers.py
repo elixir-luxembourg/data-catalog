@@ -471,6 +471,21 @@ class TestWebControllers(BaseTest):
             self.assertIn("Active Test Dataset", text)
             self.assertIn("Deprecated Test Dataset", text)
 
+    def test_study_page_shows_acronym_only_when_it_differs_from_title(self):
+        distinct = Study("Long study name")
+        distinct.acronym = "LSN"
+        distinct.save()
+        identical = Study("Same name and acronym")
+        identical.acronym = "Same name and acronym"
+        identical.save()
+        self.solr_orm.commit()
+
+        with self.client as client:
+            distinct_text = get_clean_html_body(client.get(f"/e/study/{distinct.id}"))
+            identical_text = get_clean_html_body(client.get(f"/e/study/{identical.id}"))
+        self.assertIn("Acronym: LSN", distinct_text)
+        self.assertNotIn("Acronym:", identical_text)
+
     def test_get_entity(self):
         datasets = list(Dataset.query.all())
         if len(datasets) > 0:
