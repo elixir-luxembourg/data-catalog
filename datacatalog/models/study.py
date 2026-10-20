@@ -67,12 +67,12 @@ class Study(SolrEntity, EntityWithSlugs):
     datasets_metadata = SolrField("datasets_metadata", multivalued=True)
     projects_metadata = SolrField("projects_metadata", multivalued=True)
 
+    acronym = SolrField("acronym")
     description = SolrTextField("description")
     disease = SolrField("disease", multivalued=True)
     informed_consent = SolrBooleanField("informed_consent")
     multi_center_study = SolrBooleanField("multi_center_study")
     organisms = SolrField("organisms", multivalued=True)
-    primary_purpose = SolrField("primary_purpose")
     samples_source = SolrField("samples_source", multivalued=True)
     samples_type = SolrField("samples_type", multivalued=True)
     size = SolrIntField("size")

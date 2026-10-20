@@ -139,3 +139,18 @@ class TestDatsConnector(BaseTest):
         }
         dataset = DATSConnector.build_dataset(metadata, Dataset())
         self.assertEqual([], dataset.contact_persons)
+
+
+class TestDatsStudyNameAndAcronym(BaseTest):
+    def test_name_becomes_title_and_acronym_is_kept(self):
+        study = Study()
+        DATSConnector.build_study(
+            {
+                "identifier": {"identifier": "study-1"},
+                "name": "A long descriptive study name",
+                "acronym": "ALDSN",
+            },
+            study,
+        )
+        self.assertEqual("A long descriptive study name", study.title)
+        self.assertEqual("ALDSN", study.acronym)
