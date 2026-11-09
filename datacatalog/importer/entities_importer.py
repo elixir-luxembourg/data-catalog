@@ -29,6 +29,7 @@ from typing import List
 
 from .. import app
 from ..connector.entities_connector import ImportEntitiesConnector
+from ..usage_metrics import stored_metrics
 
 __author__ = "Valentin Grouès"
 
@@ -56,11 +57,20 @@ class EntitiesImporter(object):
         """
         logger.info("Importing all entities")
         count = 0
+        # usage metrics are not part of the source: keep those already stored
+        stored_metrics_by_class = {}
         for connector in self.connectors:
             count_connector = 0
             entities = connector.build_all_entities()
             for entity in entities:
                 entity.set_computed_values()
+                entity_class = entity.__class__
+                if entity_class not in stored_metrics_by_class:
+                    stored_metrics_by_class[entity_class] = stored_metrics(entity_class)
+                for name, value in (
+                    stored_metrics_by_class[entity_class].get(entity.id, {}).items()
+                ):
+                    setattr(entity, name, value)
                 entity.connector_name = connector.__class__.__name__
                 # soft commit required for relationships to work correctly
                 entity.save(soft_commit=True)

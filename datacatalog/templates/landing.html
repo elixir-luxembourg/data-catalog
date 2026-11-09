@@ -85,5 +85,57 @@
 
   </div>
 
+  {% set entity_labels = {'dataset': 'datasets', 'project': 'projects', 'study': 'studies'} %}
+  {% for lists in featured %}
+  {% set entity_name = lists.entity_name %}
+  {% set label = entity_labels.get(entity_name, entity_name ~ 's') %}
+  <div class="grid gap-10 md:grid-cols-2 lg:gap-14">
+    {% if lists.recently_added %}
+    <section aria-labelledby="recently-added-{{ entity_name }}-heading">
+      <h2 id="recently-added-{{ entity_name }}-heading" class="flex items-center gap-2 font-display text-xl font-semibold text-blue-900 lg:text-2xl">
+        <i data-lucide="sparkles" class="size-5" stroke-width="1.5" aria-hidden="true"></i>
+        <span>Recently added {{ label }}</span>
+      </h2>
+      <ol class="mt-4 divide-y divide-gray-200 border-y border-gray-200">
+        {% for record in lists.recently_added %}
+        <li class="flex items-baseline justify-between gap-4 py-3">
+          <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=record.id) }}"
+             class="min-w-0 text-sm font-semibold text-blue-900 underline-offset-2 hover:text-blue-800 hover:underline lg:text-base">{{ record.title }}</a>
+          <span class="shrink-0 text-xs tabular-nums text-gray-600">
+            <span class="sr-only">added on </span>{{ record[lists.date_attribute] | date }}
+          </span>
+        </li>
+        {% endfor %}
+      </ol>
+    </section>
+    {% endif %}
+
+    {% if lists.most_viewed %}
+    <section aria-labelledby="most-viewed-{{ entity_name }}-heading">
+      <h2 id="most-viewed-{{ entity_name }}-heading" class="flex items-center gap-2 font-display text-xl font-semibold text-blue-900 lg:text-2xl">
+        <i data-lucide="eye" class="size-5" stroke-width="1.5" aria-hidden="true"></i>
+        <span>Most viewed {{ label }}</span>
+      </h2>
+      <p class="mt-1 text-xs text-gray-600">Viewed the most over the last {{ recent_views_days }} days</p>
+      <ol class="mt-3 divide-y divide-gray-200 border-y border-gray-200">
+        {% for row in lists.most_viewed %}
+        <li class="flex items-baseline justify-between gap-4 py-3">
+          <a href="{{ url_for('entity_details', entity_name=entity_name, entity_id=row.entity.id) }}"
+             class="min-w-0 text-sm font-semibold text-blue-900 underline-offset-2 hover:text-blue-800 hover:underline lg:text-base">{{ row.entity.title }}</a>
+          <span class="shrink-0 text-xs tabular-nums text-gray-600">
+            {{ row.value }} view{{ row.value | pluralize }}
+          </span>
+        </li>
+        {% endfor %}
+      </ol>
+      <a href="{{ url_for('statistics') }}"
+         class="group mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-blue-900 hover:text-blue-800">
+        <span class="underline decoration-gray-300 underline-offset-4 group-hover:decoration-current">More statistics</span><span aria-hidden="true">&rarr;</span>
+      </a>
+    </section>
+    {% endif %}
+  </div>
+  {% endfor %}
+
 </section>
 {% endblock %}

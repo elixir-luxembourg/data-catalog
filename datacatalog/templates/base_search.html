@@ -194,10 +194,11 @@
                                 class="rounded-sm border border-gray-300 bg-white px-2 py-1 text-sm text-blue-900 focus:border-blue-900 focus:outline-none focus:ring-1 focus:ring-blue-900">
                             <option {% if not selected_sort %}selected="selected"{% endif %} value="">Relevance</option>
                             {% for value in sort_options %}
+                                {% set descending_attribute = 'data-order="desc"' if value in (descending_sort_options or []) else '' %}
                                 {% if sort_labels and sort_labels[loop.index0] %}
-                                    <option {% if value == selected_sort %}selected="selected"{% endif %} value="{{ value }}">{{ sort_labels[loop.index0] }}</option>
+                                    <option {% if value == selected_sort %}selected="selected"{% endif %} value="{{ value }}" {{ descending_attribute | safe }}>{{ sort_labels[loop.index0] }}</option>
                                 {% else %}
-                                    <option {% if value == selected_sort %}selected="selected"{% endif %} value="{{ value }}">{{ value }}</option>
+                                    <option {% if value == selected_sort %}selected="selected"{% endif %} value="{{ value }}" {{ descending_attribute | safe }}>{{ value }}</option>
                                 {% endif %}
                             {% endfor %}
                         </select>

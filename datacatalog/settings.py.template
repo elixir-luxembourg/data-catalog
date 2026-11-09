@@ -214,6 +214,20 @@ class Config(object):
         "true",
         "1",
     )
+    # USAGE METRICS (optional), stored on the records by `flask usage-metrics update`
+    # Access requests are counted from REMS (REMS_API_USER must be able to list every application)
+    # when the dataset access handler is Rems or RemsOidc.
+    # Page views are read from Matomo's reporting API when MATOMO_URL and MATOMO_SITE_ID are set.
+    MATOMO_URL = os.environ.get("MATOMO_URL", "")
+    MATOMO_SITE_ID = os.environ.get("MATOMO_SITE_ID", "")
+    # Token of a technical Matomo user with view access on that site only, sent by POST
+    MATOMO_TOKEN = os.environ.get("MATOMO_TOKEN", "")
+    # First day counted in the total views
+    MATOMO_START_DATE = os.environ.get("MATOMO_START_DATE", "2015-01-01")
+    # Number of records in each list of the landing page (recently added, most viewed)
+    LANDING_LIST_SIZE = 5
+    # Entities whose records added last and viewed most are listed on the landing page
+    LANDING_FEATURED_ENTITIES = ["dataset"]
     # Export entity as dats
     ALLOW_ENTITY_EXPORT = os.environ.get("ALLOW_ENTITY_EXPORT", "False").lower() in (
         "true",

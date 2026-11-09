@@ -87,6 +87,12 @@
   {%- elif dataset.size -%}
     {%- set _ = glance_items.append({'label': 'Size', 'value': dataset.size}) -%}
   {%- endif -%}
+  {%- if usage_metrics.views and dataset.views_total is number -%}
+    {%- set _ = glance_items.append({'label': 'Views', 'value': dataset.views_total}) -%}
+  {%- endif -%}
+  {%- if usage_metrics.access_requests and dataset.e2e and dataset.access_requests is number -%}
+    {%- set _ = glance_items.append({'label': 'Access requests', 'value': dataset.access_requests}) -%}
+  {%- endif -%}
 {%- endif -%}
 <article>
   <div class="grid grid-cols-1 gap-x-10 gap-y-8 pb-10 lg:grid-cols-[18rem_minmax(0,1fr)] lg:grid-rows-[auto_1fr] lg:pb-14">

@@ -11,6 +11,8 @@ flask import entities Dats dataset
 flask indexer extend project
 flask indexer extend study
 flask indexer extend dataset
+echo "UPDATING USAGE METRICS"
+flask usage-metrics update
 echo "EXPORT ENTITIES"
 flask export entities Rems dataset
 echo "GENERATE SITEMAPS"
