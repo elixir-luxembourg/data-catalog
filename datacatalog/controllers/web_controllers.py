@@ -23,6 +23,7 @@ HTML endpoints:
     - search
     - entity_details
     - about
+    - statistics
     - request_access
 """
 
@@ -58,6 +59,7 @@ from ..exceptions import (
 from ..authentication.identity_claims import extract_identity_claims
 from ..exporter.dats_exporter import DATSExporter
 from ..pagination import Pagination
+from .. import usage_metrics
 from solrorm import (
     Facet,
     SolrEntity,
@@ -189,12 +191,117 @@ def home() -> Response:
         return landing()
 
 
+# number of records in each list of the landing page, unless LANDING_LIST_SIZE
+# says otherwise
+DEFAULT_LANDING_LIST_SIZE = 5
+
+
+def featured_records(entity_name: str, entity_class, rows: int) -> dict:
+    """
+    The records of an entity featured on the landing page: those added last,
+    if the entity names its creation date attribute (CREATION_DATE_ATTRIBUTE),
+    and those viewed most recently. Deprecated records are left out.
+    @param entity_name: the name of the entity in the ENTITIES setting
+    @param entity_class: the SolrEntity subclass
+    @param rows: number of records in each list
+    @return: dict with entity_name, date_attribute, recently_added, most_viewed
+    """
+    solr_name = entity_class.__name__.lower()
+    active_only = []
+    if "deprecated" in entity_class._solr_fields:
+        active_only = [f'-{solr_name}_deprecated:"Deprecated"']
+    date_attribute = getattr(entity_class, "CREATION_DATE_ATTRIBUTE", None)
+    recently_added = []
+    if date_attribute:
+        date_field = f"{solr_name}_{date_attribute}"
+        recently_added = entity_class.query.search(
+            "",
+            rows=rows,
+            sort=date_field,
+            sort_order="desc",
+            fq=[f"type:{solr_name}", f"{date_field}:[* TO *]"] + active_only,
+        ).entities
+    most_viewed = []
+    if usage_metrics.VIEWS_RECENT in entity_class._solr_fields:
+        most_viewed = usage_metrics.top_records(
+            entity_class,
+            usage_metrics.VIEWS_RECENT,
+            rows=rows,
+            extra_filters=active_only,
+        )
+    return {
+        "entity_name": entity_name,
+        "date_attribute": date_attribute,
+        "recently_added": recently_added,
+        "most_viewed": most_viewed,
+    }
+
+
 def landing():
     entities = app.config["entities"]
     counts_entities = {}
     for entity_name, entity_class in entities.items():
         counts_entities[entity_name] = entity_class.query.count()
-    return render_template("landing.html", counts_entities=counts_entities)
+    featured = []
+    if usage_metrics.views_enabled():
+        rows = app.config.get("LANDING_LIST_SIZE", DEFAULT_LANDING_LIST_SIZE)
+        featured_names = app.config.get(
+            "LANDING_FEATURED_ENTITIES", [app.config.get("DEFAULT_ENTITY", "dataset")]
+        )
+        for entity_name in featured_names:
+            entity_class = entities.get(entity_name)
+            if entity_class is None:
+                logger.error(
+                    "unknown entity name %s in LANDING_FEATURED_ENTITIES", entity_name
+                )
+                continue
+            records = featured_records(entity_name, entity_class, rows)
+            if records["recently_added"] or records["most_viewed"]:
+                featured.append(records)
+    return render_template(
+        "landing.html",
+        counts_entities=counts_entities,
+        featured=featured,
+        recent_views_days=usage_metrics.RECENT_VIEWS_DAYS,
+    )
+
+
+@app.context_processor
+def inject_usage_metrics():
+    """
+    Which usage metrics are collected, for the record pages and the footer
+    """
+    return dict(
+        usage_metrics={
+            "views": usage_metrics.views_enabled(),
+            "access_requests": usage_metrics.access_requests_enabled(),
+        }
+    )
+
+
+@app.route("/statistics", methods=["GET"])
+@app.cache.cached()
+def statistics() -> Response:
+    """
+    Usage statistics of the catalogue: views and access requests
+    @return: HTML page, 404 if no usage metric is collected
+    """
+    if not usage_metrics.usage_metrics_enabled():
+        abort(404)
+    try:
+        values = usage_metrics.statistics()
+    except SolrQueryException as e:
+        logger.error(str(e), exc_info=e)
+        return render_template(
+            "error.html",
+            message="a problem occurred while querying the indexer",
+            explanation="see log for more details",
+        )
+    return render_template(
+        "statistics.html",
+        statistics=values,
+        recent_views_days=usage_metrics.RECENT_VIEWS_DAYS,
+    )
 
 
 @app.route("/search", methods=["GET"])
@@ -388,6 +495,7 @@ def default_search(
         pagination=pagination,
         sort_options=sort_options,
         sort_labels=sort_labels,
+        descending_sort_options=getattr(searcher, "descending_sort_options", list)(),
         selected_sort=sort_by,
         sort_order=sort_order,
         cursor_enabled=cursor_enabled,

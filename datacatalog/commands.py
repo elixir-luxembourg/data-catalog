@@ -26,6 +26,7 @@ Entry points for CLI operations:
    - indexer commit: triggers a solr commit
    - import entities: import entities into solr
    - export entities: export entities to a target connector
+   - usage-metrics update: store the views and access requests of the records
 
 """
 
@@ -299,6 +300,58 @@ def register_cli(app: Flask):
 
         app.cli.add_command(exporter_cli)
 
+    def register_usage_metrics_commands():
+        usage_metrics_cli = AppGroup(
+            "usage-metrics",
+            help="Usage metrics of the records (views, access requests).",
+        )
+
+        @usage_metrics_cli.command("update")
+        @click.argument("entity_names", metavar="[ENTITY]...", nargs=-1)
+        def update_usage_metrics(entity_names):
+            """Fetch the usage metrics and store them on the records.
+
+            \b
+            Views are read from Matomo (MATOMO_URL, MATOMO_SITE_ID, MATOMO_TOKEN),
+            access requests from REMS when datasets are requested through it.
+            Meant to run daily (cron), and after `flask indexer clear`.
+            Without ENTITY, every entity type is updated.
+
+            \b
+            Examples:
+              flask usage-metrics update
+              flask usage-metrics update dataset
+            """
+            from datacatalog import usage_metrics
+
+            unknown = set(entity_names) - set(app.config["entities"])
+            if unknown:
+                app.logger.error("unknown entity name %s", ", ".join(sorted(unknown)))
+                exit(1)
+            if not usage_metrics.usage_metrics_enabled():
+                app.logger.info(
+                    "No usage metrics source configured, nothing to update: set "
+                    "MATOMO_URL and MATOMO_SITE_ID, or use the REMS access handler "
+                    "for datasets."
+                )
+                return
+            for entity_name in entity_names or app.config["entities"]:
+                exit_if_schema_incomplete(app.config["_solr_orm"], entity_name)
+            try:
+                updated = usage_metrics.update_usage_metrics(entity_names or None)
+            except (
+                usage_metrics.UsageMetricsException,
+                requests.exceptions.RequestException,
+            ) as e:
+                app.logger.error("Usage metrics not updated: %s", e)
+                exit(1)
+            for entity_name, count in updated.items():
+                app.logger.info(
+                    "Usage metrics updated on %d %s record(s)", count, entity_name
+                )
+
+        app.cli.add_command(usage_metrics_cli)
+
     @app.cli.command("clear_cache")
     def clear_cache():
         """
@@ -322,6 +375,7 @@ def register_cli(app: Flask):
     register_indexer_commands()
     register_importer_commands()
     register_exporter_commands()
+    register_usage_metrics_commands()
 
     def get_importer_connector(connector_name, entity_class):
         """

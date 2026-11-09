@@ -1,4 +1,5 @@
-{% set navigation_bar = [
+{% set statistics_entry = [('statistics', 'statistics', 'Statistics')] if usage_metrics and (usage_metrics.views or usage_metrics.access_requests) else [] -%}
+{% set navigation_bar = statistics_entry + [
     ('about', 'about', 'About'),
     ('help', 'help', 'Help')
 ] -%}

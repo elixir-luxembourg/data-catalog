@@ -27,7 +27,6 @@ import logging
 from flask import url_for
 
 from solrorm import (
-    SolrAutomaticQuery,
     SolrBooleanField,
     SolrEntity,
     SolrField,
@@ -35,19 +34,19 @@ from solrorm import (
     SolrIntField,
     SolrTextField,
 )
-from . import EntityWithSlugs
+from . import EntityWithSlugs, EntityWithUsageMetrics, UsageMetricsQuery
 
 logger = logging.getLogger(__name__)
 
 
-class Study(SolrEntity, EntityWithSlugs):
+class Study(SolrEntity, EntityWithSlugs, EntityWithUsageMetrics):
     """
     Study entity, subclass of SolrEntity
     """
 
     # specifies the list of compatibles connectors
     COMPATIBLE_CONNECTORS = ["Json", "Dats", "Geo"]
-    query_class = SolrAutomaticQuery
+    query_class = UsageMetricsQuery
     # age_range = SolrField("age_range")
     # bmi_range = SolrField("bmi_range", indexed=False)
 

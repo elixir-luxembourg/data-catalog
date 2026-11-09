@@ -27,10 +27,9 @@
 
 import logging
 
-from . import EntityWithSlugs
+from . import EntityWithSlugs, EntityWithUsageMetrics, UsageMetricsQuery
 from .contact import Contact
 from solrorm import (
-    SolrAutomaticQuery,
     SolrDateTimeField,
     SolrEntity,
     SolrField,
@@ -42,14 +41,14 @@ from solrorm import (
 logger = logging.getLogger(__name__)
 
 
-class Project(SolrEntity, EntityWithSlugs):
+class Project(SolrEntity, EntityWithSlugs, EntityWithUsageMetrics):
     """
     Project entity, subclass of SolrEntity
     """
 
     # specifies the list of compatibles connectors
     COMPATIBLE_CONNECTORS = ["Json", "Dats", "Geo", "Daisy"]
-    query_class = SolrAutomaticQuery
+    query_class = UsageMetricsQuery
     id = SolrField("id")
     # indexed so that a search on a former id finds the entity
     former_ids = SolrField("former_ids", multivalued=True)

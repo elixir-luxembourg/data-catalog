@@ -27,10 +27,9 @@ import logging
 from collections import defaultdict
 from dataclasses import dataclass, field, InitVar
 
-from . import EntityWithSlugs
+from . import EntityWithSlugs, EntityWithUsageMetrics, UsageMetricsQuery
 from .. import app, DEFAULT_USE_CONDITIONS_ICONS
 from solrorm import (
-    SolrAutomaticQuery,
     SolrBooleanField,
     SolrDateTimeField,
     SolrEntity,
@@ -62,13 +61,15 @@ class UseCondition:
         )
 
 
-class Dataset(SolrEntity, EntityWithSlugs):
+class Dataset(SolrEntity, EntityWithSlugs, EntityWithUsageMetrics):
     """
     Subclass of SolrEntity that is used as default entity
     """
 
     # specifies the list of compatibles connectors
     COMPATIBLE_CONNECTORS = ["Limesurvey", "Geo", "Json", "Dats", "Daisy"]
+    # date attribute ordering the records added last on the landing page
+    CREATION_DATE_ATTRIBUTE = "dataset_created"
 
     id = SolrField("id")
     # indexed so that a search on a former id finds the entity
@@ -109,7 +110,7 @@ class Dataset(SolrEntity, EntityWithSlugs):
     )
     access_mode = SolrField("access_mode")
     platform = SolrField("platform")
-    query_class = SolrAutomaticQuery
+    query_class = UsageMetricsQuery
     samples_number = SolrField("samples_number", indexed=False)
     treatment_category = SolrField("treatment_category", multivalued=True)
     treatment_name = SolrField("treatment_name", multivalued=True)
@@ -127,6 +128,8 @@ class Dataset(SolrEntity, EntityWithSlugs):
     checksum = SolrField("checksum")
     checksum_algorithm = SolrField("checksum_algorithm")
     number_of_files = SolrIntField("number_of_files")
+    # applications made in REMS for the dataset, drafts excluded
+    access_requests = SolrIntField("access_requests")
 
     def __init__(
         self,

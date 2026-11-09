@@ -1,0 +1,126 @@
+{% extends 'layout.html' %}
+{% import 'macros.html' as macros %}
+{% set active_page = "statistics" %}
+{% set entity_labels = {'dataset': 'Datasets', 'project': 'Projects', 'study': 'Studies'} %}
+
+{% block title %}Statistics{% endblock %}
+
+{% block meta %}
+{{ super() }}
+<meta property="og:title" content="Statistics – {{ config.get('TITLE', 'Data Catalogue') }}">
+<meta property="og:description" content="How often the records of {{ config.get('TITLE', 'Data Catalogue') }} are viewed and requested.">
+{% endblock %}
+
+{% macro bar(value, maximum) %}
+  {%- set percent = (100 * value / maximum) if maximum else 0 -%}
+  <span class="block h-2 w-full bg-gray-100" aria-hidden="true">
+    <span class="block h-2 bg-blue-900" style="width: {{ '%.1f' % percent }}%"></span>
+  </span>
+{% endmacro %}
+
+{% macro ranking_table(table_id, caption, value_header, rows) %}
+  <table class="w-full border-collapse text-left text-sm">
+    <caption id="{{ table_id }}-caption" class="pb-3 text-left font-display text-xl font-semibold text-blue-900 lg:text-2xl">{{ caption }}</caption>
+    <thead>
+      <tr class="border-b border-blue-900 text-xs font-medium text-gray-600">
+        <th scope="col" class="w-8 py-2 pr-2 font-medium">#</th>
+        <th scope="col" class="py-2 pr-4 font-medium">Dataset</th>
+        <th scope="col" class="w-1/3 py-2 text-right font-medium">{{ value_header }}</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-200">
+      {% set maximum = rows[0].value if rows else 0 %}
+      {% for row in rows %}
+        <tr>
+          <td class="py-2.5 pr-2 align-top tabular-nums text-gray-600">{{ loop.index }}</td>
+          <th scope="row" class="py-2.5 pr-4 align-top font-semibold">
+            <a href="{{ url_for('entity_details', entity_name='dataset', entity_id=row.entity.id) }}"
+               class="text-blue-900 underline-offset-2 hover:text-blue-800 hover:underline">{{ row.entity.title }}</a>
+          </th>
+          <td class="py-2.5 align-top">
+            <span class="block text-right font-semibold tabular-nums text-blue-900">{{ row.value }}</span>
+            <span class="mt-1 block">{{ bar(row.value, maximum) }}</span>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endmacro %}
+
+{% block content %}
+<div class="space-y-12 pb-12 lg:space-y-16 lg:pb-20">
+
+  <section>
+    <h1 class="font-display text-4xl font-semibold tracking-tight text-blue-900 lg:text-6xl">Statistics</h1>
+    <p class="mt-6 max-w-2xl text-lg leading-snug text-blue-900 lg:text-xl">
+      How often the records of the catalogue are viewed{% if statistics.access_requests_enabled %} and requested{% endif %}.
+    </p>
+  </section>
+
+  <dl class="flex flex-wrap gap-x-16 gap-y-6 border-y border-blue-900 py-6">
+    {% if statistics.views_enabled %}
+      <div>
+        <dt class="text-xs font-medium text-gray-600">Record page views</dt>
+        <dd class="mt-1.5 font-display text-3xl font-bold tabular-nums text-blue-900 lg:text-4xl">{{ statistics.total_views }}</dd>
+      </div>
+    {% endif %}
+    {% if statistics.access_requests_enabled %}
+      <div>
+        <dt class="text-xs font-medium text-gray-600">Dataset access requests</dt>
+        <dd class="mt-1.5 font-display text-3xl font-bold tabular-nums text-blue-900 lg:text-4xl">{{ statistics.total_access_requests }}</dd>
+      </div>
+    {% endif %}
+  </dl>
+
+  {% if statistics.views_enabled and statistics.views_by_type %}
+    <section class="max-w-2xl">
+      <table class="w-full border-collapse text-left text-sm">
+        <caption id="views-by-type-caption" class="pb-3 text-left font-display text-xl font-semibold text-blue-900 lg:text-2xl">Views by record type</caption>
+        <thead>
+          <tr class="border-b border-blue-900 text-xs font-medium text-gray-600">
+            <th scope="col" class="py-2 pr-4 font-medium">Record type</th>
+            <th scope="col" class="w-1/2 py-2 text-right font-medium">Views</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          {% set maximum = statistics.views_by_type | map(attribute='value') | max %}
+          {% for row in statistics.views_by_type %}
+            <tr>
+              <th scope="row" class="py-2.5 pr-4 align-top font-semibold text-blue-900">{{ entity_labels.get(row.entity_name, row.entity_name | capitalize) }}</th>
+              <td class="py-2.5 align-top">
+                <span class="block text-right font-semibold tabular-nums text-blue-900">{{ row.value }}</span>
+                <span class="mt-1 block">{{ bar(row.value, maximum) }}</span>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  {% endif %}
+
+  {% if statistics.top_viewed or statistics.top_requested %}
+    <div class="grid gap-12 lg:grid-cols-2 lg:gap-16">
+      {% if statistics.top_viewed %}
+        <section>{{ ranking_table('top-viewed', 'Most viewed datasets', 'Views', statistics.top_viewed) }}</section>
+      {% endif %}
+      {% if statistics.top_requested %}
+        <section>{{ ranking_table('top-requested', 'Most requested datasets', 'Access requests', statistics.top_requested) }}</section>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  <section class="max-w-2xl text-sm leading-relaxed text-gray-800">
+    <h2 class="font-display text-base font-semibold text-blue-900">About these numbers</h2>
+    <ul class="mt-2 list-disc space-y-1 pl-5">
+      {% if statistics.views_enabled %}
+        <li>Views are page views of the record pages, counted without cookies, so they are approximate. They are updated once a day.</li>
+        <li>The most viewed datasets on the home page are counted over the last {{ recent_views_days }} days; the views here are counted since the start.</li>
+      {% endif %}
+      {% if statistics.access_requests_enabled %}
+        <li>Access requests are the applications submitted for the datasets requested through the catalogue, whatever their outcome. Datasets requested another way are not counted.</li>
+      {% endif %}
+    </ul>
+  </section>
+
+</div>
+{% endblock %}
